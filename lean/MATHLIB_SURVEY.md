@@ -128,11 +128,12 @@ proof.
 - `EulersGem.CellGeometry`: open∩affine, relative interior, halfspace affDim
   preservation, proper hyperplane-slice affDim drop-by-1.
 - `EulersGem.EulerChar`: combinatorial `eulerCharacteristic` + **full refinement invariance**.
-- `EulersGem.Polytope`: `IsPolyhedron` / `IsPolytope` / `IsFaceOf` / `IsConic` /
-  `IsPolyhedralCone`; cone arrangement; polyhedral cones are cell complexes.
-- `EulersGem.Cone`: `eulerCharacteristic_univ`; soft IE; **halfspace-cone cell
+- `EulersGem.Polytope`: H/V-rep; `IsFaceOf` lattice (`trans`/`inter`/`of_isExposed`);
+  supporting-hyperplane faces of polyhedral cones; cone-arrangement cell characterisation;
+  polyhedral cones are cell complexes.
+- `EulersGem.Cone`: univ EC; soft IE; **halfspace + two-halfspace cone cell EC = 0**.
 - `EulersGem.FaceCell`: halfspace `hyper1`/`hyper2` — nonempty faces = `{cone, hyperplane}`;
-  cells ⊆ cone = `{open halfspace, hyperplane}`; **`faceEulerSum_halfspace_cone = 0`**.
-  General cone face lattice still open.
-  Euler char = 0**. Not yet in `Results.lean` (await general EP).
-- **Blocker:** face ↔ relative-interior-cell bijection for general polyhedral cones.
+  cells ⊆ cone match; **`faceEulerSum_halfspace_cone = 0`**.
+- Not yet in `Results.lean` (await general EP).
+- **Blocker:** full inclusion-exclusion for ≥3 generators; face ↔ RI-cell bijection /
+  minimal H-rep for general polyhedral cones.

@@ -6,6 +6,7 @@ Authors: Michal Wallace, Grok Bot
 import EulersGem.EulerChar
 import EulersGem.Polytope
 import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+import Mathlib.Analysis.Normed.Affine.AddTorsorBases
 
 /-!
 # Conical cell structure toward Euler–Poincaré (Paulson)
@@ -19,12 +20,14 @@ Port of the cone step of AFP `Euler_Formula`:
 * **proved:** cell-complex Euler char of a single nontrivial halfspace cone is `0`
 * **proved (halfspace):** face ↔ cell bijection and `faceEulerSum = 0`
   (see `EulersGem.FaceCell`)
+* **proved:** two-halfspace polyhedral cone cell EC = 0 (soft IE)
+* face-lattice substrate in `Polytope` (`isFaceOf_trans/inter/of_isExposed`,
+  supporting-hyperplane faces, cone-arrangement cell characterisation)
 * targets stated as docs (not Results): general `Euler_polyhedral_cone`,
   `Euler_Poincare_full`, 3D `V−E+F=2`
 
-Blocker for the general theorems: face ↔ relative-interior-cell bijection for
-*general* polyhedral cones (Paulson `hyper1`/`hyper2`); needs face lattice /
-minimal H-rep beyond the halfspace case.
+Blocker for the general theorems: full inclusion-exclusion for ≥3 generators;
+face ↔ relative-interior-cell bijection (Paulson `hyper1`/`hyper2`) / minimal H-rep.
 -/
 
 open scoped RealInnerProductSpace BigOperators
@@ -168,6 +171,136 @@ lemma affDim_linear_hyperplane [FiniteDimensional ℝ E] [Nonempty E]
   have hTop : ((⊤ : AffineSubspace ℝ E) : Set E) = univ := rfl
   rw [hTop, univ_inter, affDim_univ] at h
   exact h
+
+/-! ### Two-halfspace polyhedral cone: cell EC = 0 -/
+
+lemma isHyperplaneCellComplex_closedHalfspace_zero_mono {As : Set E} {a : E}
+    (ha : a ∈ As) :
+    IsHyperplaneCellComplex (coneArrangement As) (closedHalfspace a 0) :=
+  isHyperplaneCellComplex_mono (isHyperplaneCellComplex_closedHalfspace_zero a)
+    (Set.singleton_subset_iff.mpr ⟨a, ha, rfl⟩)
+
+/-- Cell Euler char of a closed halfspace cone relative to any larger cone arrangement. -/
+lemma eulerCharacteristic_closedHalfspace_zero_of_mem [FiniteDimensional ℝ E] [Nonempty E]
+    {As : Set E} (hAs : As.Finite) {a : E} (ha : a ∈ As) (ha0 : a ≠ 0) :
+    eulerCharacteristic (coneArrangement As) (closedHalfspace a 0) = 0 := by
+  have hA := coneArrangement_finite hAs
+  have hSing := eulerCharacteristic_halfspace_cone ha0
+  have hCxS : IsHyperplaneCellComplex {(a, (0 : ℝ))} (closedHalfspace a 0) :=
+    isHyperplaneCellComplex_closedHalfspace_zero a
+  have hCxA : IsHyperplaneCellComplex (coneArrangement As) (closedHalfspace a 0) :=
+    isHyperplaneCellComplex_closedHalfspace_zero_mono ha
+  exact (eulerCharacteristic_invariant hA (finite_singleton _) hCxA hCxS).trans hSing
+
+lemma openPositive_two (a b : E) :
+    (closedHalfspace a 0)ᶜ ∩ (closedHalfspace b 0)ᶜ =
+      {x : E | 0 < ⟪a, x⟫ ∧ 0 < ⟪b, x⟫} := by
+  ext x
+  simp [compl_closedHalfspace_zero]
+
+/-- Cell-complex Euler characteristic of the intersection of two nontrivial halfspace cones
+is `0` when the open dual is nonempty. Stepping stone toward general
+`Euler_polyhedral_cone` (full IE for ≥3 generators still open). -/
+theorem eulerCharacteristic_two_halfspace_cone [FiniteDimensional ℝ E] [Nonempty E]
+    {a b : E} (ha : a ≠ 0) (hb : b ≠ 0)
+    (hpos : ∃ x : E, ⟪a, x⟫ < 0 ∧ ⟪b, x⟫ < 0) :
+    eulerCharacteristic (coneArrangement ({a, b} : Set E))
+      (closedHalfspace a 0 ∩ closedHalfspace b 0) = 0 := by
+  classical
+  set As : Set E := {a, b}
+  set A : Set (Hyperplane E) := coneArrangement As
+  set Ha := closedHalfspace a 0
+  set Hb := closedHalfspace b 0
+  have hAs : As.Finite := (Set.finite_singleton b).insert a
+  have hAfin : A.Finite := coneArrangement_finite hAs
+  have haAs : a ∈ As := Set.mem_insert a _
+  have hbAs : b ∈ As := Set.mem_insert_of_mem _ rfl
+  have hHa : eulerCharacteristic A Ha = 0 :=
+    eulerCharacteristic_closedHalfspace_zero_of_mem hAs haAs ha
+  have hHb : eulerCharacteristic A Hb = 0 :=
+    eulerCharacteristic_closedHalfspace_zero_of_mem hAs hbAs hb
+  have hHaCx : IsHyperplaneCellComplex A Ha :=
+    isHyperplaneCellComplex_closedHalfspace_zero_mono haAs
+  have hHbCx : IsHyperplaneCellComplex A Hb :=
+    isHyperplaneCellComplex_closedHalfspace_zero_mono hbAs
+  -- Soft IE: EC(Ha ∩ Hb) = EC(Ha)+EC(Hb)-EC(Ha ∪ Hb)
+  have hIE := eulerCharacteristic_union_inter (A := A) (S := Ha) (T := Hb) hAfin hHaCx hHbCx
+  -- Ha ∪ Hb = univ \ openPositive; EC(univ) = EC(Ha∪Hb) + EC(P)
+  set P : Set E := Haᶜ ∩ Hbᶜ
+  have hPeq : P = {x : E | 0 < ⟪a, x⟫ ∧ 0 < ⟪b, x⟫} := openPositive_two a b
+  have hneP : P.Nonempty := by
+    obtain ⟨x, hxa, hxb⟩ := hpos
+    refine ⟨-x, ?_⟩
+    simp only [hPeq, Set.mem_ofPred_eq]
+    exact ⟨by simpa [inner_neg_right] using neg_pos.mpr hxa,
+      by simpa [inner_neg_right] using neg_pos.mpr hxb⟩
+  have hPcell : IsHyperplaneCell A P := by
+    -- P = {y | ∀ c ∈ {a,b}, 0 < ⟪c,y⟫}
+    have hEq : P = {y : E | ∀ c ∈ As, 0 < ⟪c, y⟫} := by
+      ext y
+      simp only [hPeq, As, Set.mem_insert_iff, Set.mem_singleton_iff, Set.mem_ofPred_eq]
+      constructor
+      · intro ⟨hya, hyb⟩ c hc; rcases hc with rfl | rfl <;> assumption
+      · intro hy; exact ⟨hy a (Or.inl rfl), hy b (Or.inr rfl)⟩
+    rw [hEq]
+    exact isHyperplaneCell_openPositive (by simpa [← hEq] using hneP)
+  have hPcx : IsHyperplaneCellComplex A P := isHyperplaneCell_cellComplex hPcell
+  have hUnionCx : IsHyperplaneCellComplex A (Ha ∪ Hb) :=
+    isHyperplaneCellComplex_union hHaCx hHbCx
+  have hdisj : Disjoint (Ha ∪ Hb) P := by
+    refine Set.disjoint_left.mpr ?_
+    intro x hxU hxP
+    have hxP' : x ∈ Haᶜ ∧ x ∈ Hbᶜ := by simpa [P] using hxP
+    rcases hxU with hxA | hxB
+    · exact hxP'.1 hxA
+    · exact hxP'.2 hxB
+  have hcover : Ha ∪ Hb ∪ P = (Set.univ : Set E) := by
+    ext x
+    constructor
+    · intro; trivial
+    · intro
+      by_cases hxa : x ∈ Ha
+      · exact Or.inl (Or.inl hxa)
+      · by_cases hxb : x ∈ Hb
+        · exact Or.inl (Or.inr hxb)
+        · exact Or.inr ⟨hxa, hxb⟩
+  have hAdd :=
+    eulerCharacteristic_cellcomplex_union hAfin hUnionCx hPcx hdisj
+  rw [hcover, eulerCharacteristic_univ hAfin] at hAdd
+  have hECP : eulerCharacteristic A P = (-1 : ℤ) ^ Module.finrank ℝ E := by
+    have hEq : P = {y : E | ∀ c ∈ As, 0 < ⟪c, y⟫} := by
+      ext y
+      simp only [hPeq, As, Set.mem_insert_iff, Set.mem_singleton_iff, Set.mem_ofPred_eq]
+      constructor
+      · intro ⟨hya, hyb⟩ c hc; rcases hc with rfl | rfl <;> assumption
+      · intro hy; exact ⟨hy a (Or.inl rfl), hy b (Or.inr rfl)⟩
+    rw [hEq, eulerCharacteristic_cell hAfin (by
+      simpa [← hEq] using hPcell), cellSign]
+    -- affDim of open positive on {a,b}
+    have hne : ({y : E | ∀ c ∈ As, 0 < ⟪c, y⟫}).Nonempty := by
+      simpa [← hEq] using hneP
+    have hopen : IsOpen {y : E | ∀ c ∈ As, 0 < ⟪c, y⟫} := by
+      have : {y : E | ∀ c ∈ As, 0 < ⟪c, y⟫} =
+          {y | 0 < ⟪a, y⟫} ∩ {y | 0 < ⟪b, y⟫} := by
+        ext y
+        simp only [As, Set.mem_insert_iff, Set.mem_singleton_iff, Set.mem_inter_iff,
+          Set.mem_ofPred_eq]
+        constructor
+        · intro hy; exact ⟨hy a (Or.inl rfl), hy b (Or.inr rfl)⟩
+        · intro ⟨hya, hyb⟩ c hc; rcases hc with rfl | rfl <;> assumption
+      rw [this]
+      exact (isOpen_halfSpace_gt a 0).inter (isOpen_halfSpace_gt b 0)
+    have hspan := hopen.affineSpan_eq_top hne
+    have hdim := (affDim_eq_of_affineSpan_eq
+      (hspan.trans (affineSpan_univ (E := E)).symm)).trans affDim_univ
+    simp [hdim]
+  have hECunion : eulerCharacteristic A (Ha ∪ Hb) = 0 := by omega
+  -- rearrange soft IE: EC(Ha ∪ Hb) = EC(Ha)+EC(Hb)-EC(Ha ∩ Hb)
+  -- so EC(Ha ∩ Hb) = EC(Ha)+EC(Hb)-EC(Ha ∪ Hb) = 0
+  have : eulerCharacteristic A (Ha ∪ Hb) =
+      eulerCharacteristic A Ha + eulerCharacteristic A Hb -
+        eulerCharacteristic A (Ha ∩ Hb) := hIE
+  omega
 
 /-- Stated Paulson targets (not claimed in Results.lean until proved in full). -/
 def EulerPolyhedralConeGoal : String :=

@@ -34,5 +34,6 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Cell-complex Compl/Diff; polyhedron/polytope/cone substrate
 - [x] Halfspace-cone cell Euler char = 0; soft inclusion-exclusion
 - [x] Halfspace face↔cell (`FaceCell`) + `faceEulerSum_halfspace_cone = 0`
-- [ ] Face lattice / general Euler_polyhedral_cone (beyond halfspace)
+- [x] Face lattice substrate + two-halfspace cone cell EC = 0
+- [ ] General Euler_polyhedral_cone (IE ≥3 + face↔cell) / faceEulerSum
 - [ ] Euler_Poincare_full + 3D V−E+F=2 (then Results.lean)

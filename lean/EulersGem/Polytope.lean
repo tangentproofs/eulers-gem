@@ -8,6 +8,7 @@ import EulersGem.CellGeometry
 import EulersGem.Hyperplane
 import Mathlib.Analysis.Convex.Basic
 import Mathlib.Analysis.Convex.Extreme
+import Mathlib.Analysis.Convex.Exposed
 import Mathlib.Analysis.Convex.Hull
 import Mathlib.Analysis.InnerProductSpace.Basic
 
@@ -63,6 +64,19 @@ lemma isFaceOf_empty (S : Set E) : IsFaceOf S (∅ : Set E) :=
 lemma isFaceOf_isExtreme {S T : Set E} (h : IsFaceOf S T) : IsExtreme ℝ S T := h.isExtreme
 
 lemma isFaceOf_convex {S T : Set E} (h : IsFaceOf S T) : Convex ℝ T := h.convex
+
+lemma isFaceOf_trans {S T U : Set E} (hST : IsFaceOf S T) (hTU : IsFaceOf T U) :
+    IsFaceOf S U :=
+  ⟨hST.isExtreme.trans hTU.isExtreme, hTU.convex⟩
+
+lemma isFaceOf_inter {S T U : Set E} (hT : IsFaceOf S T) (hU : IsFaceOf S U) :
+    IsFaceOf S (T ∩ U) :=
+  ⟨hT.isExtreme.inter hU.isExtreme, hT.convex.inter hU.convex⟩
+
+/-- Exposed sets of a convex body are faces (Isabelle `face_of` via supporting functional). -/
+lemma isFaceOf_of_isExposed {S T : Set E} (h : IsExposed ℝ S T) (hS : Convex ℝ S) :
+    IsFaceOf S T :=
+  ⟨h.isExtreme, h.convex hS⟩
 
 /-- Combinatorial face Euler sum (Paulson left-hand side of Euler–Poincaré). -/
 noncomputable def faceEulerSum (S : Set E) (n : ℕ) : ℤ :=
@@ -179,5 +193,93 @@ lemma isHyperplaneCellComplex_polyhedralCone {As : Set E} (hAs : As.Finite) :
         (isHyperplaneCellComplex_closedHalfspace_zero a)
         (singleton_subset_iff.mpr ⟨a, ha, rfl⟩))
       (ih hrest)
+
+
+/-! ### Supporting hyperplanes and cells of polyhedral cones -/
+
+/-- Intersection of a polyhedral cone with a defining hyperplane is a face.
+Paulson / HOL-Analysis: `face_of_Int_supporting_hyperplane_le`. -/
+lemma isFaceOf_polyhedralCone_eq_hyperplane {As : Set E} {a : E} (ha : a ∈ As) :
+    IsFaceOf (⋂ b ∈ As, closedHalfspace b 0)
+      ((⋂ b ∈ As, closedHalfspace b 0) ∩ {x : E | ⟪a, x⟫ = 0}) := by
+  set S := ⋂ b ∈ As, closedHalfspace b 0
+  refine ⟨⟨inter_subset_left, ?_⟩, (convex_iInter fun b =>
+    convex_iInter fun _ => convex_closedHalfspace b 0).inter (convex_linear_hyperplane_aux a)⟩
+  intro x hxS y hyS z hzFace hzSeg
+  -- z ∈ S ∩ hyperplane, and z ∈ openSegment x y ⇒ x on hyperplane
+  have hz0 : ⟪a, z⟫ = 0 := hzFace.2
+  obtain ⟨b, c, hb, hc, _hbc, rfl⟩ := hzSeg
+  have hxA : ⟪a, x⟫ ≤ 0 := by
+    have : x ∈ closedHalfspace a 0 := (mem_iInter.mp ((mem_iInter.mp hxS) a)) ha
+    exact this
+  have hyA : ⟪a, y⟫ ≤ 0 := by
+    have : y ∈ closedHalfspace a 0 := (mem_iInter.mp ((mem_iInter.mp hyS) a)) ha
+    exact this
+  have hz : ⟪a, b • x + c • y⟫ = 0 := hz0
+  have hsum : b * ⟪a, x⟫ + c * ⟪a, y⟫ = 0 := by
+    simpa [inner_add_right, inner_smul_right] using hz
+  have hx0 : ⟪a, x⟫ = 0 := by
+    have hbax : b * ⟪a, x⟫ ≤ 0 := mul_nonpos_of_nonneg_of_nonpos hb.le hxA
+    have hcoy : c * ⟪a, y⟫ ≤ 0 := mul_nonpos_of_nonneg_of_nonpos hc.le hyA
+    nlinarith
+  exact ⟨hxS, hx0⟩
+where
+  convex_linear_hyperplane_aux (a : E) : Convex ℝ {x : E | ⟪a, x⟫ = 0} :=
+    convex_hyperplane (isLinearMap_inner a) 0
+
+/-- Open positive orthant relative to normals `As` is a cell of the cone arrangement
+(when nonempty). -/
+lemma isHyperplaneCell_openPositive {As : Set E}
+    (hne : ({x : E | ∀ a ∈ As, 0 < ⟪a, x⟫}).Nonempty) :
+    IsHyperplaneCell (coneArrangement As) {x : E | ∀ a ∈ As, 0 < ⟪a, x⟫} := by
+  obtain ⟨z, hz⟩ := hne
+  refine ⟨z, ?_⟩
+  ext y
+  constructor
+  · intro hy h hh
+    obtain ⟨a, ha, rfl⟩ := hh
+    have hzside : hyperplaneSide (a, (0 : ℝ)) z = 1 :=
+      (hyperplaneSide_eq_one_iff a 0 z).mpr (by simpa using hz a ha)
+    have hyside : hyperplaneSide (a, (0 : ℝ)) y = 1 :=
+      (hyperplaneSide_eq_one_iff a 0 y).mpr (by simpa using hy a ha)
+    exact hzside.trans hyside.symm
+  · intro hy a ha
+    have hside : hyperplaneSide (a, (0 : ℝ)) z = hyperplaneSide (a, (0 : ℝ)) y :=
+      hy (a, (0 : ℝ)) ⟨a, ha, rfl⟩
+    have hzside : hyperplaneSide (a, (0 : ℝ)) z = 1 :=
+      (hyperplaneSide_eq_one_iff a 0 z).mpr (by simpa using hz a ha)
+    exact (hyperplaneSide_eq_one_iff a 0 y).mp (hside ▸ hzside)
+
+/-- A cell of the cone arrangement lies in the polyhedral cone iff its witness has no
+positive sides (all `⟪a, x⟫ ≤ 0`). -/
+lemma cell_subset_polyhedralCone_iff {As : Set E} {C : Set E}
+    (hC : IsHyperplaneCell (coneArrangement As) C) :
+    C ⊆ (⋂ a ∈ As, closedHalfspace a 0) ↔
+      ∃ x ∈ C, ∀ a ∈ As, ⟪a, x⟫ ≤ 0 := by
+  obtain ⟨x, rfl⟩ := hC
+  constructor
+  · intro hsub
+    refine ⟨x, hyperplaneEquiv_refl _ x, ?_⟩
+    intro a ha
+    have hx : x ∈ closedHalfspace a 0 :=
+      (mem_iInter.mp ((mem_iInter.mp (hsub (hyperplaneEquiv_refl _ x))) a)) ha
+    exact hx
+  · rintro ⟨z, hzC, hzle⟩
+    intro y hy
+    refine mem_iInter.mpr fun a => mem_iInter.mpr fun ha => ?_
+    -- y ~ x via arrangement, and z ~ x, so y ~ z; side(a,0) y = side(a,0) z ≠ +1
+    have hyz : HyperplaneEquiv (coneArrangement As) z y :=
+      hyperplaneEquiv_trans (hyperplaneEquiv_symm hzC) hy
+    have hside : hyperplaneSide (a, (0 : ℝ)) z = hyperplaneSide (a, (0 : ℝ)) y :=
+      hyz (a, (0 : ℝ)) ⟨a, ha, rfl⟩
+    have hzside_ne : hyperplaneSide (a, (0 : ℝ)) z ≠ 1 := by
+      intro h1
+      have : 0 < ⟪a, z⟫ := (hyperplaneSide_eq_one_iff a 0 z).mp h1
+      exact not_lt_of_ge (hzle a ha) this
+    have : hyperplaneSide (a, (0 : ℝ)) y ≠ 1 := by
+      intro h1; exact hzside_ne (hside.trans h1)
+    have : ¬ 0 < ⟪a, y⟫ := fun hgt => this ((hyperplaneSide_eq_one_iff a 0 y).mpr hgt)
+    exact le_of_not_gt this
+
 
 end EulersGem
