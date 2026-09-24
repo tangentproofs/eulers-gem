@@ -16,14 +16,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pygments (for source browser)
+        # Lean4Lexer needs Pygments >= 2.16
+        run: python3 -m pip install --upgrade 'pygments>=2.16'
+
+      - name: Build browsable Lean source pages
+        run: >
+          python3 scripts/build-source-pages.py
+          --src-root lean
+          --out _src-pages
+          --github-url 'https://github.com/tangentproofs/eulers-gem/blob/main/lean'
+          --title "Euler's Gem"
+          --featured Results
+
+      - name: Prepare Pages site
+        run: |
+          mkdir -p _site
+          cp -R site/. _site/
+          mkdir -p _site/docs
+          cp -R _src-pages/. _site/docs/
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -31,8 +53,15 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: _site
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

@@ -6,12 +6,18 @@ and the Euler–Poincaré characteristic for convex polytopes
 
 **Docs site:** [https://tangentproofs.github.io/eulers-gem/](https://tangentproofs.github.io/eulers-gem/)
 
+**Browsable Lean source:** [Results.lean](https://tangentproofs.github.io/eulers-gem/docs/Results.html)
+([docs index](https://tangentproofs.github.io/eulers-gem/docs/)) — syntax-highlighted project modules with
+cross-links; unknown identifiers (esp. `Mathlib.*`) redirect to
+[mathlib4_docs](https://leanprover-community.github.io/mathlib4_docs/).
+
 ## Layout
 
 ```
 lean/          Lean 4 project (active) — Lake / Mathlib / Results.lean
 isabelle/      Isabelle — vendored AFP Euler_Polyhedron_Formula + Poly100 archive
-scripts/       Comparator helpers (list Results.lean theorems)
+scripts/       Comparator helpers + browsable-source builder
+site/          GitHub Pages static site (+ docs/ built in CI from lean/)
 ```
 
 ## Proof strategy

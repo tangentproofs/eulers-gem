@@ -13,6 +13,7 @@
       <a class="brand" href="index.html">Euler's Gem</a>
       <nav>
         <a class="active" href="index.html">Overview</a>
+        <a href="docs/Results.html">Browsable Results</a>
         <a href="lean-afp.html">Lean ↔ AFP map</a>
         <a href="build.html">Build notes</a>
         <a class="github" href="https://github.com/tangentproofs/eulers-gem">GitHub</a>
@@ -30,6 +31,10 @@
     </p>
 
     <div class="grid">
+      <a class="card" href="docs/Results.html">
+        <h3>Browsable Results.lean</h3>
+        <p>Syntax-highlighted, cross-linked Lean sources — start at the paper-facing results; identifier links fall through to Mathlib docs.</p>
+      </a>
       <a class="card" href="lean-afp.html">
         <h3>Lean ↔ AFP map</h3>
         <p>Cross-reference between <code>Results.lean</code> theorems and Paulson's AFP entry.</p>
@@ -51,20 +56,20 @@
         <tr><th>Theorem</th><th>Meaning</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>results_eulerChar_simplex</code></td><td>Euler char of an <code>n</code>-simplex (incl. empty face) is <code>0</code></td></tr>
-        <tr><td><code>results_card_combinatorialFaces</code></td><td># of <code>m</code>-faces of an <code>n</code>-simplex is <code>C(n+1,m+1)</code></td></tr>
-        <tr><td><code>results_tetrahedron_polyhedron_numbers</code></td><td>Tetrahedron: <code>V − E + F = 2</code></td></tr>
-        <tr><td><code>results_polyhedron_formula_of_eulerChar</code></td><td>Bookkeeping: full Euler <code>0</code> ⇒ <code>F+V−E=2</code></td></tr>
-        <tr><td><code>results_faceEulerSum_simplex_faceCount</code></td><td>Simplex face-sum (no empty face) <code>= 1</code></td></tr>
-        <tr><td><code>results_euler_relation_of_faceEulerSum</code></td><td>Bookkeeping: <code>faceEulerSum=1</code> + unique solid ⇒ <code>V−E+F=2</code></td></tr>
-        <tr><td><code>results_faceEulerSum_of_height_one</code></td><td>Height-1 H-rep: Paulson slice EP (<code>faceEulerSum = 1</code>)</td></tr>
-        <tr><td><code>results_Euler_Poincare_full</code></td><td>Full-dim H+V-rep polytope: <code>faceEulerSum = 1</code></td></tr>
-        <tr><td><code>results_euler_relation_convex_3polytope</code></td><td>Convex 3-polytope (H+V-rep): <code>V − E + F = 2</code></td></tr>
-        <tr><td><code>results_platonic_schlafli_classification</code></td><td>Combinatorial Platonic: Schläfli <code>(s,m)</code> ∈ five pairs</td></tr>
-        <tr><td><code>results_platonic_schlafli_card</code></td><td>Exactly five admissible Schläfli pairs</td></tr>
-        <tr><td><code>results_platonic_five_constructions</code></td><td>Five combinatorial <code>(V,E,F)</code> types (Euler bookkeeping)</td></tr>
-        <tr><td><code>results_picks_of_funkenbusch</code></td><td>Euler + Funkenbusch ⇒ Pick <code>A = I + B/2 − 1</code></td></tr>
-        <tr><td><code>results_picks_of_triangulation</code></td><td>Triangulation handshaking ⇒ Pick</td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_eulerChar_simplex"><code>results_eulerChar_simplex</code></a></td><td>Euler char of an <code>n</code>-simplex (incl. empty face) is <code>0</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_card_combinatorialFaces"><code>results_card_combinatorialFaces</code></a></td><td># of <code>m</code>-faces of an <code>n</code>-simplex is <code>C(n+1,m+1)</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_tetrahedron_polyhedron_numbers"><code>results_tetrahedron_polyhedron_numbers</code></a></td><td>Tetrahedron: <code>V − E + F = 2</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_polyhedron_formula_of_eulerChar"><code>results_polyhedron_formula_of_eulerChar</code></a></td><td>Bookkeeping: full Euler <code>0</code> ⇒ <code>F+V−E=2</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_faceEulerSum_simplex_faceCount"><code>results_faceEulerSum_simplex_faceCount</code></a></td><td>Simplex face-sum (no empty face) <code>= 1</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_euler_relation_of_faceEulerSum"><code>results_euler_relation_of_faceEulerSum</code></a></td><td>Bookkeeping: <code>faceEulerSum=1</code> + unique solid ⇒ <code>V−E+F=2</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_faceEulerSum_of_height_one"><code>results_faceEulerSum_of_height_one</code></a></td><td>Height-1 H-rep: Paulson slice EP (<code>faceEulerSum = 1</code>)</td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_Euler_Poincare_full"><code>results_Euler_Poincare_full</code></a></td><td>Full-dim H+V-rep polytope: <code>faceEulerSum = 1</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_euler_relation_convex_3polytope"><code>results_euler_relation_convex_3polytope</code></a></td><td>Convex 3-polytope (H+V-rep): <code>V − E + F = 2</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_platonic_schlafli_classification"><code>results_platonic_schlafli_classification</code></a></td><td>Combinatorial Platonic: Schläfli <code>(s,m)</code> ∈ five pairs</td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_platonic_schlafli_card"><code>results_platonic_schlafli_card</code></a></td><td>Exactly five admissible Schläfli pairs</td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_platonic_five_constructions"><code>results_platonic_five_constructions</code></a></td><td>Five combinatorial <code>(V,E,F)</code> types (Euler bookkeeping)</td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_picks_of_funkenbusch"><code>results_picks_of_funkenbusch</code></a></td><td>Euler + Funkenbusch ⇒ Pick <code>A = I + B/2 − 1</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_picks_of_triangulation"><code>results_picks_of_triangulation</code></a></td><td>Triangulation handshaking ⇒ Pick</td></tr>
       </tbody>
     </table>
 
@@ -92,7 +97,8 @@
     <pre><code>lean/          Lean 4 project (active) — Lake / Mathlib / Results.lean
 isabelle/      Vendored AFP Euler_Polyhedron_Formula + Poly100 archive
 scripts/       Comparator helpers (list Results.lean theorems)
-site/          This documentation site (GitHub Pages)</code></pre>
+site/          This documentation site (GitHub Pages)
+docs/          Browsable Lean sources (built in CI from lean/)</code></pre>
 
     <h2>Phase B (#1535)</h2>
     <ul class="clean">
