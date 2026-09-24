@@ -136,5 +136,9 @@ proof.
   cells ⊆ cone match; **`faceEulerSum_halfspace_cone = 0`**.
 - `EulersGem.ConeFaceCell`: general-cone **hyper1+hyper2** — face ↔ RI-cell; 
   `faceEulerSum_polyhedral_cone = 0` (Paulson `Euler_polyhedral_cone`).
-- Not yet in `Results.lean` (await `Euler_Poincare_full` / 3D).
-- **Next:** cone → polytope step for `Euler_Poincare_full`, then 3D `V−E+F=2`.
+- `EulersGem.EulerPoincare`: `conicHull`; `ConeSliceFaceBijection` + combinatorial
+  `faceEulerSum_slice_of_cone`; homogenization normals; apex-face lemmas;
+  simplex face-sum `= 1`; 3D `euler_relation_of_faceEulerSum` bookkeeping.
+- In `Results.lean`: simplex face-sum + conditional 3D bookkeeping (not general EP).
+- **Next:** discharge `ConeSliceFaceBijection` for polyhedral cones; embedding for
+  `Euler_Poincare_full`; general convex 3-polytope `V−E+F=2`.

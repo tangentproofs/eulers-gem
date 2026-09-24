@@ -41,14 +41,16 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_card_combinatorialFaces` | `#` of `m`-faces of an `n`-simplex is `C(n+1,m+1)` |
 | `results_tetrahedron_polyhedron_numbers` | Tetrahedron: `V − E + F = 2` |
 | `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` |
+| `results_faceEulerSum_simplex_faceCount` | Simplex face-sum (no empty face) `= 1` |
+| `results_euler_relation_of_faceEulerSum` | Bookkeeping: `faceEulerSum=1` + unique solid ⇒ `V−E+F=2` |
 
-In progress (not yet in Results): Paulson cones / Euler–Poincaré —
-`Polytope` + `Cone` + `ConeFaceCell` (general polyhedral-cone cell EC = 0 via indexed IE;
-**hyper1+hyper2** face↔RI-cell and `faceEulerSum_polyhedral_cone = 0` green; next `Euler_Poincare_full`). Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
+In progress: Paulson cones / Euler–Poincaré — cone `faceEulerSum=0` green;
+`EulerPoincare.lean` has combinatorial cone→slice reduction + apex/homogenization
+substrate. Blocker: discharge `ConeSliceFaceBijection` for `Euler_Poincare_full`.
+Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
 
-Open goals (stated in `lean/EulersGem/Polyhedron.lean` / `Cone.lean`, **not** in Results):
-general `Euler_polyhedral_cone`; `Euler_Poincare_full`; polyhedron formula for
-arbitrary convex 3-polytopes.
+Open goals (not fully in Results as geometric theorems):
+`Euler_Poincare_full`; polyhedron formula for arbitrary convex 3-polytopes.
 
 ## Parked (do not start)
 

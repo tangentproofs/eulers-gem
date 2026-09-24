@@ -273,18 +273,39 @@
       "note": "Paulson Euler_polyhedral_cone: face\u2194RI-cell bijection; faceEulerSum=cell EC=0. Not in Results.lean (await EP full / 3D)."
     },
     {
+      "id": "cone-slice-lift",
+      "title": "Cone\u2192polytope combinatorial lift substrate (Paulson EP lemma bookkeeping)",
+      "status": "proved",
+      "depends_on": [
+        "cone-hyper1-faceEuler"
+      ],
+      "lean": [
+        "EulersGem.conicHull",
+        "EulersGem.ConeSliceFaceBijection",
+        "EulersGem.faceEulerSum_slice_of_cone",
+        "EulersGem.homogenizeNormals",
+        "EulersGem.isFaceOf_singleton_zero_of_height",
+        "EulersGem.faceEulerSum_simplex_faceCount",
+        "EulersGem.euler_relation_of_faceEulerSum",
+        "Results.results_faceEulerSum_simplex_faceCount",
+        "Results.results_euler_relation_of_faceEulerSum"
+      ],
+      "note": "Combinatorial reduction proved; geometric ConeSliceFaceBijection still open for general cones."
+    },
+    {
       "id": "euler-poincare-full",
       "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
-      "status": "open",
+      "status": "in_progress",
       "depends_on": [
         "halfspace-face-cell",
         "two-halfspace-cone-euler",
         "euler-char-invariance",
         "polyhedral-cone-cell-euler",
         "cone-hyper2-face",
-        "cone-hyper1-faceEuler"
+        "cone-hyper1-faceEuler",
+        "cone-slice-lift"
       ],
-      "note": "Open. Cone faceEulerSum=0 green (hyper1+hyper2). Blocker: cone\u2192polytope lift for EP full."
+      "note": "Partial. Combinatorial cone\u2192slice reduction green under ConeSliceFaceBijection; apex/homogenization substrate; simplex face-sum=1 and 3D bookkeeping in Results. Blocker: discharge ConeSliceFaceBijection for polyhedral cones + embedding."
     },
     {
       "id": "polyhedron-formula-3d",

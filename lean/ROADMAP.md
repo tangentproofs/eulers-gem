@@ -6,12 +6,13 @@
 3. **Done (substrate):** hyperplane cells/complexes; `affDim`; combinatorial
    `eulerCharacteristic` + refinement invariance; cell geometry; Compl/Diff of
    cell complexes.
-4. **In progress (cones → polytopes):** `Polytope` (H/V-rep, `IsFaceOf` = extreme+convex,
-   `IsConic`, polyhedral cones as cell complexes); `Cone` (univ EC, soft IE,
-   **halfspace-cone cell EC = 0**); `FaceCell` (**halfspace face↔cell + faceEulerSum = 0**).
-   Cell EC = 0 for general finite H-rep cones proved (indexed IE).
-   **hyper1+hyper2 green:** face ↔ RI-cell bijection; `faceEulerSum_polyhedral_cone = 0`.
-   Next: `Euler_Poincare_full` (cone → polytope) then 3D `V−E+F=2`.
+4. **In progress (cones → polytopes):** cone `faceEulerSum = 0` green (hyper1+hyper2).
+   **Cone→polytope lift substrate** in `EulerPoincare.lean`: `conicHull`,
+   `ConeSliceFaceBijection`, combinatorial reduction
+   `faceEulerSum_slice_of_cone`, homogenization normals, apex-face lemmas,
+   simplex face-sum `= 1`, 3D bookkeeping `euler_relation_of_faceEulerSum`.
+   Blocker: discharge `ConeSliceFaceBijection` geometrically for general cones,
+   then embedding for `Euler_Poincare_full`.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
    only when proved.
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
@@ -39,4 +40,6 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Indexed IE + general polyhedral-cone cell EC = 0
 - [x] General cone hyper2 (cell ⊆ cone ⇒ closure is face; sign patterns)
 - [x] hyper1 + RI recovery ⇒ faceEulerSum = 0 / Euler_polyhedral_cone
-- [ ] Euler_Poincare_full + 3D V−E+F=2 (then Results.lean)
+- [x] Cone→polytope combinatorial reduction + apex/homogenization substrate (`EulerPoincare`)
+- [x] Simplex face-sum = 1 + 3D bookkeeping in Results.lean
+- [ ] Discharge ConeSliceFaceBijection + Euler_Poincare_full + general 3D V−E+F=2
