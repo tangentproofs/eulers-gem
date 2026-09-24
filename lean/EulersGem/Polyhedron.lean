@@ -40,7 +40,8 @@ Michal's unfinished Isabelle `Poly100.thy` / `Poly100-notes.org` (copied under
   (`EulerPoincare.lean`).
 * **Proved:** `ConeSliceFaceBijection` + height-1 EP; `Euler_Poincare_full` via
   `E×ℝ` embedding; geometric `V−E+F=2` for full-dim H+V-rep 3-polytopes.
-* **Parked:** Pick's theorem; Platonic solids constructions.
+* **Phase B (#1535):** combinatorial Platonic + Pick Funkenbusch bookkeeping proved;
+  geometric lattice triangulation / primitive area ½ still open.
 -/
 
 namespace EulersGem

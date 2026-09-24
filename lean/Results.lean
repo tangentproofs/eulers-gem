@@ -8,12 +8,17 @@ import EulersGem.Polyhedron
 import EulersGem.EulerPoincare
 import EulersGem.ConeSlice
 import EulersGem.Embed
+import EulersGem.Platonic
+import EulersGem.Picks
 
 /-!
 # Paper-facing results
 
-Only theorems that are **actually proved** appear here. Parked goals (Pick's,
-Platonic solids) are not claimed. Tverberg dissection remains documentation-only.
+Only theorems that are **actually proved** appear here.
+
+Phase B (#1535): combinatorial Platonic classification + five Schläfli constructions,
+and Euler→Pick Funkenbusch bookkeeping. Geometric lattice triangulation / primitive
+triangle area `1/2` remain open (documented in `Picks.lean` / `PHASE_B_PLAN.md`).
 -/
 
 open scoped RealInnerProductSpace
@@ -107,5 +112,52 @@ theorem results_euler_relation_convex_3polytope
       ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 1}.ncard : ℤ) +
       ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 2}.ncard : ℤ) = 2 :=
   EulersGem.euler_relation_convex_3polytope hH hp hP hdim hE
+
+/-! ## Phase B (#1535): Platonic solids (combinatorial) -/
+
+/-- **Number of Platonic solids:** any combinatorially regular Schläfli pair
+`(s,m)` with Euler + double-counting lies in the five classical pairs. -/
+theorem results_platonic_schlafli_classification
+    (R : EulersGem.Platonic.RegularNumbers) :
+    (R.s, R.m) ∈ EulersGem.Platonic.schlafliPairs :=
+  EulersGem.Platonic.schlafli_pair_mem R
+
+/-- Exactly five admissible Schläfli pairs. -/
+theorem results_platonic_schlafli_card :
+    EulersGem.Platonic.schlafliPairs.card = 5 :=
+  EulersGem.Platonic.card_schlafliPairs
+
+/-- **Five Platonic solids constructions** (Euler bookkeeping): each admissible
+Schläfli pair is realized by a combinatorial `(V,E,F)` type. -/
+theorem results_platonic_five_constructions :
+    EulersGem.Platonic.schlafliPairs.card = 5 ∧
+      ∀ p ∈ EulersGem.Platonic.schlafliPairs,
+        ∃ R : EulersGem.Platonic.RegularNumbers, (R.s, R.m) = p :=
+  EulersGem.Platonic.exactly_five_platonic_schlafli
+
+/-! ## Phase B (#1535): Pick's theorem (Euler → Pick bookkeeping) -/
+
+/-- **Pick from Funkenbusch hypotheses** (Poly100 `pick's_theorem`):
+Euler + `V=I+B` + `E=3I+2B−3` + `A=(F−1)/2` ⇒ `A = I + B/2 − 1`. -/
+theorem results_picks_of_funkenbusch
+    (I B V E F : ℤ) (A : ℚ)
+    (heuler : V - E + F = 2)
+    (hverts : V = I + B)
+    (hedges : E = 3 * I + 2 * B - 3)
+    (harea : A = ((F : ℚ) - 1) / 2) :
+    A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.picks_of_funkenbusch I B V E F A heuler hverts hedges harea
+
+/-- **Pick from triangulation handshaking:**
+`2E=3T+B`, Euler, `V=I+B`, `F=T+1`, `A=T/2` ⇒ Pick's formula. -/
+theorem results_picks_of_triangulation
+    (I B V E T F : ℤ) (A : ℚ)
+    (hV : V = I + B)
+    (hF : F = T + 1)
+    (heuler : V - E + F = 2)
+    (hshake : 2 * E = 3 * T + B)
+    (harea : A = (T : ℚ) / 2) :
+    A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.picks_of_triangulation I B V E T F A hV hF heuler hshake harea
 
 end Results

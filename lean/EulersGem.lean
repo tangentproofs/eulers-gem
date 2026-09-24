@@ -12,3 +12,5 @@ import EulersGem.ConeFaceCell
 import EulersGem.EulerPoincare
 import EulersGem.ConeSlice
 import EulersGem.Embed
+import EulersGem.Platonic
+import EulersGem.Picks
