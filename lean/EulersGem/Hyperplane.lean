@@ -506,4 +506,52 @@ lemma isHyperplaneCellComplex_finset_inf {A : Set (Hyperplane E)}
       (h S (Finset.mem_insert_self _ _))
       (ih fun T hT => h T (Finset.mem_insert_of_mem hT))
 
+/-- Finite union of cell complexes (by induction on a finset). -/
+lemma isHyperplaneCellComplex_finset_sup {A : Set (Hyperplane E)}
+    (Ss : Finset (Set E))
+    (h : ∀ S ∈ Ss, IsHyperplaneCellComplex A S) :
+    IsHyperplaneCellComplex A (Ss.sup id) := by
+  classical
+  induction Ss using Finset.induction_on with
+  | empty =>
+    change IsHyperplaneCellComplex A ⊥
+    simpa using isHyperplaneCellComplex_empty A
+  | insert S Ss hSmem ih =>
+    rw [Finset.sup_insert]
+    exact isHyperplaneCellComplex_union
+      (h S (Finset.mem_insert_self _ _))
+      (ih fun T hT => h T (Finset.mem_insert_of_mem hT))
+
+/-- Indexed finite union of cell complexes. -/
+lemma isHyperplaneCellComplex_biUnion_finset {ι : Type*} {A : Set (Hyperplane E)}
+    (s : Finset ι) (S : ι → Set E)
+    (h : ∀ i ∈ s, IsHyperplaneCellComplex A (S i)) :
+    IsHyperplaneCellComplex A (⋃ i ∈ s, S i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simpa using isHyperplaneCellComplex_empty A
+  | insert i s hi ih =>
+    have hEq : (⋃ j ∈ insert i s, S j) = S i ∪ ⋃ j ∈ s, S j := by
+      ext x; simp [Finset.mem_insert]
+    rw [hEq]
+    exact isHyperplaneCellComplex_union
+      (h i (Finset.mem_insert_self _ _))
+      (ih fun j hj => h j (Finset.mem_insert_of_mem hj))
+
+/-- Indexed finite intersection of cell complexes. -/
+lemma isHyperplaneCellComplex_biInter_finset {ι : Type*} {A : Set (Hyperplane E)}
+    (s : Finset ι) (S : ι → Set E)
+    (h : ∀ i ∈ s, IsHyperplaneCellComplex A (S i)) :
+    IsHyperplaneCellComplex A (⋂ i ∈ s, S i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simpa using isHyperplaneCellComplex_univ A
+  | insert i s hi ih =>
+    have hEq : (⋂ j ∈ insert i s, S j) = S i ∩ ⋂ j ∈ s, S j := by
+      ext x; simp [Finset.mem_insert]
+    rw [hEq]
+    exact isHyperplaneCellComplex_inter
+      (h i (Finset.mem_insert_self _ _))
+      (ih fun j hj => h j (Finset.mem_insert_of_mem hj))
+
 end EulersGem

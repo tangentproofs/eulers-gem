@@ -7,6 +7,8 @@ import EulersGem.EulerChar
 import EulersGem.Polytope
 import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 import Mathlib.Analysis.Normed.Affine.AddTorsorBases
+import Mathlib.Data.Nat.Choose.Sum
+import Mathlib.Combinatorics.Enumerative.InclusionExclusion
 
 /-!
 # Conical cell structure toward Euler–Poincaré (Paulson)
@@ -21,13 +23,15 @@ Port of the cone step of AFP `Euler_Formula`:
 * **proved (halfspace):** face ↔ cell bijection and `faceEulerSum = 0`
   (see `EulersGem.FaceCell`)
 * **proved:** two-halfspace polyhedral cone cell EC = 0 (soft IE)
+* **proved:** indexed inclusion-exclusion + general polyhedral-cone cell EC = 0
 * face-lattice substrate in `Polytope` (`isFaceOf_trans/inter/of_isExposed`,
   supporting-hyperplane faces, cone-arrangement cell characterisation)
 * targets stated as docs (not Results): general `Euler_polyhedral_cone`,
   `Euler_Poincare_full`, 3D `V−E+F=2`
 
-Blocker for the general theorems: full inclusion-exclusion for ≥3 generators;
-face ↔ relative-interior-cell bijection (Paulson `hyper1`/`hyper2`) / minimal H-rep.
+Blocker for faceEulerSum / Euler_Poincaré: face ↔ relative-interior-cell bijection
+(Paulson `hyper1`/`hyper2`) / minimal H-rep for general cones
+(cell EC = 0 for finite H-reps is now proved via indexed IE).
 -/
 
 open scoped RealInnerProductSpace BigOperators
@@ -200,7 +204,7 @@ lemma openPositive_two (a b : E) :
 
 /-- Cell-complex Euler characteristic of the intersection of two nontrivial halfspace cones
 is `0` when the open dual is nonempty. Stepping stone toward general
-`Euler_polyhedral_cone` (full IE for ≥3 generators still open). -/
+`Euler_polyhedral_cone` face sum (face↔cell still open; cell EC general is proved). -/
 theorem eulerCharacteristic_two_halfspace_cone [FiniteDimensional ℝ E] [Nonempty E]
     {a b : E} (ha : a ≠ 0) (hb : b ≠ 0)
     (hpos : ∃ x : E, ⟪a, x⟫ < 0 ∧ ⟪b, x⟫ < 0) :
@@ -300,6 +304,236 @@ theorem eulerCharacteristic_two_halfspace_cone [FiniteDimensional ℝ E] [Nonemp
   have : eulerCharacteristic A (Ha ∪ Hb) =
       eulerCharacteristic A Ha + eulerCharacteristic A Hb -
         eulerCharacteristic A (Ha ∩ Hb) := hIE
+  omega
+
+/-! ### Indexed inclusion-exclusion -/
+
+/-- Alternating powerset sum over nonempty subsets equals `1` when `s` is nonempty. -/
+lemma sum_powerset_filter_nonempty_neg_one_pow_card_add_one {α : Type*} [DecidableEq α]
+    {s : Finset α} (hs : s.Nonempty) :
+    ∑ t ∈ s.powerset.filter (·.Nonempty), (-1 : ℤ) ^ (t.card + 1) = 1 := by
+  set F : Finset (Finset α) := s.powerset.filter (·.Nonempty)
+  have hfull := Finset.sum_powerset_neg_one_pow_card_of_nonempty (x := s) hs
+  have hpartition : s.powerset = insert (∅ : Finset α) F := by
+    ext t
+    simp only [F, Finset.mem_insert, Finset.mem_filter, Finset.mem_powerset]
+    constructor
+    · intro ht
+      by_cases hne : t.Nonempty
+      · exact Or.inr ⟨ht, hne⟩
+      · exact Or.inl (Finset.not_nonempty_iff_eq_empty.mp hne)
+    · rintro (rfl | ⟨ht, _⟩)
+      · exact Finset.empty_subset _
+      · exact ht
+  have hnot : (∅ : Finset α) ∉ F := by
+    simp [F, Finset.not_nonempty_empty]
+  have hsplit : ∑ t ∈ s.powerset, (-1 : ℤ) ^ t.card = 1 + ∑ t ∈ F, (-1 : ℤ) ^ t.card := by
+    rw [hpartition, Finset.sum_insert hnot]
+    simp
+  have hneg : ∑ t ∈ F, (-1 : ℤ) ^ t.card = -1 := by linarith
+  calc
+    ∑ t ∈ F, (-1 : ℤ) ^ (t.card + 1)
+        = ∑ t ∈ F, (-((-1 : ℤ) ^ t.card)) := by
+          refine Finset.sum_congr rfl fun t _ => ?_
+          rw [pow_succ]; ring
+    _ = -∑ t ∈ F, (-1 : ℤ) ^ t.card := by simp [Finset.sum_neg_distrib]
+    _ = -(-1) := by rw [hneg]
+    _ = 1 := by ring
+
+/-- Cells of `A` contained in `S`, as a finset. -/
+noncomputable def cellsBelow (A : Set (Hyperplane E)) (S : Set E) (hA : A.Finite) :
+    Finset (Set E) :=
+  (finite_isHyperplaneCell_restrict hA (fun C => C ⊆ S)).toFinset
+
+lemma mem_cellsBelow_iff {A : Set (Hyperplane E)} {S C : Set E} (hA : A.Finite) :
+    C ∈ cellsBelow A S hA ↔ IsHyperplaneCell A C ∧ C ⊆ S := by
+  simp [cellsBelow, Finite.mem_toFinset]
+
+lemma eulerCharacteristic_eq_sum_cellsBelow {A : Set (Hyperplane E)} {S : Set E}
+    (hA : A.Finite) :
+    eulerCharacteristic A S = ∑ C ∈ cellsBelow A S hA, cellSign C :=
+  (eulerCharacteristic_eq_sum hA (S := S)).trans (by simp [cellsBelow])
+
+lemma cellsBelow_biUnion {ι : Type*} {A : Set (Hyperplane E)} (hA : A.Finite)
+    (s : Finset ι) (S : ι → Set E)
+    (hS : ∀ i ∈ s, IsHyperplaneCellComplex A (S i)) :
+    cellsBelow A (⋃ i ∈ s, S i) hA = s.biUnion fun i => cellsBelow A (S i) hA := by
+  classical
+  ext C
+  simp only [mem_cellsBelow_iff, Finset.mem_biUnion]
+  constructor
+  · intro ⟨hC, hsub⟩
+    obtain ⟨x, hx⟩ := nonempty_isHyperplaneCell hC
+    obtain ⟨i, hi, hxS⟩ := Set.mem_iUnion₂.mp (hsub hx)
+    exact ⟨i, hi, hC, (cell_subset_cellcomplex hC (hS i hi)).mpr ⟨x, hx, hxS⟩⟩
+  · rintro ⟨i, hi, hC, hCS⟩
+    exact ⟨hC, hCS.trans (Set.subset_biUnion_of_mem hi)⟩
+
+lemma biInter_cellsBelow {ι : Type*} {A : Set (Hyperplane E)} (hA : A.Finite)
+    (t : Finset ι) (S : ι → Set E) (ht : t.Nonempty) :
+    (t.inf' ht (fun i => cellsBelow A (S i) hA)) = cellsBelow A (⋂ i ∈ t, S i) hA := by
+  classical
+  ext C
+  constructor
+  · intro hC
+    have hmem : ∀ i ∈ t, C ∈ cellsBelow A (S i) hA := (Finset.mem_inf' _).1 hC
+    obtain ⟨i₀, hi₀⟩ := ht
+    have hCcell : IsHyperplaneCell A C := ((mem_cellsBelow_iff hA).1 (hmem i₀ hi₀)).1
+    refine (mem_cellsBelow_iff hA).2 ⟨hCcell, ?_⟩
+    intro x hx
+    exact Set.mem_iInter₂.2 fun i hi => ((mem_cellsBelow_iff hA).1 (hmem i hi)).2 hx
+  · intro hC
+    refine (Finset.mem_inf' _).2 fun i hi => ?_
+    have ⟨hcell, hsub⟩ := (mem_cellsBelow_iff hA).1 hC
+    exact (mem_cellsBelow_iff hA).2 ⟨hcell, hsub.trans (Set.biInter_subset_of_mem hi)⟩
+
+/-- Indexed inclusion-exclusion for Euler characteristic of a finite union of cell complexes.
+Paulson: `Euler_characteristic_inclusion_exclusion`. -/
+lemma eulerCharacteristic_biUnion_inclusion_exclusion {ι : Type*} [DecidableEq ι]
+    {A : Set (Hyperplane E)} (hA : A.Finite) (s : Finset ι) (S : ι → Set E)
+    (hS : ∀ i ∈ s, IsHyperplaneCellComplex A (S i)) :
+    eulerCharacteristic A (⋃ i ∈ s, S i) =
+      ∑ t ∈ s.powerset.filter (·.Nonempty),
+        (-1 : ℤ) ^ (t.card + 1) * eulerCharacteristic A (⋂ i ∈ t, S i) := by
+  classical
+  have hL : eulerCharacteristic A (⋃ i ∈ s, S i) =
+      ∑ C ∈ s.biUnion fun i => cellsBelow A (S i) hA, cellSign C := by
+    rw [eulerCharacteristic_eq_sum_cellsBelow (hA := hA), cellsBelow_biUnion hA s S hS]
+  have hIE := Finset.inclusion_exclusion_sum_biUnion (G := ℤ) s
+    (fun i => cellsBelow A (S i) hA) cellSign
+  rw [hL, hIE, ← Finset.sum_attach (s.powerset.filter (·.Nonempty))]
+  refine Finset.sum_congr rfl fun t _ => ?_
+  have ht_ne : t.1.Nonempty := (Finset.mem_filter.mp t.2).2
+  have hinf : (t.1.inf' ht_ne (fun i => cellsBelow A (S i) hA)) =
+      cellsBelow A (⋂ i ∈ t.1, S i) hA := biInter_cellsBelow hA t.1 S ht_ne
+  simp only [zsmul_eq_mul, Int.cast_id]
+  rw [hinf, eulerCharacteristic_eq_sum_cellsBelow (hA := hA)]
+
+set_option linter.unusedSectionVars false in
+lemma coneArrangement_mono {As Bs : Set E} (h : As ⊆ Bs) :
+    coneArrangement As ⊆ coneArrangement Bs :=
+  Set.image_mono h
+
+lemma isOpen_openPositive {As : Set E} (hAs : As.Finite) :
+    IsOpen {x : E | ∀ a ∈ As, 0 < ⟪a, x⟫} := by
+  classical
+  have hEq : {x : E | ∀ a ∈ As, 0 < ⟪a, x⟫} =
+      ⋂ a ∈ hAs.toFinset, {x : E | 0 < ⟪a, x⟫} := by
+    ext x
+    simp [Finite.mem_toFinset]
+  rw [hEq]
+  exact isOpen_biInter_finset fun a _ => isOpen_halfSpace_gt a (0 : ℝ)
+
+lemma affDim_openPositive [FiniteDimensional ℝ E] [Nonempty E]
+    {As : Set E} (hAs : As.Finite)
+    (hne : ({x : E | ∀ a ∈ As, 0 < ⟪a, x⟫}).Nonempty) :
+    affDim {x : E | ∀ a ∈ As, 0 < ⟪a, x⟫} = Module.finrank ℝ E := by
+  have hopen := isOpen_openPositive hAs
+  have hspan := hopen.affineSpan_eq_top hne
+  exact (affDim_eq_of_affineSpan_eq
+    (hspan.trans (affineSpan_univ (E := E)).symm)).trans affDim_univ
+
+/-- Open dual of a finite set of normals has cell Euler char `(-1)^{finrank}`,
+relative to any larger cone arrangement. -/
+lemma eulerCharacteristic_openPositive [FiniteDimensional ℝ E] [Nonempty E]
+    {As Bs : Set E} (hAs : As.Finite) (hBs : Bs.Finite) (hsub : As ⊆ Bs)
+    (hne : ({x : E | ∀ a ∈ As, 0 < ⟪a, x⟫}).Nonempty) :
+    eulerCharacteristic (coneArrangement Bs) {x : E | ∀ a ∈ As, 0 < ⟪a, x⟫} =
+      (-1 : ℤ) ^ Module.finrank ℝ E := by
+  set P : Set E := {x : E | ∀ a ∈ As, 0 < ⟪a, x⟫}
+  have hPcell : IsHyperplaneCell (coneArrangement As) P :=
+    isHyperplaneCell_openPositive (As := As) hne
+  have hPcxAs : IsHyperplaneCellComplex (coneArrangement As) P :=
+    isHyperplaneCell_cellComplex hPcell
+  have hPcxBs : IsHyperplaneCellComplex (coneArrangement Bs) P :=
+    isHyperplaneCellComplex_mono hPcxAs (coneArrangement_mono hsub)
+  have hAfin := coneArrangement_finite hAs
+  have hBfin := coneArrangement_finite hBs
+  have hinv := eulerCharacteristic_invariant hBfin hAfin hPcxBs hPcxAs
+  have hcell : eulerCharacteristic (coneArrangement As) P = cellSign P :=
+    eulerCharacteristic_cell hAfin hPcell
+  have hdim := affDim_openPositive hAs hne
+  calc
+    eulerCharacteristic (coneArrangement Bs) P
+        = eulerCharacteristic (coneArrangement As) P := hinv
+    _ = cellSign P := hcell
+    _ = (-1 : ℤ) ^ Module.finrank ℝ E := by
+      unfold cellSign
+      rw [hdim]
+      simp
+
+/-- Cell-complex Euler characteristic of a proper full-dimensional polyhedral cone
+(finite homogeneous H-rep with nonempty open dual) is `0`.
+Generalises the 1- and 2-halfspace theorems via indexed inclusion-exclusion. -/
+theorem eulerCharacteristic_polyhedral_cone [FiniteDimensional ℝ E] [Nonempty E]
+    {As : Set E} (hAs : As.Finite) (hneAs : As.Nonempty)
+    (hpos : ({x : E | ∀ a ∈ As, 0 < ⟪a, x⟫}).Nonempty) :
+    eulerCharacteristic (coneArrangement As) (⋂ a ∈ As, closedHalfspace a 0) = 0 := by
+  classical
+  set A : Set (Hyperplane E) := coneArrangement As
+  have hAfin : A.Finite := coneArrangement_finite hAs
+  set Fs := hAs.toFinset
+  have hFs_ne : Fs.Nonempty := by
+    simpa [Fs, Finite.toFinset_nonempty] using hneAs
+  have hConeEq : (⋂ a ∈ As, closedHalfspace a 0) = ⋂ a ∈ Fs, closedHalfspace a 0 := by
+    ext x
+    simp [Fs, Finite.mem_toFinset]
+  have hConeCx : IsHyperplaneCellComplex A (⋂ a ∈ As, closedHalfspace a 0) :=
+    isHyperplaneCellComplex_polyhedralCone hAs
+  have hComplEq :
+      (⋂ a ∈ As, closedHalfspace a 0)ᶜ = ⋃ a ∈ Fs, (closedHalfspace a 0)ᶜ := by
+    rw [hConeEq]
+    ext x
+    simp only [Set.mem_compl_iff, Set.mem_iInter, Set.mem_iUnion, not_forall]
+  have hComplFam : ∀ a ∈ Fs, IsHyperplaneCellComplex A (closedHalfspace a 0)ᶜ := fun a ha => by
+    have haAs : a ∈ As := by simpa [Fs] using ha
+    exact isHyperplaneCellComplex_compl
+      (isHyperplaneCellComplex_closedHalfspace_zero_mono haAs)
+  have hIE := eulerCharacteristic_biUnion_inclusion_exclusion hAfin Fs
+    (fun a => (closedHalfspace a 0)ᶜ) hComplFam
+  have hterm : ∀ t ∈ Fs.powerset.filter (·.Nonempty),
+      eulerCharacteristic A (⋂ a ∈ t, (closedHalfspace a 0)ᶜ) =
+        (-1 : ℤ) ^ Module.finrank ℝ E := by
+    intro t ht
+    have ht_sub : (t : Set E) ⊆ As := by
+      intro a ha
+      have : a ∈ Fs := Finset.mem_of_subset
+        (Finset.mem_powerset.mp (Finset.mem_filter.mp ht).1) ha
+      simpa [Fs] using this
+    have hEq : (⋂ a ∈ t, (closedHalfspace a 0)ᶜ) =
+        {x : E | ∀ a ∈ (t : Set E), 0 < ⟪a, x⟫} := by
+      ext x
+      simp [compl_closedHalfspace_zero]
+    have hneP : ({x : E | ∀ a ∈ (t : Set E), 0 < ⟪a, x⟫}).Nonempty := by
+      obtain ⟨x, hx⟩ := hpos
+      exact ⟨x, fun a ha => hx a (ht_sub ha)⟩
+    rw [hEq]
+    exact eulerCharacteristic_openPositive t.finite_toSet hAs ht_sub hneP
+  have hECcompl :
+      eulerCharacteristic A (⋃ a ∈ Fs, (closedHalfspace a 0)ᶜ) =
+        (-1 : ℤ) ^ Module.finrank ℝ E := by
+    rw [hIE]
+    have hcongr :
+        ∑ t ∈ Fs.powerset.filter (·.Nonempty),
+            (-1 : ℤ) ^ (t.card + 1) *
+              eulerCharacteristic A (⋂ a ∈ t, (closedHalfspace a 0)ᶜ) =
+          ∑ t ∈ Fs.powerset.filter (·.Nonempty),
+            (-1 : ℤ) ^ (t.card + 1) * ((-1 : ℤ) ^ Module.finrank ℝ E) :=
+      Finset.sum_congr rfl fun t ht => by rw [hterm t ht]
+    rw [hcongr, ← Finset.sum_mul,
+      sum_powerset_filter_nonempty_neg_one_pow_card_add_one hFs_ne, one_mul]
+  have hdisj :
+      Disjoint (⋂ a ∈ As, closedHalfspace a 0)
+        (⋃ a ∈ Fs, (closedHalfspace a 0)ᶜ) := by
+    rw [← hComplEq]; exact disjoint_compl_right
+  have hcover :
+      (⋂ a ∈ As, closedHalfspace a 0) ∪ ⋃ a ∈ Fs, (closedHalfspace a 0)ᶜ = univ := by
+    rw [← hComplEq, union_compl_self]
+  have hComplCx : IsHyperplaneCellComplex A (⋃ a ∈ Fs, (closedHalfspace a 0)ᶜ) :=
+    isHyperplaneCellComplex_biUnion_finset Fs _ hComplFam
+  have hAdd :=
+    eulerCharacteristic_cellcomplex_union hAfin hConeCx hComplCx hdisj
+  rw [hcover, eulerCharacteristic_univ hAfin, hECcompl] at hAdd
   omega
 
 /-- Stated Paulson targets (not claimed in Results.lean until proved in full). -/

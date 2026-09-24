@@ -131,9 +131,9 @@ proof.
 - `EulersGem.Polytope`: H/V-rep; `IsFaceOf` lattice (`trans`/`inter`/`of_isExposed`);
   supporting-hyperplane faces of polyhedral cones; cone-arrangement cell characterisation;
   polyhedral cones are cell complexes.
-- `EulersGem.Cone`: univ EC; soft IE; **halfspace + two-halfspace cone cell EC = 0**.
+- `EulersGem.Cone`: univ EC; soft + **indexed IE**; **halfspace / two-halfspace / general polyhedral-cone cell EC = 0**.
 - `EulersGem.FaceCell`: halfspace `hyper1`/`hyper2` — nonempty faces = `{cone, hyperplane}`;
   cells ⊆ cone match; **`faceEulerSum_halfspace_cone = 0`**.
 - Not yet in `Results.lean` (await general EP).
-- **Blocker:** full inclusion-exclusion for ≥3 generators; face ↔ RI-cell bijection /
-  minimal H-rep for general polyhedral cones.
+- **Blocker:** face ↔ RI-cell bijection / minimal H-rep for general `faceEulerSum`
+  (cell EC = 0 for finite H-rep cones is proved).

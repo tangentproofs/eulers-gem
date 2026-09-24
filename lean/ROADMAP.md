@@ -9,7 +9,8 @@
 4. **In progress (cones → polytopes):** `Polytope` (H/V-rep, `IsFaceOf` = extreme+convex,
    `IsConic`, polyhedral cones as cell complexes); `Cone` (univ EC, soft IE,
    **halfspace-cone cell EC = 0**); `FaceCell` (**halfspace face↔cell + faceEulerSum = 0**).
-   Blocker: face lattice / minimal H-rep for *general* `Euler_polyhedral_cone`, then
+   Cell EC = 0 for general finite H-rep cones proved (indexed IE).
+   Blocker: face↔RI-cell (`hyper1`/`hyper2`) / minimal H-rep for `faceEulerSum`, then
    `Euler_Poincare_full`.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
    only when proved.
@@ -35,5 +36,6 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Halfspace-cone cell Euler char = 0; soft inclusion-exclusion
 - [x] Halfspace face↔cell (`FaceCell`) + `faceEulerSum_halfspace_cone = 0`
 - [x] Face lattice substrate + two-halfspace cone cell EC = 0
-- [ ] General Euler_polyhedral_cone (IE ≥3 + face↔cell) / faceEulerSum
+- [x] Indexed IE + general polyhedral-cone cell EC = 0
+- [ ] General Euler_polyhedral_cone faceEulerSum (face↔cell / minimal H-rep)
 - [ ] Euler_Poincare_full + 3D V−E+F=2 (then Results.lean)

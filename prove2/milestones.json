@@ -191,7 +191,7 @@
         "EulersGem.faces_closedHalfspace_zero_eq",
         "EulersGem.faceEulerSum_halfspace_cone"
       ],
-      "note": "Paulson hyper1/hyper2 special case for closedHalfspace a 0. IsFaceOf extreme+convex. Two-halfspace cell EC green; general \u22653 IE open. Not in Results.lean."
+      "note": "Paulson hyper1/hyper2 special case for closedHalfspace a 0. General face\u2194cell still open. Not in Results.lean."
     },
     {
       "id": "two-halfspace-cone-euler",
@@ -205,7 +205,30 @@
         "EulersGem.eulerCharacteristic_two_halfspace_cone",
         "EulersGem.eulerCharacteristic_closedHalfspace_zero_of_mem"
       ],
-      "note": "Soft IE + open dual cell. Stepping stone toward general polyhedral-cone EC. Not in Results.lean."
+      "note": "Soft IE + open dual cell. Superseded for \u22653 by polyhedral-cone-cell-euler. Not in Results.lean."
+    },
+    {
+      "id": "polyhedral-cone-cell-euler",
+      "title": "Cell Euler char of general polyhedral cone is 0 (indexed IE)",
+      "status": "proved",
+      "depends_on": [
+        "two-halfspace-cone-euler",
+        "halfspace-cone-euler",
+        "polytope-substrate"
+      ],
+      "lean": [
+        "EulersGem.sum_powerset_filter_nonempty_neg_one_pow_card_add_one",
+        "EulersGem.cellsBelow",
+        "EulersGem.cellsBelow_biUnion",
+        "EulersGem.biInter_cellsBelow",
+        "EulersGem.eulerCharacteristic_biUnion_inclusion_exclusion",
+        "EulersGem.eulerCharacteristic_openPositive",
+        "EulersGem.eulerCharacteristic_polyhedral_cone",
+        "EulersGem.isHyperplaneCellComplex_finset_sup",
+        "EulersGem.isHyperplaneCellComplex_biUnion_finset",
+        "EulersGem.isHyperplaneCellComplex_biInter_finset"
+      ],
+      "note": "Indexed IE via Mathlib finset IE on arrangement cells; open dual EC=(-1)^finrank; De Morgan + cover gives cone cell EC=0 for any finite nonempty H-rep with nonempty open dual. Not in Results.lean (await faceEulerSum / EP)."
     },
     {
       "id": "euler-poincare-full",
@@ -214,9 +237,10 @@
       "depends_on": [
         "halfspace-face-cell",
         "two-halfspace-cone-euler",
-        "euler-char-invariance"
+        "euler-char-invariance",
+        "polyhedral-cone-cell-euler"
       ],
-      "note": "Open. Halfspace face\u2194cell + faceEulerSum and two-halfspace cell EC green. Blocker: IE for \u22653 generators + face lattice / minimal H-rep for general cones."
+      "note": "Open. Cell EC=0 for general polyhedral cones green. Blocker: face\u2194RI-cell / minimal H-rep for faceEulerSum, then EP full."
     },
     {
       "id": "polyhedron-formula-3d",
