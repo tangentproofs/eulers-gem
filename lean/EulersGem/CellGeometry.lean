@@ -11,6 +11,7 @@ import Mathlib.Analysis.InnerProductSpace.LinearMap
 import Mathlib.Analysis.Normed.Affine.AddTorsorBases
 import Mathlib.Analysis.Normed.Group.AddTorsor
 import Mathlib.LinearAlgebra.AffineSpace.AffineSubspace.Basic
+import Mathlib.LinearAlgebra.Dual.Lemmas
 import Mathlib.Topology.Order.Basic
 
 /-!
@@ -338,5 +339,148 @@ lemma affDim_cell_inter_halfSpace_gt {A : Set (Hyperplane E)} {C : Set E}
   have hspan : affineSpan ℝ (C ∩ {x | b < ⟪a, x⟫}) = T := by
     rw [heq]; exact affineSpan_isOpen_inter hU' hne'
   exact affDim_eq_of_affineSpan_eq (hspan.trans hspanC.symm)
+
+/-! ### Affine dimension drops by 1 on a proper hyperplane slice
+
+Isabelle: `aff_dim_affine_Int_hyperplane`. For a nonempty proper intersection of an
+affine subspace with `{x | ⟪a, x⟫ = b}`, affine dimension falls by exactly one.
+Combined with the open∩affine presentation of a cell, the same holds for cells.
+-/
+
+lemma direction_affineHyperplane (a : E) (b : ℝ) (p : E) (hp : ⟪a, p⟫ = b) :
+    (affineHyperplane a b p hp).direction = LinearMap.ker (innerₛₗ ℝ a) :=
+  direction_mk' p _
+
+/-- Nonempty affine subspaces have `affDim` equal to `finrank` of the direction. -/
+lemma affDim_coe_eq_finrank_direction {T : AffineSubspace ℝ E}
+    (hne : (T : Set E).Nonempty) :
+    affDim (T : Set E) = Module.finrank ℝ T.direction := by
+  have hneBot : T ≠ ⊥ := (nonempty_iff_ne_bot _).mp hne
+  unfold affDim
+  rw [affineSpan_coe, finDim_eq_finrank hneBot]
+  rfl
+
+/-- Linear equivalence identifying `ker (g ∘ subtype)` with `W ⊓ ker g`. -/
+noncomputable def kerCompSubtypeEquiv (W : Submodule ℝ E) (g : E →ₗ[ℝ] ℝ) :
+    LinearMap.ker (g.comp W.subtype) ≃ₗ[ℝ]
+      (W ⊓ LinearMap.ker g : Submodule ℝ E) where
+  toFun := fun x =>
+    ⟨(x : E), x.1.2, by
+      have hx : g (W.subtype x.1) = 0 := LinearMap.mem_ker.mp x.2
+      exact LinearMap.mem_ker.mpr hx⟩
+  invFun := fun y =>
+    ⟨⟨(y : E), y.2.1⟩, LinearMap.mem_ker.mpr (by
+      change g (W.subtype ⟨(y : E), y.2.1⟩) = 0
+      exact LinearMap.mem_ker.mp y.2.2)⟩
+  left_inv := fun _ => rfl
+  right_inv := fun _ => rfl
+  map_add' := fun _ _ => rfl
+  map_smul' := fun _ _ => rfl
+
+/-- Isabelle-style: proper nonempty hyperplane slice of an affine set drops `affDim` by 1. -/
+lemma affDim_affine_inter_hyperplane [FiniteDimensional ℝ E]
+    (T : AffineSubspace ℝ E) (a : E) (b : ℝ)
+    (hne : ((T : Set E) ∩ {x | ⟪a, x⟫ = b}).Nonempty)
+    (hnot : ¬ (T : Set E) ⊆ {x | ⟪a, x⟫ = b}) :
+    affDim ((T : Set E) ∩ {x | ⟪a, x⟫ = b}) = affDim (T : Set E) - 1 := by
+  have hne_keep := hne
+  obtain ⟨p, hpT, hpH⟩ := hne_keep
+  change ⟪a, p⟫ = b at hpH
+  -- Degenerate `a = 0` cannot happen: hyperplane is empty or `univ`.
+  have _ha : a ≠ 0 := by
+    intro ha0
+    subst ha0
+    by_cases hb : b = 0
+    · subst hb
+      exact hnot (by intro x _; simp [inner_zero_left])
+    · have hempty : (T : Set E) ∩ {x : E | ⟪(0 : E), x⟫ = b} = ∅ := by
+        ext x
+        constructor
+        · rintro ⟨_, hx⟩
+          have : 0 = b := by simpa [inner_zero_left] using hx
+          exact (hb this.symm).elim
+        · intro hx; exact hx.elim
+      rw [hempty] at hne
+      exact absurd hne Set.not_nonempty_empty
+  let H := affineHyperplane a b p hpH
+  have hcoeH : (H : Set E) = {x | ⟪a, x⟫ = b} := coe_affineHyperplane a b p hpH
+  have hmemH : p ∈ H := by
+    change p ∈ (H : Set E); rw [hcoeH]; exact hpH
+  have hInf : ((T ⊓ H : AffineSubspace ℝ E) : Set E) =
+      (T : Set E) ∩ {x | ⟪a, x⟫ = b} := by
+    simp [AffineSubspace.coe_inf, hcoeH]
+  have hneTH : ((T ⊓ H : AffineSubspace ℝ E) : Set E).Nonempty :=
+    ⟨p, (AffineSubspace.mem_inf_iff _ _ _).mpr ⟨hpT, hmemH⟩⟩
+  have hdir : (T ⊓ H).direction =
+      (T.direction ⊓ LinearMap.ker (innerₛₗ ℝ a) : Submodule ℝ E) := by
+    rw [direction_inf_of_mem hpT hmemH, direction_affineHyperplane]
+  -- Restriction of `⟪a, ·⟫` to `T.direction` is nonzero (else `T ⊆ H`).
+  let f : Module.Dual ℝ T.direction :=
+    (innerₛₗ ℝ a).comp T.direction.subtype
+  have hf : f ≠ 0 := by
+    intro hf0
+    apply hnot
+    intro x hxT
+    have hxdir : x -ᵥ p ∈ T.direction := vsub_mem_direction hxT hpT
+    have h0 : (innerₛₗ ℝ a) (x - p) = 0 := by
+      have := LinearMap.congr_fun hf0 ⟨x - p, hxdir⟩
+      simpa [f, LinearMap.comp_apply] using this
+    change ⟪a, x - p⟫ = 0 at h0
+    have : ⟪a, x⟫ = ⟪a, p⟫ := by
+      have := congrArg (fun t => t + ⟪a, p⟫) h0
+      simpa [inner_sub_right] using this
+    exact this.trans hpH
+  have hfinrank :
+      Module.finrank ℝ (T.direction ⊓ LinearMap.ker (innerₛₗ ℝ a) : Submodule ℝ E) + 1 =
+        Module.finrank ℝ T.direction := by
+    have : FiniteDimensional ℝ T.direction := inferInstance
+    have h := Module.Dual.finrank_ker_add_one_of_ne_zero (f := f) hf
+    have heq : Module.finrank ℝ (LinearMap.ker f) =
+        Module.finrank ℝ (T.direction ⊓ LinearMap.ker (innerₛₗ ℝ a) : Submodule ℝ E) :=
+      LinearEquiv.finrank_eq (kerCompSubtypeEquiv T.direction (innerₛₗ ℝ a))
+    omega
+  have hTne : (T : Set E).Nonempty := ⟨p, hpT⟩
+  rw [← hInf, affDim_coe_eq_finrank_direction hneTH,
+    affDim_coe_eq_finrank_direction hTne, hdir]
+  have := hfinrank
+  omega
+
+/-- Hyperplane slice of a cell (nonempty, proper) drops `affDim` by 1.
+Paulson cutting step for `Euler_characterstic_lemma`. -/
+lemma affDim_cell_inter_hyperplane [FiniteDimensional ℝ E]
+    {A : Set (Hyperplane E)} {C : Set E}
+    (hA : A.Finite) (hC : IsHyperplaneCell A C) (a : E) (b : ℝ)
+    (hne : (C ∩ {x | ⟪a, x⟫ = b}).Nonempty)
+    (hnot : ¬ C ⊆ {x | ⟪a, x⟫ = b}) :
+    affDim (C ∩ {x | ⟪a, x⟫ = b}) = affDim C - 1 := by
+  obtain ⟨U, T, hU, hCeq⟩ := isHyperplaneCell_exists_isOpen_affine hA hC
+  have hspanC : affineSpan ℝ C = T := affineSpan_eq_of_isHyperplaneCell hA hC hU hCeq
+  obtain ⟨q, hqC, hqH⟩ := hne
+  change ⟪a, q⟫ = b at hqH
+  have hq : q ∈ U ∩ (T : Set E) := by simpa [hCeq] using hqC
+  let TH : AffineSubspace ℝ E := T ⊓ affineHyperplane a b q hqH
+  have hcoeTH : (TH : Set E) = (T : Set E) ∩ {x | ⟪a, x⟫ = b} := by
+    simp [TH, AffineSubspace.coe_inf, coe_affineHyperplane]
+  have hUinter : C ∩ {x | ⟪a, x⟫ = b} = U ∩ (TH : Set E) := by
+    simp only [hCeq, hcoeTH]; ac_rfl
+  have hne' : (U ∩ (TH : Set E)).Nonempty :=
+    ⟨q, hq.1, by simpa [hcoeTH] using ⟨hq.2, hqH⟩⟩
+  have hspanSlice : affineSpan ℝ (C ∩ {x | ⟪a, x⟫ = b}) = TH := by
+    rw [hUinter]; exact affineSpan_isOpen_inter hU hne'
+  have hnotT : ¬ (T : Set E) ⊆ {x | ⟪a, x⟫ = b} := by
+    intro hsub
+    apply hnot
+    intro x hx
+    have hx' : x ∈ U ∩ (T : Set E) := by simpa [hCeq] using hx
+    exact hsub hx'.2
+  have hneT : ((T : Set E) ∩ {x | ⟪a, x⟫ = b}).Nonempty := ⟨q, hq.2, hqH⟩
+  have hdrop := affDim_affine_inter_hyperplane T a b hneT hnotT
+  have haffC : affDim C = affDim (T : Set E) :=
+    affDim_eq_of_affineSpan_eq (hspanC.trans (affineSpan_coe T).symm)
+  have haffSlice : affDim (C ∩ {x | ⟪a, x⟫ = b}) =
+      affDim ((T : Set E) ∩ {x | ⟪a, x⟫ = b}) := by
+    apply affDim_eq_of_affineSpan_eq
+    rw [hspanSlice, ← hcoeTH, affineSpan_coe]
+  omega
 
 end EulersGem

@@ -47,7 +47,7 @@ In progress (not yet in Results): Paulson hyperplane substrate in
 survey in `lean/MATHLIB_SURVEY.md`.
 
 Open goals (stated in `lean/EulersGem/Polyhedron.lean`, **not** in Results):
-Euler-char invariance; general Euler–Poincaré; polyhedron formula for
+~~Euler-char invariance~~ (done); general Euler–Poincaré; polyhedron formula for
 arbitrary convex 3-polytopes.
 
 ## Parked (do not start)

@@ -7,8 +7,8 @@
    `affDim` + combinatorial `eulerCharacteristic` + disjoint additivity landed
    (`EulersGem.AffDim`, `EulersGem.EulerChar`). Cell geometry green
    (`EulersGem.CellGeometry`: open∩affine, relative interior, halfspace affDim).
-   Full refinement-invariance insert/cutting still open (affDim drop on hyperplane
-   slice + general `eulerCharacteristic_insert`).
+   **Refinement invariance green** (`eulerCharacteristic_insert` /
+   `eulerCharacteristic_invariant`).
 4. **Cones → polytopes:** Euler relation for full-dimensional proper polyhedral cones;
    then `Euler_Poincare_full` analogue.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
@@ -30,4 +30,4 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Paulson hyperplane substrate defs + cell/complex lemmas + finiteness
 - [x] Set-level `affDim` + combinatorial `eulerCharacteristic` + Un-additivity
 - [x] Cell open∩affine + relative interior + halfspace affDim preservation
-- [ ] Refinement invariance (Paulson insert/cutting: affDim drop + general insert)
+- [x] Refinement invariance (Paulson insert/cutting: affDim drop + general insert)

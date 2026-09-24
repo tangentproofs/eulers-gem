@@ -125,8 +125,10 @@ proof.
 - Survey written (this file).
 - `EulersGem.Hyperplane`: sides, equiv, cells, complexes, Un/Inter/mono, finiteness.
 - `EulersGem.AffDim`: set-level `affDim` (`∅ ↦ -1`).
+- `EulersGem.CellGeometry`: open∩affine, relative interior, halfspace affDim
+  preservation, **and** proper hyperplane-slice affDim drop-by-1
+  (`affDim_affine_inter_hyperplane` / `affDim_cell_inter_hyperplane`).
 - `EulersGem.EulerChar`: combinatorial `eulerCharacteristic`, cell/Un additivity,
-  empty-arrangement evaluation; insert special cases (preserved / mem / a=0).
-- `EulersGem.CellGeometry`: `hyperplane_cell_Int_open_affine`, relative interior,
-  halfspace affDim preservation. Still open: affDim drop on hyperplane slice and
-  general `eulerCharacteristic_insert` / full invariant.
+  empty-arrangement evaluation; **full refinement invariance**
+  (`eulerCharacteristic_insert`, `eulerCharacteristic_invariant`) via cut-into-three
+  sign identity. Not yet exported in `Results.lean`.

@@ -101,21 +101,21 @@
     {
       "id": "euler-char-invariance",
       "title": "Euler characteristic invariant under refining arrangements",
-      "status": "in_progress",
+      "status": "proved",
       "depends_on": [
         "combinatorial-euler-char",
         "cell-geometry-open-affine"
       ],
       "lean": [
-        "EulersGem.eulerCharacteristic_eq_of_same_cells",
-        "EulersGem.eulerCharacteristic_invariant_of_eq",
-        "EulersGem.eulerCharacteristic_insert_of_cells_preserved",
-        "EulersGem.eulerCharacteristic_insert_mem",
-        "EulersGem.eulerCharacteristic_insert_zero",
-        "EulersGem.cellSign_cell_inter_halfSpace_lt",
-        "EulersGem.cellSign_cell_inter_halfSpace_gt"
+        "EulersGem.affDim_affine_inter_hyperplane",
+        "EulersGem.affDim_cell_inter_hyperplane",
+        "EulersGem.cellSign_cut_into_three",
+        "EulersGem.cell_cut_meets_all_three",
+        "EulersGem.eulerCharacteristic_insert_cell",
+        "EulersGem.eulerCharacteristic_insert",
+        "EulersGem.eulerCharacteristic_invariant"
       ],
-      "note": "Insert special cases green (preserved cells / mem / degenerate a=0). Full Paulson cutting lemma needs affDim drop on hyperplane slice (halfspace affDim preservation landed in CellGeometry)."
+      "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler\u2013Poincar\u00e9 / cones)."
     },
     {
       "id": "euler-poincare-full",
