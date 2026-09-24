@@ -46,7 +46,7 @@ See `lean/Results.lean` (only claims what is actually proved):
 
 In progress: Paulson cones / Euler–Poincaré — cone `faceEulerSum=0` green;
 `EulerPoincare.lean` has combinatorial cone→slice reduction + apex/homogenization
-substrate. Blocker: discharge `ConeSliceFaceBijection` for `Euler_Poincare_full`.
+substrate + `ConeSlice.lean` geometric pieces (zero-face, face-of-conic, slice/recover, homogenize⊆). Blocker: complete `ConeSliceFaceBijection` (face-lift + affDim+1) for `Euler_Poincare_full`.
 Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
 
 Open goals (not fully in Results as geometric theorems):
