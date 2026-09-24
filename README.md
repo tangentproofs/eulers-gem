@@ -8,7 +8,7 @@ and the Euler–Poincaré characteristic for convex polytopes
 
 ```
 lean/          Lean 4 project (active) — Lake / Mathlib / Results.lean
-isabelle/      Isabelle sources — Poly100 archive now; Paulson AFP port next
+isabelle/      Isabelle — vendored AFP Euler_Polyhedron_Formula + Poly100 archive
 scripts/       Comparator helpers (list Results.lean theorems)
 ```
 
@@ -22,9 +22,10 @@ does not already provide the substrate. Target: Euler–Poincaré for
 full-dimensional convex polytopes of arbitrary dimension, then `V − E + F = 2`
 in dimension 3.
 
-**Isabelle (next):** port that same AFP entry into `isabelle/` as the base
-(for comparison with Lean). Do **not** write a fresh Isabelle development from
-scratch.
+**Isabelle (comparison base):** the same AFP entry is **vendored** under
+`isabelle/afp-Euler_Polyhedron_Formula/` (BSD; credit Paulson / AFP). See
+`isabelle/README.md` for Lean Results ↔ AFP theorem mapping and build notes.
+Do **not** invent a fresh Isabelle development.
 
 **Historical:** `isabelle/Poly100.thy` and `Poly100-notes.org` are Michal
 Wallace's earlier unfinished Isabelle attempt (Tverberg triangulation +

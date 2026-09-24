@@ -1,0 +1,10 @@
+6765dd873ab0866152727224e68b0ff66a6059f1aed6a774097bbd95ebbfef16  afp-Euler_Polyhedron_Formula-current.tar.gz
+
+Vendored from:
+  https://isa-afp.org/release/afp-Euler_Polyhedron_Formula-current.tar.gz
+AFP entry:
+  https://isa-afp.org/entries/Euler_Polyhedron_Formula.html
+Author:
+  Lawrence C. Paulson (AFP 2023; HOL Light → Isabelle, credited to Jim Lawrence)
+Downloaded:
+  2026-09-24 (America/New_York)
