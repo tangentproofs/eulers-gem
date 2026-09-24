@@ -123,12 +123,13 @@ proof.
 ## Status after this session
 
 - Survey written (this file).
-- `EulersGem.Hyperplane`: sides, equiv, cells, complexes, Un/Inter/mono, finiteness.
+- `EulersGem.Hyperplane`: sides, equiv, cells, complexes, Un/Inter/Compl/Diff/mono, finiteness.
 - `EulersGem.AffDim`: set-level `affDim` (`∅ ↦ -1`).
 - `EulersGem.CellGeometry`: open∩affine, relative interior, halfspace affDim
-  preservation, **and** proper hyperplane-slice affDim drop-by-1
-  (`affDim_affine_inter_hyperplane` / `affDim_cell_inter_hyperplane`).
-- `EulersGem.EulerChar`: combinatorial `eulerCharacteristic`, cell/Un additivity,
-  empty-arrangement evaluation; **full refinement invariance**
-  (`eulerCharacteristic_insert`, `eulerCharacteristic_invariant`) via cut-into-three
-  sign identity. Not yet exported in `Results.lean`.
+  preservation, proper hyperplane-slice affDim drop-by-1.
+- `EulersGem.EulerChar`: combinatorial `eulerCharacteristic` + **full refinement invariance**.
+- `EulersGem.Polytope`: `IsPolyhedron` / `IsPolytope` / `IsFaceOf` / `IsConic` /
+  `IsPolyhedralCone`; cone arrangement; polyhedral cones are cell complexes.
+- `EulersGem.Cone`: `eulerCharacteristic_univ`; soft IE; **halfspace-cone cell
+  Euler char = 0**. Not yet in `Results.lean` (await general EP).
+- **Blocker:** face ↔ relative-interior-cell bijection for general polyhedral cones.

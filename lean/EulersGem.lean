@@ -5,3 +5,5 @@ import EulersGem.Hyperplane
 import EulersGem.AffDim
 import EulersGem.EulerChar
 import EulersGem.CellGeometry
+import EulersGem.Polytope
+import EulersGem.Cone

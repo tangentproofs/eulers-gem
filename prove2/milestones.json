@@ -118,12 +118,65 @@
       "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler\u2013Poincar\u00e9 / cones)."
     },
     {
+      "id": "cellcomplex-compl-diff",
+      "title": "Cell-complex complement and difference",
+      "status": "proved",
+      "depends_on": [
+        "hyperplane-arrangements"
+      ],
+      "lean": [
+        "EulersGem.isHyperplaneCellComplex_compl",
+        "EulersGem.isHyperplaneCellComplex_diff",
+        "EulersGem.isHyperplaneCellComplex_finset_inf"
+      ]
+    },
+    {
+      "id": "polytope-substrate",
+      "title": "Polyhedron/polytope/face/conic substrate + conical cells",
+      "status": "proved",
+      "depends_on": [
+        "hyperplane-arrangements",
+        "cellcomplex-compl-diff"
+      ],
+      "lean": [
+        "EulersGem.IsPolyhedron",
+        "EulersGem.IsPolytope",
+        "EulersGem.IsFaceOf",
+        "EulersGem.IsConic",
+        "EulersGem.IsPolyhedralCone",
+        "EulersGem.coneArrangement",
+        "EulersGem.isHyperplaneCellComplex_polyhedralCone",
+        "EulersGem.faceEulerSum"
+      ],
+      "note": "H/V-rep + IsExtreme alias + homogeneous cone H-rep as cell complex."
+    },
+    {
+      "id": "halfspace-cone-euler",
+      "title": "Cell Euler char of nontrivial halfspace cone is 0",
+      "status": "proved",
+      "depends_on": [
+        "euler-char-invariance",
+        "polytope-substrate",
+        "cellcomplex-compl-diff"
+      ],
+      "lean": [
+        "EulersGem.eulerCharacteristic_univ",
+        "EulersGem.eulerCharacteristic_union_inter",
+        "EulersGem.eulerCharacteristic_halfspace_cone",
+        "EulersGem.isFaceOf_closedHalfspace_hyperplane",
+        "EulersGem.affDim_linear_hyperplane"
+      ],
+      "note": "Special case of Paulson Euler_polyhedral_cone via cell complexes. Not in Results.lean."
+    },
+    {
       "id": "euler-poincare-full",
       "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
       "status": "open",
       "depends_on": [
+        "halfspace-cone-euler",
         "euler-char-invariance"
-      ]
+      ],
+      "note": "Open. Blocker: face\u2194relative-interior-cell bijection for general polyhedral cones (Paulson hyper1/hyper2). Halfspace special case green."
     },
     {
       "id": "polyhedron-formula-3d",

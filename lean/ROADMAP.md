@@ -3,14 +3,13 @@
 1. **Done (scaffold):** simplex face counts; `eulerChar_simplex = 0`; tetrahedron numbers;
    Results.lean + comparator script.
 2. **Done (survey):** Mathlib survey vs Paulson — see `MATHLIB_SURVEY.md`.
-3. **In progress:** Port Paulson substrate — hyperplane cells/complexes green;
-   `affDim` + combinatorial `eulerCharacteristic` + disjoint additivity landed
-   (`EulersGem.AffDim`, `EulersGem.EulerChar`). Cell geometry green
-   (`EulersGem.CellGeometry`: open∩affine, relative interior, halfspace affDim).
-   **Refinement invariance green** (`eulerCharacteristic_insert` /
-   `eulerCharacteristic_invariant`).
-4. **Cones → polytopes:** Euler relation for full-dimensional proper polyhedral cones;
-   then `Euler_Poincare_full` analogue.
+3. **Done (substrate):** hyperplane cells/complexes; `affDim`; combinatorial
+   `eulerCharacteristic` + refinement invariance; cell geometry; Compl/Diff of
+   cell complexes.
+4. **In progress (cones → polytopes):** `Polytope` (H/V-rep, `IsFaceOf`, `IsConic`,
+   polyhedral cones as cell complexes); `Cone` (`eulerCharacteristic_univ`,
+   soft IE, **halfspace-cone Euler char = 0**). Blocker: face↔cell bijection for
+   general `Euler_polyhedral_cone`, then `Euler_Poincare_full`.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
    only when proved.
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
@@ -31,3 +30,7 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Set-level `affDim` + combinatorial `eulerCharacteristic` + Un-additivity
 - [x] Cell open∩affine + relative interior + halfspace affDim preservation
 - [x] Refinement invariance (Paulson insert/cutting: affDim drop + general insert)
+- [x] Cell-complex Compl/Diff; polyhedron/polytope/cone substrate
+- [x] Halfspace-cone cell Euler char = 0; soft inclusion-exclusion
+- [ ] Face↔cell bijection → general Euler_polyhedral_cone
+- [ ] Euler_Poincare_full + 3D V−E+F=2 (then Results.lean)

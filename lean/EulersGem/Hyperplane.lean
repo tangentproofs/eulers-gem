@@ -446,4 +446,64 @@ lemma cell_subset_cellcomplex {A : Set (Hyperplane E)} {C S : Set E}
     intro y hy
     exact ⟨C', hC', hEq ▸ hy⟩
 
+
+/-! ### Complements and differences of cell complexes -/
+
+/-- Complement of a single cell is a cell complex. -/
+lemma isHyperplaneCellComplex_compl_cell {A : Set (Hyperplane E)} {C : Set E}
+    (hC : IsHyperplaneCell A C) :
+    IsHyperplaneCellComplex A (Cᶜ : Set E) := by
+  refine ⟨{D | IsHyperplaneCell A D ∧ D ≠ C}, ⟨fun D hD => hD.1, ?_⟩⟩
+  ext x
+  constructor
+  · intro hx
+    refine ⟨{y | HyperplaneEquiv A x y}, ⟨⟨x, rfl⟩, ?_⟩, hyperplaneEquiv_refl A x⟩
+    intro hEq
+    exact hx (by rw [← hEq]; exact hyperplaneEquiv_refl A x)
+  · intro ⟨D, ⟨hD, hne⟩, hxD⟩ hxC
+    exact (disjoint_left.mp (disjoint_isHyperplaneCell hD hC hne)) hxD hxC
+
+/-- Complement of a cell complex is a cell complex.
+Isabelle: `hyperplane_cellcomplex_Compl`. -/
+lemma isHyperplaneCellComplex_compl {A : Set (Hyperplane E)} {S : Set E}
+    (hS : IsHyperplaneCellComplex A S) :
+    IsHyperplaneCellComplex A (Sᶜ : Set E) := by
+  refine ⟨{D | IsHyperplaneCell A D ∧ Disjoint D S}, ⟨fun D hD => hD.1, ?_⟩⟩
+  ext x
+  constructor
+  · intro hx
+    refine ⟨{y | HyperplaneEquiv A x y}, ⟨⟨x, rfl⟩, ?_⟩, hyperplaneEquiv_refl A x⟩
+    refine Set.disjoint_left.mpr ?_
+    intro y hyA hyS
+    have hmeet : ({y | HyperplaneEquiv A x y} ∩ S).Nonempty := ⟨y, hyA, hyS⟩
+    have hsub : {y | HyperplaneEquiv A x y} ⊆ S :=
+      (cell_subset_cellcomplex ⟨x, rfl⟩ hS).mpr hmeet
+    exact hx (hsub (hyperplaneEquiv_refl A x))
+  · intro ⟨D, ⟨_hD, hd⟩, hxD⟩ hxS
+    exact (Set.disjoint_left.mp hd) hxD hxS
+
+/-- Difference of cell complexes is a cell complex.
+Isabelle: `hyperplane_cellcomplex_diff`. -/
+lemma isHyperplaneCellComplex_diff {A : Set (Hyperplane E)} {S T : Set E}
+    (hS : IsHyperplaneCellComplex A S) (hT : IsHyperplaneCellComplex A T) :
+    IsHyperplaneCellComplex A (S \ T) := by
+  simpa [Set.sdiff_eq] using
+    isHyperplaneCellComplex_inter hS (isHyperplaneCellComplex_compl hT)
+
+/-- Finite intersection of cell complexes (by induction on a finset). -/
+lemma isHyperplaneCellComplex_finset_inf {A : Set (Hyperplane E)}
+    (Ss : Finset (Set E))
+    (h : ∀ S ∈ Ss, IsHyperplaneCellComplex A S) :
+    IsHyperplaneCellComplex A (Ss.inf id) := by
+  classical
+  induction Ss using Finset.induction_on with
+  | empty =>
+    change IsHyperplaneCellComplex A ⊤
+    simpa using isHyperplaneCellComplex_univ A
+  | insert S Ss hSmem ih =>
+    rw [Finset.inf_insert]
+    exact isHyperplaneCellComplex_inter
+      (h S (Finset.mem_insert_self _ _))
+      (ih fun T hT => h T (Finset.mem_insert_of_mem hT))
+
 end EulersGem

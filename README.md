@@ -42,12 +42,12 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_tetrahedron_polyhedron_numbers` | Tetrahedron: `V − E + F = 2` |
 | `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` |
 
-In progress (not yet in Results): Paulson hyperplane substrate in
-`lean/EulersGem/Hyperplane.lean` (sides, cells, cell complexes); Mathlib gap
-survey in `lean/MATHLIB_SURVEY.md`.
+In progress (not yet in Results): Paulson cones / Euler–Poincaré —
+`Polytope.lean` + `Cone.lean` (halfspace-cone cell Euler char = 0; general
+face↔cell bijection still open). Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
 
-Open goals (stated in `lean/EulersGem/Polyhedron.lean`, **not** in Results):
-~~Euler-char invariance~~ (done); general Euler–Poincaré; polyhedron formula for
+Open goals (stated in `lean/EulersGem/Polyhedron.lean` / `Cone.lean`, **not** in Results):
+general `Euler_polyhedral_cone`; `Euler_Poincare_full`; polyhedron formula for
 arbitrary convex 3-polytopes.
 
 ## Parked (do not start)
