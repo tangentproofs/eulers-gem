@@ -51,15 +51,24 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_faceEulerSum_of_height_one` | Height-1 H-rep: Paulson slice EP (`faceEulerSum = 1`) |
 | `results_Euler_Poincare_full` | Full-dim H+V-rep polytope: `faceEulerSum = 1` |
 | `results_euler_relation_convex_3polytope` | Convex 3-polytope (H+V-rep): `V − E + F = 2` |
+| `results_platonic_schlafli_classification` | Combinatorial Platonic: Schläfli `(s,m)` ∈ five pairs |
+| `results_platonic_schlafli_card` | Exactly five admissible Schläfli pairs |
+| `results_platonic_five_constructions` | Five combinatorial `(V,E,F)` types (Euler bookkeeping) |
+| `results_picks_of_funkenbusch` | Euler + Funkenbusch ⇒ Pick `A = I + B/2 − 1` |
+| `results_picks_of_triangulation` | Triangulation handshaking ⇒ Pick |
 
 Paulson cone→slice→embed path green: `ConeSliceFaceBijection`, height-1 EP,
-`E × ℝ` embedding, `Euler_Poincare_full`, geometric 3D. Mathlib gap survey in
-`lean/MATHLIB_SURVEY.md`.
+`E × ℝ` embedding, `Euler_Poincare_full`, geometric 3D. Phase B (#1535): Platonic
+Schläfli + Pick Funkenbusch bookkeeping. Surveys: `lean/MATHLIB_SURVEY.md`,
+`lean/PHASE_B_PLAN.md`.
 
-## Parked (do not start)
+## Phase B (#1535) — landed (combinatorial)
 
-- Pick's theorem (Euler → Pick via Funkenbusch)
-- Five Platonic solids constructions
+- **Platonic solids:** Schläfli classification + five Euler-bookkeeping constructions
+  (`lean/EulersGem/Platonic.lean`). Geometric regular embeddings still open.
+- **Pick's theorem:** Funkenbusch / triangulation bookkeeping
+  (`lean/EulersGem/Picks.lean`). Geometric lattice triangulation + primitive
+  triangle area `1/2` still open (Mathlib gap; see `lean/PHASE_B_PLAN.md`).
 
 ## Building (Lean)
 

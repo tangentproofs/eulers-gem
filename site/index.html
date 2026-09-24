@@ -60,6 +60,11 @@
         <tr><td><code>results_faceEulerSum_of_height_one</code></td><td>Height-1 H-rep: Paulson slice EP (<code>faceEulerSum = 1</code>)</td></tr>
         <tr><td><code>results_Euler_Poincare_full</code></td><td>Full-dim H+V-rep polytope: <code>faceEulerSum = 1</code></td></tr>
         <tr><td><code>results_euler_relation_convex_3polytope</code></td><td>Convex 3-polytope (H+V-rep): <code>V − E + F = 2</code></td></tr>
+        <tr><td><code>results_platonic_schlafli_classification</code></td><td>Combinatorial Platonic: Schläfli <code>(s,m)</code> ∈ five pairs</td></tr>
+        <tr><td><code>results_platonic_schlafli_card</code></td><td>Exactly five admissible Schläfli pairs</td></tr>
+        <tr><td><code>results_platonic_five_constructions</code></td><td>Five combinatorial <code>(V,E,F)</code> types (Euler bookkeeping)</td></tr>
+        <tr><td><code>results_picks_of_funkenbusch</code></td><td>Euler + Funkenbusch ⇒ Pick <code>A = I + B/2 − 1</code></td></tr>
+        <tr><td><code>results_picks_of_triangulation</code></td><td>Triangulation handshaking ⇒ Pick</td></tr>
       </tbody>
     </table>
 
@@ -89,10 +94,10 @@ isabelle/      Vendored AFP Euler_Polyhedron_Formula + Poly100 archive
 scripts/       Comparator helpers (list Results.lean theorems)
 site/          This documentation site (GitHub Pages)</code></pre>
 
-    <h2>Parked</h2>
+    <h2>Phase B (#1535)</h2>
     <ul class="clean">
-      <li>Pick's theorem (Euler → Pick via Funkenbusch)</li>
-      <li>Five Platonic solids constructions</li>
+      <li><strong>Landed:</strong> Platonic Schläfli classification + five combinatorial constructions; Pick Funkenbusch / triangulation bookkeeping.</li>
+      <li><strong>Still open:</strong> geometric lattice triangulation + primitive triangle area ½; geometric regular polyhedron embeddings.</li>
     </ul>
 
     <footer class="site">

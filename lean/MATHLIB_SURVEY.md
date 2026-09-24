@@ -142,3 +142,14 @@ proof.
 - In `Results.lean`: simplex face-sum + conditional 3D bookkeeping (not general EP).
 - **Next:** discharge `ConeSliceFaceBijection` for polyhedral cones; embedding for
   `Euler_Poincare_full`; general convex 3-polytope `V−E+F=2`.
+
+## Phase B addendum (#1535) — Pick / Platonic
+
+Survey date: 2026-09-24. See also `PHASE_B_PLAN.md`.
+
+| Item | Mathlib? | Action taken |
+|---|---|---|
+| Pick's theorem | No | Landed Euler→Funkenbusch / triangulation bookkeeping in `Picks.lean` |
+| Lattice polygon interiors / triangulation | No | Left open; documented |
+| Primitive lattice triangle area ½ | No ready API | Left open |
+| Platonic / Schläfli regular polyhedra | No | Landed combinatorial classification + five constructions in `Platonic.lean` |

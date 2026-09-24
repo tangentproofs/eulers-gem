@@ -111,8 +111,9 @@ Kept as historical archive only; not the Lean roadmap.
 
 ## Parked
 
-- Pick's theorem (Euler → Pick via Funkenbusch)
-- Five Platonic solids constructions (≤5 bound in Poly100; constructions TODO)
+- Pick's theorem / Platonic solids: **Lean Phase B (#1535) landed** combinatorial
+  cores under `lean/EulersGem/{Picks,Platonic}.lean`. Geometric lattice gaps and
+  regular embeddings remain open (Poly100 stubs kept for provenance).
 
 ## Status
 

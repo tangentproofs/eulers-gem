@@ -376,10 +376,40 @@
         "Results.results_euler_relation_convex_3polytope"
       ],
       "note": "Geometric V\u2212E+F=2 for full-dim H+V-rep convex 3-polytopes."
+    },
+    {
+      "id": "platonic-schlafli",
+      "title": "Platonic solids: Schl\u00e4fli classification + five combinatorial constructions",
+      "status": "proved",
+      "depends_on": [
+        "polyhedron-formula-3d"
+      ],
+      "lean": [
+        "EulersGem.Platonic.schlafli_pair_mem",
+        "EulersGem.Platonic.card_schlafliPairs",
+        "EulersGem.Platonic.exactly_five_platonic_schlafli",
+        "Results.results_platonic_schlafli_classification",
+        "Results.results_platonic_schlafli_card",
+        "Results.results_platonic_five_constructions"
+      ],
+      "note": "Combinatorial (s,m) classification via (s-2)(m-2)<4; five V,E,F witnesses. Geometric regular embeddings open. Memnar #1535."
+    },
+    {
+      "id": "picks-funkenbusch",
+      "title": "Pick's theorem: Euler \u2192 Funkenbusch / triangulation bookkeeping",
+      "status": "proved",
+      "depends_on": [
+        "polyhedron-formula-3d"
+      ],
+      "lean": [
+        "EulersGem.Picks.picks_of_funkenbusch",
+        "EulersGem.Picks.funkenbusch_of_triangulation",
+        "EulersGem.Picks.picks_of_triangulation",
+        "Results.results_picks_of_funkenbusch",
+        "Results.results_picks_of_triangulation"
+      ],
+      "note": "Algebraic Pick from Euler+Funkenbusch and from triangulation handshaking. Geometric lattice triangulation + primitive area 1/2 still open (Mathlib gap). Memnar #1535."
     }
   ],
-  "parked": [
-    "picks-theorem",
-    "platonic-solids-constructions"
-  ]
+  "parked": []
 }
