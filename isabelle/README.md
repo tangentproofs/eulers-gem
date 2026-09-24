@@ -42,27 +42,50 @@ Supporting AFP substrate (hyperplane arrangements, cell complexes, Euler-char
 invariance) maps to the Lean modules under `lean/EulersGem/` (see
 `lean/MATHLIB_SURVEY.md`).
 
-### Building / checking with Isabelle
+### Box install (Isabelle2025-2)
 
-This box does **not** currently have Isabelle installed (`isabelle` not on
-`PATH`). To check the vendored session elsewhere:
+Installed on this shared Grok box (Memnar #1535 / GTD #538):
 
-1. Install [Isabelle](https://isabelle.in.tum.de/) (recent release; AFP entry
-   targets `HOL-Analysis`).
-2. Optionally install a matching [AFP](https://isa-afp.org/) release, or use
-   this vendored tree alone (session depends only on `HOL-Analysis`).
-3. From this directory:
+| Item | Value |
+|------|-------|
+| Version | **Isabelle2025-2** (January 2026) |
+| Install path | `/home/box/Isabelle2025-2` |
+| Wrapper on PATH | `/home/box/bin/isabelle` → `…/Isabelle2025-2/bin/isabelle` |
+| Env snippet | `/home/box/isabelle-env.sh` (`PATH` + `ISABELLE_HOME`) |
+| Heaps | `~/.isabelle/Isabelle2025-2/heaps/` (user) + bundled Pure/HOL under `$ISABELLE_HOME/heaps` |
+
+Invoke:
 
 ```bash
-# using the vendored session ROOT:
-isabelle build -d afp-Euler_Polyhedron_Formula -v Euler_Polyhedron_Formula
+source /home/box/isabelle-env.sh   # or rely on ~/bin in PATH via ~/.bashrc
+isabelle version                  # → Isabelle2025-2
 ```
 
-Expected: session `Euler_Polyhedron_Formula` builds from `Euler_Formula.thy`
-(timeout option in ROOT is 300s). Document generation (`document/`) is optional.
+Official source: https://isabelle.in.tum.de/ (Linux bundle
+`Isabelle2025-2_linux.tar.gz`). Full AFP mirror **not** required — this vendored
+session depends only on `HOL-Analysis`.
 
-If Isabelle is later installed on this box, re-run the build command above and
-update the status line under **Status**.
+### Building / checking the vendored session
+
+From this directory (`isabelle/`):
+
+```bash
+isabelle build -d afp-Euler_Polyhedron_Formula -v -o document=false Euler_Polyhedron_Formula
+```
+
+First run builds `HOL-Analysis` (~10 min wall / ~45 min CPU on this box), then
+`Euler_Polyhedron_Formula` (~15 s). Subsequent runs are cached (~7 s).
+
+**Machine-checked green** on this box (2026-09-24 EDT):
+
+```
+Finished HOL-Analysis (0:09:37 elapsed time, 0:44:48 cpu time, factor 4.66)
+Finished Euler_Polyhedron_Formula (0:00:14 elapsed time, 0:00:31 cpu time, factor 2.11)
+# exit status 0
+```
+
+Document generation (`document/`) is optional (`-o document=false` skips it).
+
 
 ## Historical archive (Poly100)
 
@@ -94,7 +117,10 @@ Kept as historical archive only; not the Lean roadmap.
 ## Status
 
 - **AFP vendored** as comparison base (`afp-Euler_Polyhedron_Formula/`).
-- **Isabelle not installed on this box** — sources + build instructions only;
-  session not machine-checked here.
+- **Isabelle2025-2 installed** at `/home/box/Isabelle2025-2`; `isabelle` on PATH
+  via `/home/box/bin/isabelle`.
+- **Session machine-checks green** on this box:
+  `isabelle build -d afp-Euler_Polyhedron_Formula -v -o document=false Euler_Polyhedron_Formula` → exit 0
+  (2026-09-24 EDT; HOL-Analysis + Euler_Polyhedron_Formula).
 - Poly100 kept as historical archive.
 - Lean under `../lean/` is the active formalization path (`lake build`).

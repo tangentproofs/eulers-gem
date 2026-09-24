@@ -43,26 +43,31 @@ lake build</code></pre>
       Building Mathlib from source can take hours.
     </div>
 
-    <h2>Isabelle (optional)</h2>
+    <h2>Isabelle (comparison base)</h2>
     <p>
-      This documentation site and the usual tangentproofs box do <strong>not</strong>
-      require Isabelle on <code>PATH</code>. To check the vendored session elsewhere:
+      Lean is the active formalization path. Isabelle is a comparison base (vendored AFP).
+      This shared box has <strong>Isabelle2025-2</strong> at
+      <code>/home/box/Isabelle2025-2</code> (<code>isabelle</code> on <code>PATH</code>
+      via <code>/home/box/bin/isabelle</code>). The vendored session
+      <strong>machine-checks green</strong> here (Memnar #1535).
     </p>
     <ol>
-      <li>Install <a href="https://isabelle.in.tum.de/">Isabelle</a> (recent release; AFP entry targets <code>HOL-Analysis</code>).</li>
+      <li>Install <a href="https://isabelle.in.tum.de/">Isabelle</a> (this box: Isabelle2025-2; AFP entry targets <code>HOL-Analysis</code>).</li>
       <li>Optionally install a matching <a href="https://isa-afp.org/">AFP</a> release, or use the vendored tree alone (session depends only on <code>HOL-Analysis</code>).</li>
-      <li>From <code>isabelle/</code>:</li>
+      <li>From <code>isabelle/</code>:
+        <pre><code>isabelle build -d afp-Euler_Polyhedron_Formula -v -o document=false Euler_Polyhedron_Formula</code></pre>
+      </li>
     </ol>
-    <pre><code>isabelle build -d afp-Euler_Polyhedron_Formula -v Euler_Polyhedron_Formula</code></pre>
     <p class="muted">
       Expected: session <code>Euler_Polyhedron_Formula</code> builds from <code>Euler_Formula.thy</code>
       (ROOT timeout option is 300s). Document generation under <code>document/</code> is optional.
+      First build of <code>HOL-Analysis</code> may take ~10&nbsp;min wall time; then the AFP session is ~15&nbsp;s.
     </p>
 
     <h2>Status</h2>
     <ul class="clean">
       <li><strong>AFP vendored</strong> as comparison base (<code>afp-Euler_Polyhedron_Formula/</code>).</li>
-      <li><strong>Isabelle not required</strong> for Lean work — sources + build instructions only.</li>
+      <li><strong>Isabelle2025-2</strong> installed on this box; vendored session machine-checks green (Memnar #1535).</li>
       <li>Poly100 kept as historical archive.</li>
       <li>Lean under <code>lean/</code> is the active path (<code>lake build</code>).</li>
     </ul>
