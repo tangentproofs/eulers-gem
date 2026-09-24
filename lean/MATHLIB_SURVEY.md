@@ -126,4 +126,7 @@ proof.
 - `EulersGem.Hyperplane`: sides, equiv, cells, complexes, Un/Inter/mono, finiteness.
 - `EulersGem.AffDim`: set-level `affDim` (`∅ ↦ -1`).
 - `EulersGem.EulerChar`: combinatorial `eulerCharacteristic`, cell/Un additivity,
-  empty-arrangement evaluation; full refinement invariance still open.
+  empty-arrangement evaluation; insert special cases (preserved / mem / a=0).
+- `EulersGem.CellGeometry`: `hyperplane_cell_Int_open_affine`, relative interior,
+  halfspace affDim preservation. Still open: affDim drop on hyperplane slice and
+  general `eulerCharacteristic_insert` / full invariant.

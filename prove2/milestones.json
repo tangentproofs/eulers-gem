@@ -79,21 +79,47 @@
       "note": "Not yet claimed in Results.lean (substrate)."
     },
     {
+      "id": "cell-geometry-open-affine",
+      "title": "Hyperplane cells: open\u2229affine + relative interior + halfspace affDim",
+      "status": "proved",
+      "depends_on": [
+        "hyperplane-arrangements",
+        "affdim-wrapper"
+      ],
+      "lean": [
+        "EulersGem.isOpen_halfSpace_lt",
+        "EulersGem.isOpen_halfSpace_gt",
+        "EulersGem.isHyperplaneCell_singleton",
+        "EulersGem.affineSpan_isOpen_inter",
+        "EulersGem.isHyperplaneCell_exists_isOpen_affine",
+        "EulersGem.isHyperplaneCell_intrinsicInterior",
+        "EulersGem.affDim_cell_inter_halfSpace_lt",
+        "EulersGem.affDim_cell_inter_halfSpace_gt"
+      ],
+      "note": "Paulson hyperplane_cell_Int_open_affine + relative_interior + halfspace dim preservation."
+    },
+    {
       "id": "euler-char-invariance",
       "title": "Euler characteristic invariant under refining arrangements",
       "status": "in_progress",
       "depends_on": [
-        "combinatorial-euler-char"
+        "combinatorial-euler-char",
+        "cell-geometry-open-affine"
       ],
       "lean": [
         "EulersGem.eulerCharacteristic_eq_of_same_cells",
-        "EulersGem.eulerCharacteristic_invariant_of_eq"
+        "EulersGem.eulerCharacteristic_invariant_of_eq",
+        "EulersGem.eulerCharacteristic_insert_of_cells_preserved",
+        "EulersGem.eulerCharacteristic_insert_mem",
+        "EulersGem.eulerCharacteristic_insert_zero",
+        "EulersGem.cellSign_cell_inter_halfSpace_lt",
+        "EulersGem.cellSign_cell_inter_halfSpace_gt"
       ],
-      "note": "Scaffolding only: same-cell / equal-arrangement cases. Full Paulson insert+cutting lemma (aff_dim drop on hyperplane slice) still open."
+      "note": "Insert special cases green (preserved cells / mem / degenerate a=0). Full Paulson cutting lemma needs affDim drop on hyperplane slice (halfspace affDim preservation landed in CellGeometry)."
     },
     {
       "id": "euler-poincare-full",
-      "title": "Euler–Poincaré for full-dimensional convex polytopes",
+      "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
       "status": "open",
       "depends_on": [
         "euler-char-invariance"

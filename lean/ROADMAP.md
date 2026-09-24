@@ -5,8 +5,10 @@
 2. **Done (survey):** Mathlib survey vs Paulson — see `MATHLIB_SURVEY.md`.
 3. **In progress:** Port Paulson substrate — hyperplane cells/complexes green;
    `affDim` + combinatorial `eulerCharacteristic` + disjoint additivity landed
-   (`EulersGem.AffDim`, `EulersGem.EulerChar`). Full refinement-invariance
-   (insert/cutting lemma) still open.
+   (`EulersGem.AffDim`, `EulersGem.EulerChar`). Cell geometry green
+   (`EulersGem.CellGeometry`: open∩affine, relative interior, halfspace affDim).
+   Full refinement-invariance insert/cutting still open (affDim drop on hyperplane
+   slice + general `eulerCharacteristic_insert`).
 4. **Cones → polytopes:** Euler relation for full-dimensional proper polyhedral cones;
    then `Euler_Poincare_full` analogue.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
@@ -27,4 +29,5 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Mathlib survey (`MATHLIB_SURVEY.md`)
 - [x] Paulson hyperplane substrate defs + cell/complex lemmas + finiteness
 - [x] Set-level `affDim` + combinatorial `eulerCharacteristic` + Un-additivity
-- [ ] Refinement invariance (Paulson insert/cutting lemma)
+- [x] Cell open∩affine + relative interior + halfspace affDim preservation
+- [ ] Refinement invariance (Paulson insert/cutting: affDim drop + general insert)

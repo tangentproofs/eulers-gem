@@ -4,3 +4,4 @@ import EulersGem.Polyhedron
 import EulersGem.Hyperplane
 import EulersGem.AffDim
 import EulersGem.EulerChar
+import EulersGem.CellGeometry

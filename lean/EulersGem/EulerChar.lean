@@ -5,6 +5,7 @@ Authors: Michal Wallace, Grok Bot
 -/
 import EulersGem.AffDim
 import EulersGem.Hyperplane
+import EulersGem.CellGeometry
 import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 import Mathlib.Data.Set.Finite.Basic
 
@@ -18,11 +19,12 @@ Euler_characteristic A S = ∑_{C cell of A, C ⊆ S} (-1)^{affDim C}
 ```
 
 Plus additivity over disjoint cell complexes, evaluation on the empty arrangement,
-and scaffolding toward **invariance under refining arrangements** (the geometric
-insert/cutting lemma is the next session).
+and scaffolding toward **invariance under refining arrangements**. Geometric
+substrate for the insert/cutting lemma lives in `EulersGem.CellGeometry`
+(open∩affine, relative interior, halfspace affDim preservation).
 -/
 
-open scoped BigOperators
+open scoped BigOperators RealInnerProductSpace
 open Classical Set Finset
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
@@ -218,5 +220,85 @@ lemma eulerCharacteristic_invariant_of_eq {A B : Set (Hyperplane E)} {S : Set E}
     eulerCharacteristic A S = eulerCharacteristic B S := by
   subst hEq
   rfl
+
+
+/-! ### Toward refinement invariance (insert one hyperplane) -/
+
+lemma cellSign_cell_inter_halfSpace_lt {A : Set (Hyperplane E)} {C : Set E}
+    (hA : A.Finite) (hC : IsHyperplaneCell A C) (a : E) (b : ℝ)
+    (hne : (C ∩ {x | ⟪a, x⟫ < b}).Nonempty) :
+    cellSign (C ∩ {x | ⟪a, x⟫ < b}) = cellSign C := by
+  simp only [cellSign, affDim_cell_inter_halfSpace_lt hA hC a b hne]
+
+lemma cellSign_cell_inter_halfSpace_gt {A : Set (Hyperplane E)} {C : Set E}
+    (hA : A.Finite) (hC : IsHyperplaneCell A C) (a : E) (b : ℝ)
+    (hne : (C ∩ {x | b < ⟪a, x⟫}).Nonempty) :
+    cellSign (C ∩ {x | b < ⟪a, x⟫}) = cellSign C := by
+  simp only [cellSign, affDim_cell_inter_halfSpace_gt hA hC a b hne]
+
+/-- If every `A`-cell inside `S` remains a cell of `insert h A`, Euler chars agree.
+Special case of insert when the new hyperplane does not cut any cell of `S`. -/
+lemma eulerCharacteristic_insert_of_cells_preserved {A : Set (Hyperplane E)}
+    {h : Hyperplane E} {S : Set E}
+    (hA : A.Finite)
+    (hPres : {C : Set E | IsHyperplaneCell A C ∧ C ⊆ S} =
+             {C : Set E | IsHyperplaneCell (insert h A) C ∧ C ⊆ S}) :
+    eulerCharacteristic (insert h A) S = eulerCharacteristic A S := by
+  have hB : (insert h A).Finite := hA.insert _
+  exact eulerCharacteristic_eq_of_same_cells hB hA hPres.symm
+
+/-- Inserting a hyperplane already in the arrangement does nothing. -/
+lemma eulerCharacteristic_insert_mem {A : Set (Hyperplane E)} {h : Hyperplane E}
+    {S : Set E} (_hA : A.Finite) (hh : h ∈ A) :
+    eulerCharacteristic (insert h A) S = eulerCharacteristic A S := by
+  have : insert h A = A := insert_eq_of_mem hh
+  simp [this]
+
+/-- Degenerate hyperplane `(0, b)` does not refine the arrangement's cells
+(singleton cell is `univ`), so Euler char is unchanged on any cell complex. -/
+lemma eulerCharacteristic_insert_zero {A : Set (Hyperplane E)} {b : ℝ} {S : Set E}
+    (hA : A.Finite) (_hS : IsHyperplaneCellComplex A S) :
+    eulerCharacteristic (insert ((0 : E), b) A) S = eulerCharacteristic A S := by
+  -- Cells of insert = cells of A, via union with degenerate singleton {univ}
+  -- Use: insert (0,b) A = {(0,b)} ∪ A, and cells of {(0,b)} is {univ}
+  refine eulerCharacteristic_insert_of_cells_preserved hA ?_
+  ext C
+  constructor
+  · intro ⟨hC, hsub⟩
+    -- An A-cell is an (insert)-cell-complex; need it to be a single cell
+    -- When the new hyperplane is degenerate, HyperplaneEquiv is unchanged
+    have hEq : HyperplaneEquiv (insert ((0 : E), b) A) = HyperplaneEquiv A := by
+      ext x y
+      simp only [HyperplaneEquiv, mem_insert_iff]
+      constructor
+      · intro h hp hpA
+        exact h hp (Or.inr hpA)
+      · intro h hp hpA
+        rcases hpA with rfl | hpA
+        · -- side of (0,b) is constant
+          simp [hyperplaneSide, inner_zero_left]
+        · exact h hp hpA
+    -- So cells coincide
+    obtain ⟨x, rfl⟩ := hC
+    refine ⟨⟨x, ?_⟩, hsub⟩
+    ext y
+    simp only [mem_ofPred_eq]
+    exact Iff.of_eq (congrFun (congrFun hEq x) y).symm
+  · intro ⟨hC, hsub⟩
+    obtain ⟨x, rfl⟩ := hC
+    refine ⟨⟨x, ?_⟩, hsub⟩
+    ext y
+    simp only [mem_ofPred_eq]
+    have hEq : HyperplaneEquiv (insert ((0 : E), b) A) = HyperplaneEquiv A := by
+      ext u v
+      simp only [HyperplaneEquiv, mem_insert_iff]
+      constructor
+      · intro h hp hpA; exact h hp (Or.inr hpA)
+      · intro h hp hpA
+        rcases hpA with rfl | hpA
+        · simp [hyperplaneSide, inner_zero_left]
+        · exact h hp hpA
+    exact Iff.of_eq (congrFun (congrFun hEq x) y)
+
 
 end EulersGem
