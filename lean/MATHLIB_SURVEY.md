@@ -123,5 +123,7 @@ proof.
 ## Status after this session
 
 - Survey written (this file).
-- `EulersGem.Hyperplane` started: sides, equivalence, cells, basic lemmas
-  (see ROADMAP / prove2 milestones).
+- `EulersGem.Hyperplane`: sides, equiv, cells, complexes, Un/Inter/mono, finiteness.
+- `EulersGem.AffDim`: set-level `affDim` (`∅ ↦ -1`).
+- `EulersGem.EulerChar`: combinatorial `eulerCharacteristic`, cell/Un additivity,
+  empty-arrangement evaluation; full refinement invariance still open.

@@ -34,10 +34,11 @@ Michal's unfinished Isabelle `Poly100.thy` / `Poly100-notes.org` (copied under
 ## Status
 
 * **Proved:** `eulerChar_simplex`; tetrahedron `V-E+F=2` bookkeeping.
-* **In progress:** Paulson substrate in `EulersGem.Hyperplane` (sides, cells,
-  cell complexes, convexity). See `MATHLIB_SURVEY.md` for Mathlib gaps.
-* **Open (not in Results.lean):** Euler-char invariance; general Euler–Poincaré;
-  polyhedron formula for arbitrary convex 3-polytopes.
+* **In progress:** Paulson substrate — `Hyperplane` (cells/complexes/finiteness),
+  `AffDim`, `EulerChar` (combinatorial Euler + disjoint additivity). See
+  `MATHLIB_SURVEY.md`.
+* **Open (not in Results.lean):** full refinement invariance (insert/cutting);
+  general Euler–Poincaré; polyhedron formula for arbitrary convex 3-polytopes.
 * **Parked:** Pick's theorem; Platonic solids constructions.
 -/
 

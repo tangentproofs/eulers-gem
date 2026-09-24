@@ -280,4 +280,170 @@ lemma isHyperplaneCellComplex_union {A : Set (Hyperplane E)} {S T : Set E}
       simp only [mem_insert_iff, mem_singleton_iff] at hU
       rcases hU with rfl | rfl <;> assumption)
 
+
+/-! ### Union characterisation & finiteness -/
+
+/-- Cells of a union arrangement are nonempty intersections of an `A`-cell and a `B`-cell.
+Isabelle: `hyperplane_cell_Un`. -/
+lemma isHyperplaneCell_union (A B : Set (Hyperplane E)) (C : Set E) :
+    IsHyperplaneCell (A ∪ B) C ↔
+      C.Nonempty ∧
+        ∃ C1 C2, IsHyperplaneCell A C1 ∧ IsHyperplaneCell B C2 ∧ C = C1 ∩ C2 := by
+  constructor
+  · rintro ⟨x, rfl⟩
+    refine ⟨⟨x, hyperplaneEquiv_refl (A ∪ B) x⟩,
+      {y | HyperplaneEquiv A x y}, {y | HyperplaneEquiv B x y},
+      ⟨x, rfl⟩, ⟨x, rfl⟩, ?_⟩
+    ext y
+    simp only [mem_inter_iff, mem_ofPred_eq]
+    exact hyperplaneEquiv_union A B x y
+  · rintro ⟨⟨z, hz⟩, C1, C2, hC1, hC2, rfl⟩
+    obtain ⟨x1, rfl⟩ := hC1
+    obtain ⟨x2, rfl⟩ := hC2
+    refine ⟨z, ?_⟩
+    ext y
+    constructor
+    · intro ⟨hyA, hyB⟩
+      exact (hyperplaneEquiv_union A B z y).mpr
+        ⟨hyperplaneEquiv_trans (hyperplaneEquiv_symm hz.1) hyA,
+          hyperplaneEquiv_trans (hyperplaneEquiv_symm hz.2) hyB⟩
+    · intro hy
+      have hy' := (hyperplaneEquiv_union A B z y).mp hy
+      exact ⟨hyperplaneEquiv_trans hz.1 hy'.1, hyperplaneEquiv_trans hz.2 hy'.2⟩
+
+lemma isHyperplaneCell_singleton_subset (a : E) (b : ℝ) :
+    {C : Set E | IsHyperplaneCell {(a, b)} C} ⊆
+      {{x | ⟪a, x⟫ = b}, {x | ⟪a, x⟫ < b}, {x | b < ⟪a, x⟫}} := by
+  intro C hC
+  rcases isHyperplaneCell_singleton_cases hC with h | h | h <;> simp [h]
+
+lemma finite_isHyperplaneCell_singleton (h : Hyperplane E) :
+    {C : Set E | IsHyperplaneCell {h} C}.Finite := by
+  obtain ⟨a, b⟩ := h
+  exact (Finite.insert _ (Finite.insert _ (finite_singleton _))).subset
+    (isHyperplaneCell_singleton_subset a b)
+
+/-- A finite arrangement has finitely many cells. Isabelle: `finite_hyperplane_cells`. -/
+lemma finite_isHyperplaneCell {A : Set (Hyperplane E)} (hA : A.Finite) :
+    {C : Set E | IsHyperplaneCell A C}.Finite := by
+  refine Set.Finite.induction_on (motive := fun A _ =>
+    ({C : Set E | IsHyperplaneCell A C}).Finite) A hA ?empty ?insert
+  · refine (finite_singleton (univ : Set E)).subset ?_
+    intro C hC
+    exact (isHyperplaneCell_empty_arrangement C).mp hC
+  · intro p A hp hA ih
+    have hfin_p := finite_isHyperplaneCell_singleton p
+    let cells : Set (Set E) :=
+      ⋃ C1 ∈ {C | IsHyperplaneCell A C},
+        ⋃ C2 ∈ {C | IsHyperplaneCell {p} C}, {C1 ∩ C2}
+    have hsub : {C : Set E | IsHyperplaneCell (insert p A) C} ⊆ cells := by
+      intro C hC
+      have hC' : IsHyperplaneCell ({p} ∪ A) C := by
+        rwa [show insert p A = {p} ∪ A from insert_eq p A] at hC
+      obtain ⟨-, Cp, CA, hCp, hCA, rfl⟩ := (isHyperplaneCell_union {p} A C).mp hC'
+      -- cells indexes A-cell first, then {p}-cell; goal is Cp ∩ CA ∈ cells
+      rw [inter_comm]
+      exact mem_biUnion hCA (mem_biUnion hCp rfl)
+    have hfin : cells.Finite :=
+      Finite.biUnion ih fun _ _ => Finite.biUnion hfin_p fun _ _ => finite_singleton _
+    exact hfin.subset hsub
+
+lemma finite_isHyperplaneCell_restrict {A : Set (Hyperplane E)} (hA : A.Finite)
+    (P : Set E → Prop) :
+    {C : Set E | IsHyperplaneCell A C ∧ P C}.Finite :=
+  (finite_isHyperplaneCell hA).subset fun _ h => h.1
+
+lemma pairwise_disjoint_isHyperplaneCell {A : Set (Hyperplane E)} {Cs : Set (Set E)}
+    (h : ∀ C ∈ Cs, IsHyperplaneCell A C) :
+    Cs.Pairwise Disjoint :=
+  fun _ h1 _ h2 hne => disjoint_isHyperplaneCell (h _ h1) (h _ h2) hne
+
+/-- Intersection of two cells of the same arrangement is a cell when nonempty. -/
+lemma isHyperplaneCell_inter {A : Set (Hyperplane E)} {S T : Set E}
+    (hS : IsHyperplaneCell A S) (hT : IsHyperplaneCell A T) (hne : (S ∩ T).Nonempty) :
+    IsHyperplaneCell A (S ∩ T) := by
+  by_cases hEq : S = T
+  · simpa [hEq] using hS
+  · have : S ∩ T = ∅ := disjoint_iff_inter_eq_empty.mp (disjoint_isHyperplaneCell hS hT hEq)
+    exact absurd hne (this.symm ▸ Set.not_nonempty_empty)
+
+/-- Cell complexes are closed under binary intersection. -/
+lemma isHyperplaneCellComplex_inter {A : Set (Hyperplane E)} {S T : Set E}
+    (hS : IsHyperplaneCellComplex A S) (hT : IsHyperplaneCellComplex A T) :
+    IsHyperplaneCellComplex A (S ∩ T) := by
+  obtain ⟨FS, hcellsS, hSeq⟩ := hS
+  obtain ⟨FT, hcellsT, hTeq⟩ := hT
+  let Ts : Set (Set E) :=
+    {C | ∃ C1 ∈ FS, ∃ C2 ∈ FT, C = C1 ∩ C2 ∧ (C1 ∩ C2).Nonempty}
+  refine ⟨Ts, ⟨?_, ?_⟩⟩
+  · intro C hC
+    obtain ⟨C1, hC1, C2, hC2, rfl, hne⟩ := hC
+    exact isHyperplaneCell_inter (hcellsS C1 hC1) (hcellsT C2 hC2) hne
+  · ext x
+    constructor
+    · intro ⟨hxS, hxT⟩
+      have hxS' : x ∈ ⋃₀ FS := by simpa [hSeq] using hxS
+      have hxT' : x ∈ ⋃₀ FT := by simpa [hTeq] using hxT
+      obtain ⟨C1, hC1, hx1⟩ := hxS'
+      obtain ⟨C2, hC2, hx2⟩ := hxT'
+      exact ⟨C1 ∩ C2, ⟨C1, hC1, C2, hC2, rfl, ⟨x, hx1, hx2⟩⟩, ⟨hx1, hx2⟩⟩
+    · rintro ⟨C, ⟨C1, hC1, C2, hC2, rfl, _⟩, hx1, hx2⟩
+      constructor
+      · rw [hSeq]; exact ⟨C1, hC1, hx1⟩
+      · rw [hTeq]; exact ⟨C2, hC2, hx2⟩
+
+/-- An `A`-cell is a `B`-cell-complex whenever `A ⊆ B`. -/
+lemma isHyperplaneCell_cellComplex_of_subset {A B : Set (Hyperplane E)} {C : Set E}
+    (hC : IsHyperplaneCell A C) (hAB : A ⊆ B) :
+    IsHyperplaneCellComplex B C := by
+  let Diff : Set (Hyperplane E) := B \ A
+  let Ts : Set (Set E) :=
+    {D | ∃ D0, IsHyperplaneCell Diff D0 ∧ D = D0 ∩ C ∧ (D0 ∩ C).Nonempty}
+  have hBeq : A ∪ Diff = B := by
+    change A ∪ (B \ A) = B
+    exact union_sdiff_cancel hAB
+  refine ⟨Ts, ⟨?_, ?_⟩⟩
+  · intro D hD
+    obtain ⟨D0, hD0, rfl, hne⟩ := hD
+    have : IsHyperplaneCell (A ∪ Diff) (C ∩ D0) := by
+      rw [isHyperplaneCell_union]
+      exact ⟨by simpa [inter_comm] using hne, C, D0, hC, hD0, rfl⟩
+    simpa [hBeq, inter_comm] using this
+  · ext x
+    constructor
+    · intro hx
+      refine ⟨{y | HyperplaneEquiv Diff x y} ∩ C, ?_, ?_⟩
+      · exact ⟨{y | HyperplaneEquiv Diff x y}, ⟨x, rfl⟩, rfl,
+          ⟨x, hyperplaneEquiv_refl Diff x, hx⟩⟩
+      · exact ⟨hyperplaneEquiv_refl Diff x, hx⟩
+    · intro ⟨D, hD, hxD⟩
+      obtain ⟨_, _, rfl, _⟩ := hD
+      exact hxD.2
+
+/-- Cell complexes are monotonic in the arrangement. -/
+lemma isHyperplaneCellComplex_mono {A B : Set (Hyperplane E)} {S : Set E}
+    (hS : IsHyperplaneCellComplex A S) (hAB : A ⊆ B) :
+    IsHyperplaneCellComplex B S := by
+  obtain ⟨Cs, hcells, rfl⟩ := hS
+  exact isHyperplaneCellComplex_sUnion fun C hC =>
+    isHyperplaneCell_cellComplex_of_subset (hcells C hC) hAB
+
+/-- A cell meets a cell complex iff it is contained in it. -/
+lemma cell_subset_cellcomplex {A : Set (Hyperplane E)} {C S : Set E}
+    (hC : IsHyperplaneCell A C) (hS : IsHyperplaneCellComplex A S) :
+    C ⊆ S ↔ (C ∩ S).Nonempty := by
+  obtain ⟨Ts, hcells, rfl⟩ := hS
+  constructor
+  · intro hsub
+    obtain ⟨x, hx⟩ := nonempty_isHyperplaneCell hC
+    exact ⟨x, hx, hsub hx⟩
+  · intro ⟨x, hxC, hxS⟩
+    obtain ⟨C', hC', hxC'⟩ := hxS
+    have hEq : C = C' := by
+      by_contra hne
+      have hd : Disjoint C C' := disjoint_isHyperplaneCell hC (hcells C' hC') hne
+      exact (disjoint_left.mp hd) hxC hxC'
+    intro y hy
+    exact ⟨C', hC', hEq ▸ hy⟩
+
 end EulersGem

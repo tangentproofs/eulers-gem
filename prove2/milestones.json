@@ -34,7 +34,7 @@
     {
       "id": "hyperplane-arrangements",
       "title": "Hyperplane arrangements + cell complexes (Paulson substrate)",
-      "status": "in_progress",
+      "status": "proved",
       "depends_on": [],
       "lean": [
         "EulersGem.hyperplaneSide",
@@ -42,21 +42,58 @@
         "EulersGem.IsHyperplaneCell",
         "EulersGem.IsHyperplaneCellComplex",
         "EulersGem.isHyperplaneCell_convex",
-        "EulersGem.isHyperplaneCell_singleton_cases"
+        "EulersGem.isHyperplaneCell_singleton_cases",
+        "EulersGem.isHyperplaneCell_union",
+        "EulersGem.finite_isHyperplaneCell",
+        "EulersGem.isHyperplaneCellComplex_mono",
+        "EulersGem.cell_subset_cellcomplex"
       ],
-      "note": "Defs + elementary lemmas green; Euler char / invariance still open."
+      "note": "Defs + Un/Inter/mono/finiteness green."
+    },
+    {
+      "id": "affdim-wrapper",
+      "title": "Set-level affDim wrapper (Isabelle aff_dim)",
+      "status": "proved",
+      "depends_on": [],
+      "lean": [
+        "EulersGem.affDim",
+        "EulersGem.affDim_empty",
+        "EulersGem.affDim_univ"
+      ]
+    },
+    {
+      "id": "combinatorial-euler-char",
+      "title": "Combinatorial Euler characteristic of hyperplane cell complexes",
+      "status": "proved",
+      "depends_on": [
+        "hyperplane-arrangements",
+        "affdim-wrapper"
+      ],
+      "lean": [
+        "EulersGem.eulerCharacteristic",
+        "EulersGem.eulerCharacteristic_cell",
+        "EulersGem.eulerCharacteristic_cell_sUnion",
+        "EulersGem.eulerCharacteristic_cellcomplex_union",
+        "EulersGem.eulerCharacteristic_empty_arrangement_univ"
+      ],
+      "note": "Not yet claimed in Results.lean (substrate)."
     },
     {
       "id": "euler-char-invariance",
       "title": "Euler characteristic invariant under refining arrangements",
-      "status": "open",
+      "status": "in_progress",
       "depends_on": [
-        "hyperplane-arrangements"
-      ]
+        "combinatorial-euler-char"
+      ],
+      "lean": [
+        "EulersGem.eulerCharacteristic_eq_of_same_cells",
+        "EulersGem.eulerCharacteristic_invariant_of_eq"
+      ],
+      "note": "Scaffolding only: same-cell / equal-arrangement cases. Full Paulson insert+cutting lemma (aff_dim drop on hyperplane slice) still open."
     },
     {
       "id": "euler-poincare-full",
-      "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
+      "title": "Euler–Poincaré for full-dimensional convex polytopes",
       "status": "open",
       "depends_on": [
         "euler-char-invariance"
