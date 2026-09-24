@@ -611,8 +611,32 @@ theorem coneSliceFaceBijection [FiniteDimensional ℝ E] {p : Set E} {i : E} (n 
   conic_inj := fun d _hd =>
     injOn_conicHull_faces (fun _F hF x hx => hht x (isFaceOf_subset hF hx)) d
 
+lemma iInter_closedHalfspace_diff_zero (As : Set E) :
+    (⋂ a ∈ As, closedHalfspace a 0) = (⋂ a ∈ As \ ({0} : Set E), closedHalfspace a 0) := by
+  ext x
+  constructor
+  · intro hx
+    exact mem_iInter₂.mpr fun a ha => (mem_iInter₂.mp hx a) ha.1
+  · intro hx
+    refine mem_iInter₂.mpr fun a ha => ?_
+    by_cases ha0 : a = 0
+    · subst ha0
+      change ⟪(0 : E), x⟫ ≤ 0
+      simp [inner_zero_left]
+    · exact (mem_iInter₂.mp hx a) ⟨ha, ha0⟩
+
+lemma faceEulerSum_polyhedral_cone_diff_zero [FiniteDimensional ℝ E] [Nonempty E]
+    {As : Set E} (hAs : As.Finite) (hneAs : (As \ ({0} : Set E)).Nonempty)
+    (hpos : ({x : E | ∀ a ∈ As \ ({0} : Set E), 0 < ⟪a, x⟫}).Nonempty) :
+    faceEulerSum (⋂ a ∈ As, closedHalfspace a 0) (Module.finrank ℝ E) = 0 := by
+  rw [iInter_closedHalfspace_diff_zero]
+  exact faceEulerSum_polyhedral_cone hAs.sdiff hneAs hpos
+
 /-- With homogenized equality, the cone is polyhedral so `faceEulerSum_polyhedral_cone`
-applies; combined with the bijection this yields the slice Euler sum. -/
+applies; combined with the bijection this yields the slice Euler sum.
+
+`hpos` is required only on nonzero homogenized normals (`0` arises harmlessly from
+encoding a height hyperplane as a pair of opposite halfspaces). -/
 theorem faceEulerSum_of_height_one_polytope [FiniteDimensional ℝ E] [Nonempty E]
     {H : Set (Hyperplane E)} {i : E} {p : Set E}
     (hH : H.Finite)
@@ -620,16 +644,24 @@ theorem faceEulerSum_of_height_one_polytope [FiniteDimensional ℝ E] [Nonempty 
     (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hpne : p.Nonempty) (hConv : Convex ℝ p)
     (h0sec : ∀ y, y ∈ (⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0) →
       ⟪i, y⟫ = 0 → y = 0)
-    (hpos : ({x : E | ∀ a ∈ homogenizeNormals H i, 0 < ⟪a, x⟫}).Nonempty)
+    (hpos : ({x : E | ∀ a ∈ homogenizeNormals H i \ ({0} : Set E), 0 < ⟪a, x⟫}).Nonempty)
     (hn : 1 ≤ Module.finrank ℝ E) :
     faceEulerSum p (Module.finrank ℝ E - 1) = 1 := by
   set n := Module.finrank ℝ E
   have heq := conicHull_eq_homogenized_cone hp hht hpne h0sec
   have hBij := coneSliceFaceBijection n hht hpne hConv
-  have hAsNe : (homogenizeNormals H i).Nonempty := ⟨-i, Or.inr rfl⟩
+  have hAsNe : (homogenizeNormals H i \ ({0} : Set E)).Nonempty := by
+    refine ⟨-i, Or.inr rfl, ?_⟩
+    intro hi0
+    have hi : i = 0 := neg_eq_zero.mp hi0
+    obtain ⟨x, hx⟩ := hpne
+    have h1 := hht x hx
+    rw [hi, inner_zero_left] at h1
+    exact zero_ne_one h1
   have hCone : faceEulerSum (conicHull p) n = 0 := by
     rw [heq]
-    exact faceEulerSum_polyhedral_cone (homogenizeNormals_finite hH i) hAsNe hpos
+    exact faceEulerSum_polyhedral_cone_diff_zero
+      (homogenizeNormals_finite hH i) hAsNe hpos
   exact faceEulerSum_slice_of_cone hBij hCone hn
 
 end EulersGem

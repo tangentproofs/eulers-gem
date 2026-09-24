@@ -7,14 +7,13 @@ import EulersGem.SimplexEuler
 import EulersGem.Polyhedron
 import EulersGem.EulerPoincare
 import EulersGem.ConeSlice
+import EulersGem.Embed
 
 /-!
 # Paper-facing results
 
-Only theorems that are **actually proved** appear here. Open goals for general
-polytopes / the 3D polyhedron formula / Tverberg dissection live in
-`EulersGem/Polyhedron.lean` / `EulersGem/EulerPoincare.lean` as documentation
-strings and are not claimed.
+Only theorems that are **actually proved** appear here. Parked goals (Pick's,
+Platonic solids) are not claimed. Tverberg dissection remains documentation-only.
 -/
 
 open scoped RealInnerProductSpace
@@ -74,9 +73,39 @@ theorem results_faceEulerSum_of_height_one
     (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hpne : p.Nonempty) (hConv : Convex ℝ p)
     (h0sec : ∀ y, y ∈ (⋂ a ∈ EulersGem.homogenizeNormals H i, EulersGem.closedHalfspace a 0) →
       ⟪i, y⟫ = 0 → y = 0)
-    (hpos : ({x : E | ∀ a ∈ EulersGem.homogenizeNormals H i, 0 < ⟪a, x⟫}).Nonempty)
+    (hpos : ({x : E | ∀ a ∈ EulersGem.homogenizeNormals H i \ ({0} : Set E), 0 < ⟪a, x⟫}).Nonempty)
     (hn : 1 ≤ Module.finrank ℝ E) :
     EulersGem.faceEulerSum p (Module.finrank ℝ E - 1) = 1 :=
   EulersGem.faceEulerSum_of_height_one_polytope hH hp hht hpne hConv h0sec hpos hn
+
+
+
+/-- Paulson `Euler_Poincare_full`: full-dimensional H-rep polytope has `faceEulerSum = 1`. -/
+theorem results_Euler_Poincare_full
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    {H : Set (EulersGem.Hyperplane E)} {p : Set E}
+    (hH : H.Finite)
+    (hp : p = ⋂ h ∈ H, EulersGem.closedHalfspace h.1 h.2)
+    (hP : EulersGem.IsPolytope p)
+    (hdim : EulersGem.affDim p = Module.finrank ℝ E)
+    (hn : 1 ≤ Module.finrank ℝ E) :
+    EulersGem.faceEulerSum p (Module.finrank ℝ E) = 1 :=
+  EulersGem.Euler_Poincare_full hH hp hP hdim hn
+
+/-- Geometric `V − E + F = 2` for a full-dimensional convex 3-polytope (H+V-rep). -/
+theorem results_euler_relation_convex_3polytope
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    {H : Set (EulersGem.Hyperplane E)} {p : Set E}
+    (hH : H.Finite)
+    (hp : p = ⋂ h ∈ H, EulersGem.closedHalfspace h.1 h.2)
+    (hP : EulersGem.IsPolytope p)
+    (hdim : EulersGem.affDim p = 3)
+    (hE : Module.finrank ℝ E = 3) :
+    ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 0}.ncard : ℤ) -
+      ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 1}.ncard : ℤ) +
+      ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 2}.ncard : ℤ) = 2 :=
+  EulersGem.euler_relation_convex_3polytope hH hp hP hdim hE
 
 end Results

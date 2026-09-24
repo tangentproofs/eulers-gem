@@ -80,7 +80,7 @@
     },
     {
       "id": "cell-geometry-open-affine",
-      "title": "Hyperplane cells: open∩affine + relative interior + halfspace affDim",
+      "title": "Hyperplane cells: open\u2229affine + relative interior + halfspace affDim",
       "status": "proved",
       "depends_on": [
         "hyperplane-arrangements",
@@ -115,7 +115,7 @@
         "EulersGem.eulerCharacteristic_insert",
         "EulersGem.eulerCharacteristic_invariant"
       ],
-      "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler–Poincaré / cones)."
+      "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler\u2013Poincar\u00e9 / cones)."
     },
     {
       "id": "cellcomplex-compl-diff",
@@ -176,7 +176,7 @@
     },
     {
       "id": "halfspace-face-cell",
-      "title": "Halfspace cone: face ↔ RI-cell bijection + faceEulerSum = 0",
+      "title": "Halfspace cone: face \u2194 RI-cell bijection + faceEulerSum = 0",
       "status": "proved",
       "depends_on": [
         "halfspace-cone-euler",
@@ -191,7 +191,7 @@
         "EulersGem.faces_closedHalfspace_zero_eq",
         "EulersGem.faceEulerSum_halfspace_cone"
       ],
-      "note": "Paulson hyper1/hyper2 special case for closedHalfspace a 0. General face↔cell still open. Not in Results.lean."
+      "note": "Paulson hyper1/hyper2 special case for closedHalfspace a 0. General face\u2194cell still open. Not in Results.lean."
     },
     {
       "id": "two-halfspace-cone-euler",
@@ -205,7 +205,7 @@
         "EulersGem.eulerCharacteristic_two_halfspace_cone",
         "EulersGem.eulerCharacteristic_closedHalfspace_zero_of_mem"
       ],
-      "note": "Soft IE + open dual cell. Superseded for ≥3 by polyhedral-cone-cell-euler. Not in Results.lean."
+      "note": "Soft IE + open dual cell. Superseded for \u22653 by polyhedral-cone-cell-euler. Not in Results.lean."
     },
     {
       "id": "polyhedral-cone-cell-euler",
@@ -232,7 +232,7 @@
     },
     {
       "id": "cone-hyper2-face",
-      "title": "General cone hyper2: cell ⊆ cone ⇒ closure is a face",
+      "title": "General cone hyper2: cell \u2286 cone \u21d2 closure is a face",
       "status": "proved",
       "depends_on": [
         "polyhedral-cone-cell-euler",
@@ -270,11 +270,11 @@
         "EulersGem.faceEulerSum_eq_eulerCharacteristic",
         "EulersGem.faceEulerSum_polyhedral_cone"
       ],
-      "note": "Paulson Euler_polyhedral_cone: face↔RI-cell bijection; faceEulerSum=cell EC=0. Not in Results.lean (await EP full / 3D)."
+      "note": "Paulson Euler_polyhedral_cone: face\u2194RI-cell bijection; faceEulerSum=cell EC=0. Not in Results.lean (await EP full / 3D)."
     },
     {
       "id": "cone-slice-lift",
-      "title": "Cone→polytope combinatorial lift substrate (Paulson EP lemma bookkeeping)",
+      "title": "Cone\u2192polytope combinatorial lift substrate (Paulson EP lemma bookkeeping)",
       "status": "proved",
       "depends_on": [
         "cone-hyper1-faceEuler"
@@ -302,7 +302,7 @@
     },
     {
       "id": "cone-slice-geometry",
-      "title": "Cone↔slice geometric bijection (ConeSliceFaceBijection)",
+      "title": "Cone\u2194slice geometric bijection (ConeSliceFaceBijection)",
       "status": "proved",
       "depends_on": [
         "cone-slice-lift"
@@ -326,7 +326,7 @@
     },
     {
       "id": "height-one-ep",
-      "title": "Height-1 H-rep Euler–Poincaré lemma (Paulson slice)",
+      "title": "Height-1 H-rep Euler\u2013Poincar\u00e9 lemma (Paulson slice)",
       "status": "proved",
       "depends_on": [
         "cone-slice-geometry",
@@ -341,8 +341,8 @@
     },
     {
       "id": "euler-poincare-full",
-      "title": "Euler–Poincaré for full-dimensional convex polytopes",
-      "status": "in_progress",
+      "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
+      "status": "proved",
       "depends_on": [
         "halfspace-face-cell",
         "two-halfspace-cone-euler",
@@ -351,17 +351,31 @@
         "cone-hyper2-face",
         "cone-hyper1-faceEuler",
         "cone-slice-lift",
-        "cone-slice-geometry"
+        "cone-slice-geometry",
+        "height-one-ep"
       ],
-      "note": "Height-1 EP lemma green via ConeSliceFaceBijection. Blocker: E×ℝ embedding for general full-dim polytopes; then 3D V−E+F=2."
+      "note": "Full-dim H+V-rep via WithLp 2 (E\u00d7\u211d) height-1 embedding.",
+      "lean": [
+        "EulersGem.Euler_Poincare_full",
+        "EulersGem.heightOneAffine",
+        "EulersGem.faceEulerSum_image_affine",
+        "EulersGem.exists_openDual_embed",
+        "Results.results_Euler_Poincare_full"
+      ]
     },
     {
       "id": "polyhedron-formula-3d",
       "title": "Convex 3-polytope: V - E + F = 2",
-      "status": "open",
+      "status": "proved",
       "depends_on": [
         "euler-poincare-full"
-      ]
+      ],
+      "lean": [
+        "EulersGem.euler_relation_convex_3polytope",
+        "EulersGem.faces_dim_eq_finrank_eq_singleton",
+        "Results.results_euler_relation_convex_3polytope"
+      ],
+      "note": "Geometric V\u2212E+F=2 for full-dim H+V-rep convex 3-polytopes."
     }
   ],
   "parked": [

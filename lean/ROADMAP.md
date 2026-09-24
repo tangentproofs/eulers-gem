@@ -6,13 +6,10 @@
 3. **Done (substrate):** hyperplane cells/complexes; `affDim`; combinatorial
    `eulerCharacteristic` + refinement invariance; cell geometry; Compl/Diff of
    cell complexes.
-4. **In progress (cones → polytopes):** cone `faceEulerSum = 0` green (hyper1+hyper2).
-   **Cone→polytope lift** in `EulerPoincare.lean` + `ConeSlice.lean`: combinatorial
-   `faceEulerSum_slice_of_cone`; geometric zero-face / face-of-conic / slice /
-   recover / homogenization equality / `InjOn` / assembled `ConeSliceFaceBijection`
-   + height-1 EP. Blocker: `E×ℝ` embedding for `Euler_Poincare_full`.
-5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
-   only when proved.
+4. **Done (cones → polytopes):** cone `faceEulerSum = 0`; ConeSliceFaceBijection;
+   height-1 EP; `E×ℝ` embedding (`Embed.lean`); `Euler_Poincare_full` for full-dim
+   H+V-rep polytopes; geometric 3D `V−E+F=2`.
+5. **Specialize:** done for full-dim convex 3-polytopes with H+V-rep (Results).
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
 7. **Parked:** Pick's theorem; Platonic solids constructions.
 
@@ -42,4 +39,4 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Simplex face-sum = 1 + 3D bookkeeping in Results.lean
 - [x] ConeSlice geometric substrate (zero-face, face-of-conic, slice/recover, homogenize⊆)
 - [x] ConeSliceFaceBijection (face-lift + affDim+1 + homogenized equality + height-1 EP)
-- [ ] Euler_Poincare_full via E×ℝ embedding + geometric 3D V−E+F=2
+- [x] Euler_Poincare_full via E×ℝ embedding + geometric 3D V−E+F=2
