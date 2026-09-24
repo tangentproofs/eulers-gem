@@ -9,44 +9,70 @@
       "id": "simplex-euler-char",
       "title": "Euler characteristic of an n-simplex is 0",
       "status": "proved",
-      "lean": ["EulersGem.eulerChar_simplex", "Results.results_eulerChar_simplex"]
+      "lean": [
+        "EulersGem.eulerChar_simplex",
+        "Results.results_eulerChar_simplex"
+      ]
     },
     {
       "id": "simplex-face-counts",
       "title": "m-face count of n-simplex is C(n+1, m+1)",
       "status": "proved",
-      "lean": ["EulersGem.card_combinatorialFaces", "Results.results_card_combinatorialFaces"]
+      "lean": [
+        "EulersGem.card_combinatorialFaces",
+        "Results.results_card_combinatorialFaces"
+      ]
     },
     {
       "id": "tetrahedron-VEF",
       "title": "Tetrahedron satisfies V - E + F = 2",
       "status": "proved",
-      "lean": ["Results.results_tetrahedron_polyhedron_numbers"]
+      "lean": [
+        "Results.results_tetrahedron_polyhedron_numbers"
+      ]
     },
     {
       "id": "hyperplane-arrangements",
       "title": "Hyperplane arrangements + cell complexes (Paulson substrate)",
-      "status": "open",
-      "depends_on": []
+      "status": "in_progress",
+      "depends_on": [],
+      "lean": [
+        "EulersGem.hyperplaneSide",
+        "EulersGem.HyperplaneEquiv",
+        "EulersGem.IsHyperplaneCell",
+        "EulersGem.IsHyperplaneCellComplex",
+        "EulersGem.isHyperplaneCell_convex",
+        "EulersGem.isHyperplaneCell_singleton_cases"
+      ],
+      "note": "Defs + elementary lemmas green; Euler char / invariance still open."
     },
     {
       "id": "euler-char-invariance",
       "title": "Euler characteristic invariant under refining arrangements",
       "status": "open",
-      "depends_on": ["hyperplane-arrangements"]
+      "depends_on": [
+        "hyperplane-arrangements"
+      ]
     },
     {
       "id": "euler-poincare-full",
-      "title": "Euler–Poincaré for full-dimensional convex polytopes",
+      "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
       "status": "open",
-      "depends_on": ["euler-char-invariance"]
+      "depends_on": [
+        "euler-char-invariance"
+      ]
     },
     {
       "id": "polyhedron-formula-3d",
       "title": "Convex 3-polytope: V - E + F = 2",
       "status": "open",
-      "depends_on": ["euler-poincare-full"]
+      "depends_on": [
+        "euler-poincare-full"
+      ]
     }
   ],
-  "parked": ["picks-theorem", "platonic-solids-constructions"]
+  "parked": [
+    "picks-theorem",
+    "platonic-solids-constructions"
+  ]
 }

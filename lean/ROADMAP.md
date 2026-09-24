@@ -2,10 +2,10 @@
 
 1. **Done (scaffold):** simplex face counts; `eulerChar_simplex = 0`; tetrahedron numbers;
    Results.lean + comparator script.
-2. **Next:** Mathlib survey — what exists for hyperplanes, half-spaces, polyhedra,
-   cell complexes, Euler characteristic?
-3. **Port Paulson substrate:** `hyperplane_side` / arrangement cells / cell complexes;
-   define Euler characteristic; prove refinement invariance.
+2. **Done (survey):** Mathlib survey vs Paulson — see `MATHLIB_SURVEY.md`.
+3. **In progress:** Port Paulson substrate — `hyperplaneSide` / arrangement cells /
+   cell complexes (`EulersGem.Hyperplane`); next: Euler characteristic + refinement
+   invariance.
 4. **Cones → polytopes:** Euler relation for full-dimensional proper polyhedral cones;
    then `Euler_Poincare_full` analogue.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
@@ -23,4 +23,5 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Results.lean claims only proved theorems
 - [x] Poly100 sources archived; Paulson-first Lean strategy documented
 - [x] prove2/ local milestone graph stub (no cloud auth)
-- [ ] Next: Mathlib survey + Paulson hyperplane substrate
+- [x] Mathlib survey (`MATHLIB_SURVEY.md`)
+- [ ] Paulson hyperplane substrate (definitions + cell lemmas landed; Euler char next)

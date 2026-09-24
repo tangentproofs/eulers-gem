@@ -42,9 +42,13 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_tetrahedron_polyhedron_numbers` | Tetrahedron: `V − E + F = 2` |
 | `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` |
 
+In progress (not yet in Results): Paulson hyperplane substrate in
+`lean/EulersGem/Hyperplane.lean` (sides, cells, cell complexes); Mathlib gap
+survey in `lean/MATHLIB_SURVEY.md`.
+
 Open goals (stated in `lean/EulersGem/Polyhedron.lean`, **not** in Results):
-Paulson-style hyperplane/cell-complex machinery; general Euler–Poincaré;
-polyhedron formula for arbitrary convex 3-polytopes.
+Euler-char invariance; general Euler–Poincaré; polyhedron formula for
+arbitrary convex 3-polytopes.
 
 ## Parked (do not start)
 
