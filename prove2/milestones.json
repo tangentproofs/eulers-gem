@@ -288,9 +288,34 @@
         "EulersGem.faceEulerSum_simplex_faceCount",
         "EulersGem.euler_relation_of_faceEulerSum",
         "Results.results_faceEulerSum_simplex_faceCount",
-        "Results.results_euler_relation_of_faceEulerSum"
+        "Results.results_euler_relation_of_faceEulerSum",
+        "EulersGem.eq_singleton_of_affDim_eq_zero",
+        "EulersGem.isConic_of_isFaceOf",
+        "EulersGem.coneSlice_zero_face",
+        "EulersGem.conicHull_subset_homogenized_cone",
+        "EulersGem.isFaceOf_slice_of_isFaceOf_conicHull",
+        "EulersGem.injOn_conicHull_faces"
       ],
-      "note": "Combinatorial reduction proved; geometric ConeSliceFaceBijection still open for general cones."
+      "note": "Combinatorial reduction proved; ConeSlice.lean discharges zero-face / face-of-conic / slice / InjOn / homogenize inclusion. Face-lift + affDim+1 still open."
+    },
+    {
+      "id": "cone-slice-geometry",
+      "title": "Cone\u2194slice geometric substrate (zero-face, face-of-conic, slice/recover)",
+      "status": "proved",
+      "depends_on": [
+        "cone-slice-lift"
+      ],
+      "lean": [
+        "EulersGem.eq_singleton_of_affDim_eq_zero",
+        "EulersGem.isConic_of_isFaceOf",
+        "EulersGem.coneSlice_zero_face",
+        "EulersGem.zero_not_mem_affineSpan_of_height",
+        "EulersGem.conicHull_subset_homogenized_cone",
+        "EulersGem.isFaceOf_slice_of_isFaceOf_conicHull",
+        "EulersGem.conicHull_inter_height_eq_of_isConic",
+        "EulersGem.injOn_conicHull_faces"
+      ],
+      "note": "Paulson geometric pieces toward ConeSliceFaceBijection. Face-lift + affDim+1 remain."
     },
     {
       "id": "euler-poincare-full",
@@ -305,7 +330,7 @@
         "cone-hyper1-faceEuler",
         "cone-slice-lift"
       ],
-      "note": "Partial. Combinatorial cone\u2192slice reduction green under ConeSliceFaceBijection; apex/homogenization substrate; simplex face-sum=1 and 3D bookkeeping in Results. Blocker: discharge ConeSliceFaceBijection for polyhedral cones + embedding."
+      "note": "Partial. ConeSlice geometric substrate green; blockers: face-lift conicHull F, affDim+1, homogenized H-rep equality, E\u00d7\u211d embedding."
     },
     {
       "id": "polyhedron-formula-3d",

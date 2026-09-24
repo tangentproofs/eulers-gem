@@ -38,8 +38,9 @@ Michal's unfinished Isabelle `Poly100.thy` / `Poly100-notes.org` (copied under
   general-cone **hyper1+hyper2** and `faceEulerSum_polyhedral_cone = 0`;
   cone→slice combinatorial reduction + simplex face-sum `= 1` + 3D bookkeeping
   (`EulerPoincare.lean`).
-* **Open:** discharge `ConeSliceFaceBijection`; `Euler_Poincare_full`; geometric
-  polyhedron formula for arbitrary convex 3-polytopes.
+* **Partial:** `ConeSlice.lean` geometric pieces of `ConeSliceFaceBijection`.
+* **Open:** complete bijection (face-lift + affDim+1); `Euler_Poincare_full`;
+  geometric polyhedron formula for arbitrary convex 3-polytopes.
 * **Parked:** Pick's theorem; Platonic solids constructions.
 -/
 

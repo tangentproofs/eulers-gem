@@ -7,12 +7,10 @@
    `eulerCharacteristic` + refinement invariance; cell geometry; Compl/Diff of
    cell complexes.
 4. **In progress (cones → polytopes):** cone `faceEulerSum = 0` green (hyper1+hyper2).
-   **Cone→polytope lift substrate** in `EulerPoincare.lean`: `conicHull`,
-   `ConeSliceFaceBijection`, combinatorial reduction
-   `faceEulerSum_slice_of_cone`, homogenization normals, apex-face lemmas,
-   simplex face-sum `= 1`, 3D bookkeeping `euler_relation_of_faceEulerSum`.
-   Blocker: discharge `ConeSliceFaceBijection` geometrically for general cones,
-   then embedding for `Euler_Poincare_full`.
+   **Cone→polytope lift** in `EulerPoincare.lean` + `ConeSlice.lean`: combinatorial
+   `faceEulerSum_slice_of_cone`; geometric zero-face / face-of-conic / slice /
+   recover / homogenization⊆ / `InjOn`. Blocker: face-lift + `affDim+1` +
+   homogenized equality + embedding for `Euler_Poincare_full`.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
    only when proved.
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
@@ -42,4 +40,5 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] hyper1 + RI recovery ⇒ faceEulerSum = 0 / Euler_polyhedral_cone
 - [x] Cone→polytope combinatorial reduction + apex/homogenization substrate (`EulerPoincare`)
 - [x] Simplex face-sum = 1 + 3D bookkeeping in Results.lean
-- [ ] Discharge ConeSliceFaceBijection + Euler_Poincare_full + general 3D V−E+F=2
+- [x] ConeSlice geometric substrate (zero-face, face-of-conic, slice/recover, homogenize⊆)
+- [ ] Complete ConeSliceFaceBijection (face-lift + affDim+1) + Euler_Poincare_full + 3D V−E+F=2
