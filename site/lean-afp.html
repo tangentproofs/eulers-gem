@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lean ↔ AFP map — Euler's Gem</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">Euler's Gem</a>
+      <nav>
+        <a href="index.html">Overview</a>
+        <a class="active" href="lean-afp.html">Lean ↔ AFP map</a>
+        <a href="build.html">Build notes</a>
+        <a class="github" href="https://github.com/tangentproofs/eulers-gem">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>Lean Results ↔ AFP theorems</h1>
+    <p class="lead">
+      Mapping from <code>lean/Results.lean</code> to Lawrence C. Paulson's AFP entry
+      <a href="https://isa-afp.org/entries/Euler_Polyhedron_Formula.html">Euler's Polyhedron Formula</a>
+      (<code>Euler_Formula.thy</code>), vendored under
+      <code>isabelle/afp-Euler_Polyhedron_Formula/</code>.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Lean (<code>lean/Results.lean</code>)</th>
+          <th>AFP (<code>Euler_Formula.thy</code>)</th>
+          <th>Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>results_faceEulerSum_of_height_one</code></td>
+          <td><code>Euler_Poincare_lemma</code></td>
+          <td>Height-1 / slice H-rep: face Euler sum = 1</td>
+        </tr>
+        <tr>
+          <td>(via cone path)</td>
+          <td><code>Euler_polyhedral_cone</code></td>
+          <td>Conic polyhedron: alternating face sum = 0</td>
+        </tr>
+        <tr>
+          <td><code>results_Euler_Poincare_full</code></td>
+          <td><code>Euler_Poincare_full</code></td>
+          <td>Full-dim polytope: face Euler sum = 1</td>
+        </tr>
+        <tr>
+          <td><code>results_euler_relation_convex_3polytope</code></td>
+          <td><code>Euler_relation</code></td>
+          <td>Convex 3-polytope: <code>V − E + F = 2</code></td>
+        </tr>
+        <tr>
+          <td><code>results_euler_relation_of_faceEulerSum</code></td>
+          <td>(bookkeeping toward <code>Euler_relation</code>)</td>
+          <td>Face-sum = 1 + unique solid ⇒ <code>V−E+F=2</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      Supporting AFP substrate (hyperplane arrangements, cell complexes, Euler-char invariance)
+      maps to Lean modules under <code>lean/EulersGem/</code> — see
+      <code>lean/MATHLIB_SURVEY.md</code> in the repo.
+    </div>
+
+    <h2>Strategies (credited)</h2>
+    <table>
+      <thead>
+        <tr><th>Lineage</th><th>Approach</th><th>Role here</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Paulson AFP / HOL Light (Lawrence)</strong></td>
+          <td>Hyperplane arrangements, cell complexes, Euler-char invariance</td>
+          <td><strong>Base</strong> (vendored); primary target for Lean</td>
+        </tr>
+        <tr>
+          <td>Michal Poly100 (earlier, unfinished)</td>
+          <td>Tverberg triangulation + induction on facets</td>
+          <td>Historical + alternate comparison only</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Vendored AFP layout</h2>
+    <pre><code>isabelle/
+  afp-Euler_Polyhedron_Formula/   # Paulson AFP (BSD)
+    Euler_Formula.thy
+    ROOT
+    LICENSE
+    SOURCE_SHA256.txt
+    document/
+  Poly100.thy                     # historical archive
+  Poly100-notes.org
+  README.md</code></pre>
+
+    <p>
+      Full notes:
+      <a href="https://github.com/tangentproofs/eulers-gem/blob/main/isabelle/README.md"><code>isabelle/README.md</code></a>
+      on GitHub.
+    </p>
+
+    <footer class="site">
+      <p><a href="index.html">← Overview</a> · <a href="build.html">Build notes →</a></p>
+    </footer>
+  </main>
+</body>
+</html>

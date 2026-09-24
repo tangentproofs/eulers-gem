@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Build notes — Euler's Gem</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">Euler's Gem</a>
+      <nav>
+        <a href="index.html">Overview</a>
+        <a href="lean-afp.html">Lean ↔ AFP map</a>
+        <a class="active" href="build.html">Build notes</a>
+        <a class="github" href="https://github.com/tangentproofs/eulers-gem">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>Build notes</h1>
+    <p class="lead">
+      Lean is the active formalization path. Isabelle is a comparison base (vendored AFP)
+      and is <strong>not</strong> required on the development box.
+    </p>
+
+    <h2>Lean</h2>
+    <p>
+      Toolchain lockstep with other <code>tangentproofs</code> repos:
+      <strong><code>leanprover/lean4:v4.35.0-rc1</code></strong>,
+      Mathlib pin <code>09a9e06e4e5ccd5b783f25e52ad3ebecfb1e2d68</code>.
+    </p>
+    <pre><code>cd lean
+lake exe cache get   # never build Mathlib from scratch
+lake build</code></pre>
+    <p>List paper-facing theorems:</p>
+    <pre><code>./scripts/list-results.sh
+# or: (cd lean && ./scripts/list-results.sh)</code></pre>
+    <div class="note">
+      Always run <code>lake exe cache get</code> before <code>lake build</code>.
+      Building Mathlib from source can take hours.
+    </div>
+
+    <h2>Isabelle (optional)</h2>
+    <p>
+      This documentation site and the usual tangentproofs box do <strong>not</strong>
+      require Isabelle on <code>PATH</code>. To check the vendored session elsewhere:
+    </p>
+    <ol>
+      <li>Install <a href="https://isabelle.in.tum.de/">Isabelle</a> (recent release; AFP entry targets <code>HOL-Analysis</code>).</li>
+      <li>Optionally install a matching <a href="https://isa-afp.org/">AFP</a> release, or use the vendored tree alone (session depends only on <code>HOL-Analysis</code>).</li>
+      <li>From <code>isabelle/</code>:</li>
+    </ol>
+    <pre><code>isabelle build -d afp-Euler_Polyhedron_Formula -v Euler_Polyhedron_Formula</code></pre>
+    <p class="muted">
+      Expected: session <code>Euler_Polyhedron_Formula</code> builds from <code>Euler_Formula.thy</code>
+      (ROOT timeout option is 300s). Document generation under <code>document/</code> is optional.
+    </p>
+
+    <h2>Status</h2>
+    <ul class="clean">
+      <li><strong>AFP vendored</strong> as comparison base (<code>afp-Euler_Polyhedron_Formula/</code>).</li>
+      <li><strong>Isabelle not required</strong> for Lean work — sources + build instructions only.</li>
+      <li>Poly100 kept as historical archive.</li>
+      <li>Lean under <code>lean/</code> is the active path (<code>lake build</code>).</li>
+    </ul>
+
+    <footer class="site">
+      <p><a href="lean-afp.html">← Lean ↔ AFP map</a> · <a href="index.html">Overview</a></p>
+    </footer>
+  </main>
+</body>
+</html>

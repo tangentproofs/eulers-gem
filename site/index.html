@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Euler's Gem — Lean &amp; Isabelle formalization</title>
+  <meta name="description" content="Lean 4 formalization of Euler's polyhedron formula (Freek #13) with Isabelle/AFP cross-reference." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="index.html">Euler's Gem</a>
+      <nav>
+        <a class="active" href="index.html">Overview</a>
+        <a href="lean-afp.html">Lean ↔ AFP map</a>
+        <a href="build.html">Build notes</a>
+        <a class="github" href="https://github.com/tangentproofs/eulers-gem">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <span class="badge">Freek #13 · tangentproofs</span>
+    <h1>Euler's Gem</h1>
+    <p class="lead">
+      Lean&nbsp;4 (+ archived Isabelle) formalization of <strong>Euler's polyhedron formula</strong>
+      and the Euler–Poincaré characteristic for convex polytopes
+      (popularized in David Richeson's <em>Euler's Gem</em>).
+    </p>
+
+    <div class="grid">
+      <a class="card" href="lean-afp.html">
+        <h3>Lean ↔ AFP map</h3>
+        <p>Cross-reference between <code>Results.lean</code> theorems and Paulson's AFP entry.</p>
+      </a>
+      <a class="card" href="build.html">
+        <h3>Build notes</h3>
+        <p>Lean (<code>lake</code>) and Isabelle recipes. Isabelle is optional on the box.</p>
+      </a>
+      <a class="card" href="https://github.com/tangentproofs/eulers-gem">
+        <h3>Source on GitHub</h3>
+        <p>Active Lean under <code>lean/</code>; vendored AFP under <code>isabelle/</code>.</p>
+      </a>
+    </div>
+
+    <h2>What's proved (Lean)</h2>
+    <p class="muted">Paper-facing claims from <code>lean/Results.lean</code> — only what is actually proved.</p>
+    <table>
+      <thead>
+        <tr><th>Theorem</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>results_eulerChar_simplex</code></td><td>Euler char of an <code>n</code>-simplex (incl. empty face) is <code>0</code></td></tr>
+        <tr><td><code>results_card_combinatorialFaces</code></td><td># of <code>m</code>-faces of an <code>n</code>-simplex is <code>C(n+1,m+1)</code></td></tr>
+        <tr><td><code>results_tetrahedron_polyhedron_numbers</code></td><td>Tetrahedron: <code>V − E + F = 2</code></td></tr>
+        <tr><td><code>results_polyhedron_formula_of_eulerChar</code></td><td>Bookkeeping: full Euler <code>0</code> ⇒ <code>F+V−E=2</code></td></tr>
+        <tr><td><code>results_faceEulerSum_simplex_faceCount</code></td><td>Simplex face-sum (no empty face) <code>= 1</code></td></tr>
+        <tr><td><code>results_euler_relation_of_faceEulerSum</code></td><td>Bookkeeping: <code>faceEulerSum=1</code> + unique solid ⇒ <code>V−E+F=2</code></td></tr>
+        <tr><td><code>results_faceEulerSum_of_height_one</code></td><td>Height-1 H-rep: Paulson slice EP (<code>faceEulerSum = 1</code>)</td></tr>
+        <tr><td><code>results_Euler_Poincare_full</code></td><td>Full-dim H+V-rep polytope: <code>faceEulerSum = 1</code></td></tr>
+        <tr><td><code>results_euler_relation_convex_3polytope</code></td><td>Convex 3-polytope (H+V-rep): <code>V − E + F = 2</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2>Strategy</h2>
+    <div class="card">
+      <p>
+        <strong>Lean (primary):</strong> follow Lawrence C. Paulson's AFP
+        <a href="https://isa-afp.org/entries/Euler_Polyhedron_Formula.html">Euler's Polyhedron Formula</a>
+        (2023; HOL Light port, credited to Jim Lawrence) — hyperplane arrangements +
+        cell complexes + Euler-characteristic invariance. Target: Euler–Poincaré for
+        full-dimensional convex polytopes, then <code>V − E + F = 2</code> in dimension&nbsp;3.
+      </p>
+      <p>
+        <strong>Isabelle (comparison base):</strong> the same AFP entry is vendored under
+        <code>isabelle/afp-Euler_Polyhedron_Formula/</code>. See the
+        <a href="lean-afp.html">Lean ↔ AFP map</a>. Do not invent a fresh Isabelle development.
+      </p>
+      <p class="muted" style="margin-bottom:0">
+        Historical: <code>isabelle/Poly100.thy</code> is an earlier unfinished Isabelle attempt
+        (Tverberg triangulation) predating the AFP entry — kept for provenance only.
+      </p>
+    </div>
+
+    <h2>Layout</h2>
+    <pre><code>lean/          Lean 4 project (active) — Lake / Mathlib / Results.lean
+isabelle/      Vendored AFP Euler_Polyhedron_Formula + Poly100 archive
+scripts/       Comparator helpers (list Results.lean theorems)
+site/          This documentation site (GitHub Pages)</code></pre>
+
+    <h2>Parked</h2>
+    <ul class="clean">
+      <li>Pick's theorem (Euler → Pick via Funkenbusch)</li>
+      <li>Five Platonic solids constructions</li>
+    </ul>
+
+    <footer class="site">
+      <p>
+        <a href="https://github.com/tangentproofs/eulers-gem">tangentproofs/eulers-gem</a>
+        · Freek Wiedijk <em>Formalizing 100 Theorems</em> #13
+        · Site mirrors repo docs; sources of truth are the Lean/Isabelle trees.
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

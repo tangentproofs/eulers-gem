@@ -4,6 +4,8 @@ Lean 4 (+ archived Isabelle) formalization of **Euler's polyhedron formula**
 and the Euler–Poincaré characteristic for convex polytopes
 (Freek #13; popularized in David Richeson's *Euler's Gem*).
 
+**Docs site:** [https://tangentproofs.github.io/eulers-gem/](https://tangentproofs.github.io/eulers-gem/)
+
 ## Layout
 
 ```
