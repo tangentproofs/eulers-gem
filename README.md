@@ -30,8 +30,7 @@ in dimension 3.
 Do **not** invent a fresh Isabelle development.
 
 **Isabelle on this box:** Isabelle2025-2 at `/home/box/Isabelle2025-2` (`isabelle` on PATH via `/home/box/bin/isabelle`). Vendored session **machine-checks green**: `isabelle build -d afp-Euler_Polyhedron_Formula -v -o document=false Euler_Polyhedron_Formula` (exit 0; Memnar #1535).
-(`isabelle` on PATH). Vendored session **machine-checks green**:
-`isabelle build -d afp-Euler_Polyhedron_Formula -v -o document=false Euler_Polyhedron_Formula` (exit 0; Memnar #1535).
+
 **Historical:** `isabelle/Poly100.thy` and `Poly100-notes.org` are Michal
 Wallace's earlier unfinished Isabelle attempt (Tverberg triangulation +
 induction on facets). They **predate** the AFP entry and are kept for provenance
