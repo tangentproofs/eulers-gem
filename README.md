@@ -44,7 +44,7 @@ See `lean/Results.lean` (only claims what is actually proved):
 
 In progress (not yet in Results): Paulson cones / Euler–Poincaré —
 `Polytope` + `Cone` + `ConeFaceCell` (general polyhedral-cone cell EC = 0 via indexed IE;
-**hyper2** cell→face via closure green; hyper1 / faceEulerSum still open). Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
+**hyper1+hyper2** face↔RI-cell and `faceEulerSum_polyhedral_cone = 0` green; next `Euler_Poincare_full`). Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
 
 Open goals (stated in `lean/EulersGem/Polyhedron.lean` / `Cone.lean`, **not** in Results):
 general `Euler_polyhedral_cone`; `Euler_Poincare_full`; polyhedron formula for

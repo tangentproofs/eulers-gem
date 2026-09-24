@@ -134,8 +134,7 @@ proof.
 - `EulersGem.Cone`: univ EC; soft + **indexed IE**; **halfspace / two-halfspace / general polyhedral-cone cell EC = 0**.
 - `EulersGem.FaceCell`: halfspace `hyper1`/`hyper2` — nonempty faces = `{cone, hyperplane}`;
   cells ⊆ cone match; **`faceEulerSum_halfspace_cone = 0`**.
-- `EulersGem.ConeFaceCell`: general-cone **hyper2** — sign patterns; closure of cell ⊆ cone
-  equals supporting-hyperplane face; `isFaceOf_closure_coneCell`.
-- Not yet in `Results.lean` (await general EP).
-- **Blocker:** hyper1 (every face = closure of RI-cell) + RI recovery for general
-  `faceEulerSum` (cell EC = 0 and hyper2 face direction are proved).
+- `EulersGem.ConeFaceCell`: general-cone **hyper1+hyper2** — face ↔ RI-cell; 
+  `faceEulerSum_polyhedral_cone = 0` (Paulson `Euler_polyhedral_cone`).
+- Not yet in `Results.lean` (await `Euler_Poincare_full` / 3D).
+- **Next:** cone → polytope step for `Euler_Poincare_full`, then 3D `V−E+F=2`.

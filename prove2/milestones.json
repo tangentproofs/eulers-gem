@@ -250,7 +250,27 @@
         "EulersGem.closure_coneCell_eq_face",
         "EulersGem.isFaceOf_closure_coneCell"
       ],
-      "note": "Paulson hyper2 face direction for arbitrary finite H-rep cones. RI recovery + hyper1 still open. Not in Results.lean."
+      "note": "Paulson hyper2 face direction. Superseded/completed by cone-hyper1-faceEuler."
+    },
+    {
+      "id": "cone-hyper1-faceEuler",
+      "title": "General cone hyper1 + faceEulerSum = 0 (Euler_polyhedral_cone)",
+      "status": "proved",
+      "depends_on": [
+        "cone-hyper2-face",
+        "polyhedral-cone-cell-euler",
+        "halfspace-face-cell"
+      ],
+      "lean": [
+        "EulersGem.face_eq_polyhedralCone_inter_zeros",
+        "EulersGem.intrinsicInterior_face_eq_coneFaceOpenPattern",
+        "EulersGem.hyper1_polyhedral_cone",
+        "EulersGem.intrinsicInterior_closure_coneCell",
+        "EulersGem.ncard_faces_eq_ncard_cells",
+        "EulersGem.faceEulerSum_eq_eulerCharacteristic",
+        "EulersGem.faceEulerSum_polyhedral_cone"
+      ],
+      "note": "Paulson Euler_polyhedral_cone: face\u2194RI-cell bijection; faceEulerSum=cell EC=0. Not in Results.lean (await EP full / 3D)."
     },
     {
       "id": "euler-poincare-full",
@@ -261,9 +281,10 @@
         "two-halfspace-cone-euler",
         "euler-char-invariance",
         "polyhedral-cone-cell-euler",
-        "cone-hyper2-face"
+        "cone-hyper2-face",
+        "cone-hyper1-faceEuler"
       ],
-      "note": "Open. Cell EC=0 and hyper2 (cell\u2192face) green. Blocker: hyper1 + RI recovery for faceEulerSum, then EP full."
+      "note": "Open. Cone faceEulerSum=0 green (hyper1+hyper2). Blocker: cone\u2192polytope lift for EP full."
     },
     {
       "id": "polyhedron-formula-3d",

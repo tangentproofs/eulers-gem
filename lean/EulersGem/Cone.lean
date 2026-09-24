@@ -25,13 +25,12 @@ Port of the cone step of AFP `Euler_Formula`:
 * **proved:** two-halfspace polyhedral cone cell EC = 0 (soft IE)
 * **proved:** indexed inclusion-exclusion + general polyhedral-cone cell EC = 0
 * **proved (hyper2):** cell ⊆ cone ⇒ closure is a face (`ConeFaceCell`)
+* **proved (hyper1):** every nonempty face = closure of its RI-cell; `faceEulerSum = 0`
 * face-lattice substrate in `Polytope` (`isFaceOf_trans/inter/of_isExposed`,
   supporting-hyperplane faces, cone-arrangement cell characterisation)
-* targets stated as docs (not Results): general `Euler_polyhedral_cone`,
-  `Euler_Poincare_full`, 3D `V−E+F=2`
+* targets stated as docs (not Results): `Euler_Poincare_full`, 3D `V−E+F=2`
 
-Blocker for faceEulerSum / Euler_Poincaré: hyper1 (every face = closure of its
-RI-cell) + RI recovery / minimal H-rep (cell EC = 0 and hyper2 are proved).
+Next for Euler–Poincaré: lift cone faceEulerSum to full-dimensional polytopes.
 -/
 
 open scoped RealInnerProductSpace BigOperators

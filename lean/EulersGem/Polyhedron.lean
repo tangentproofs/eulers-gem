@@ -35,10 +35,9 @@ Michal's unfinished Isabelle `Poly100.thy` / `Poly100-notes.org` (copied under
 
 * **Proved:** `eulerChar_simplex`; tetrahedron `V-E+F=2` bookkeeping;
   refinement invariance; general polyhedral-cone cell EC = 0; halfspace faceEulerSum;
-  general-cone **hyper2** (cell ⊆ cone ⇒ closure is face).
-* **In progress:** hyper1 / RI recovery ⇒ `faceEulerSum` / `Euler_polyhedral_cone`.
-* **Open (not in Results.lean):** general `Euler_polyhedral_cone`; `Euler_Poincare_full`;
-  polyhedron formula for arbitrary convex 3-polytopes.
+  general-cone **hyper1+hyper2** and `faceEulerSum_polyhedral_cone = 0`.
+* **Open (not in Results.lean):** `Euler_Poincare_full`; polyhedron formula for
+  arbitrary convex 3-polytopes.
 * **Parked:** Pick's theorem; Platonic solids constructions.
 -/
 
