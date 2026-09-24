@@ -131,5 +131,8 @@ proof.
 - `EulersGem.Polytope`: `IsPolyhedron` / `IsPolytope` / `IsFaceOf` / `IsConic` /
   `IsPolyhedralCone`; cone arrangement; polyhedral cones are cell complexes.
 - `EulersGem.Cone`: `eulerCharacteristic_univ`; soft IE; **halfspace-cone cell
+- `EulersGem.FaceCell`: halfspace `hyper1`/`hyper2` — nonempty faces = `{cone, hyperplane}`;
+  cells ⊆ cone = `{open halfspace, hyperplane}`; **`faceEulerSum_halfspace_cone = 0`**.
+  General cone face lattice still open.
   Euler char = 0**. Not yet in `Results.lean` (await general EP).
 - **Blocker:** face ↔ relative-interior-cell bijection for general polyhedral cones.

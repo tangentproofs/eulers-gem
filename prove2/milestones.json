@@ -80,7 +80,7 @@
     },
     {
       "id": "cell-geometry-open-affine",
-      "title": "Hyperplane cells: open\u2229affine + relative interior + halfspace affDim",
+      "title": "Hyperplane cells: open∩affine + relative interior + halfspace affDim",
       "status": "proved",
       "depends_on": [
         "hyperplane-arrangements",
@@ -115,7 +115,7 @@
         "EulersGem.eulerCharacteristic_insert",
         "EulersGem.eulerCharacteristic_invariant"
       ],
-      "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler\u2013Poincar\u00e9 / cones)."
+      "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler–Poincaré / cones)."
     },
     {
       "id": "cellcomplex-compl-diff",
@@ -148,7 +148,7 @@
         "EulersGem.isHyperplaneCellComplex_polyhedralCone",
         "EulersGem.faceEulerSum"
       ],
-      "note": "H/V-rep + IsExtreme alias + homogeneous cone H-rep as cell complex."
+      "note": "H/V-rep; IsFaceOf = IsExtreme+Convex (Isabelle face_of); homogeneous cone H-rep as cell complex."
     },
     {
       "id": "halfspace-cone-euler",
@@ -166,17 +166,36 @@
         "EulersGem.isFaceOf_closedHalfspace_hyperplane",
         "EulersGem.affDim_linear_hyperplane"
       ],
-      "note": "Special case of Paulson Euler_polyhedral_cone via cell complexes. Not in Results.lean."
+      "note": "Cell-complex EC=0. Face-sum path in halfspace-face-cell."
+    },
+    {
+      "id": "halfspace-face-cell",
+      "title": "Halfspace cone: face ↔ RI-cell bijection + faceEulerSum = 0",
+      "status": "proved",
+      "depends_on": [
+        "halfspace-cone-euler",
+        "polytope-substrate"
+      ],
+      "lean": [
+        "EulersGem.isFaceOf_coe_affineSubspace",
+        "EulersGem.interior_closedHalfspace_zero",
+        "EulersGem.affDim_closedHalfspace_zero",
+        "EulersGem.cells_subset_closedHalfspace_zero",
+        "EulersGem.isFaceOf_closedHalfspace_zero_eq",
+        "EulersGem.faces_closedHalfspace_zero_eq",
+        "EulersGem.faceEulerSum_halfspace_cone"
+      ],
+      "note": "Paulson hyper1/hyper2 special case for closedHalfspace a 0. IsFaceOf now extreme+convex. General polyhedral cones still open. Not in Results.lean."
     },
     {
       "id": "euler-poincare-full",
-      "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
+      "title": "Euler–Poincaré for full-dimensional convex polytopes",
       "status": "open",
       "depends_on": [
-        "halfspace-cone-euler",
+        "halfspace-face-cell",
         "euler-char-invariance"
       ],
-      "note": "Open. Blocker: face\u2194relative-interior-cell bijection for general polyhedral cones (Paulson hyper1/hyper2). Halfspace special case green."
+      "note": "Open. Halfspace face↔cell + faceEulerSum green. Blocker: face lattice / minimal H-rep for general polyhedral cones (full hyper1/hyper2)."
     },
     {
       "id": "polyhedron-formula-3d",

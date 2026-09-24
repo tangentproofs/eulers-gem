@@ -7,3 +7,4 @@ import EulersGem.EulerChar
 import EulersGem.CellGeometry
 import EulersGem.Polytope
 import EulersGem.Cone
+import EulersGem.FaceCell

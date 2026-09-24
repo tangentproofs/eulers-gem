@@ -17,11 +17,14 @@ Port of the cone step of AFP `Euler_Formula`:
 * Euler characteristic of `univ` equals `(-1)^{finrank}`
 * soft inclusion-exclusion identity `EC(S ∪ T) = EC(S)+EC(T)-EC(S ∩ T)`
 * **proved:** cell-complex Euler char of a single nontrivial halfspace cone is `0`
+* **proved (halfspace):** face ↔ cell bijection and `faceEulerSum = 0`
+  (see `EulersGem.FaceCell`)
 * targets stated as docs (not Results): general `Euler_polyhedral_cone`,
   `Euler_Poincare_full`, 3D `V−E+F=2`
 
-Blocker for the general theorems: bijection between faces and relative interiors
-of hyperplane cells (Paulson's `hyper1`/`hyper2` in `Euler_polyhedral_cone`).
+Blocker for the general theorems: face ↔ relative-interior-cell bijection for
+*general* polyhedral cones (Paulson `hyper1`/`hyper2`); needs face lattice /
+minimal H-rep beyond the halfspace case.
 -/
 
 open scoped RealInnerProductSpace BigOperators
@@ -129,10 +132,13 @@ theorem eulerCharacteristic_halfspace_cone [FiniteDimensional ℝ E] [Nonempty E
     simp
   omega
 
+lemma convex_linear_hyperplane (a : E) : Convex ℝ {x : E | ⟪a, x⟫ = 0} :=
+  convex_hyperplane (isLinearMap_inner a) 0
+
 /-- Bounding hyperplane is a face of the closed halfspace cone. -/
 lemma isFaceOf_closedHalfspace_hyperplane (a : E) :
     IsFaceOf (closedHalfspace a 0) {x : E | ⟪a, x⟫ = 0} := by
-  refine ⟨fun x hx => le_of_eq hx, ?_⟩
+  refine ⟨⟨fun x hx => le_of_eq hx, ?_⟩, convex_linear_hyperplane a⟩
   intro x hxA y hyA z hzB hzSeg
   obtain ⟨b, c, hb, hc, _hbc, rfl⟩ := hzSeg
   change ⟪a, x⟫ ≤ 0 at hxA

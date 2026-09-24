@@ -6,10 +6,11 @@
 3. **Done (substrate):** hyperplane cells/complexes; `affDim`; combinatorial
    `eulerCharacteristic` + refinement invariance; cell geometry; Compl/Diff of
    cell complexes.
-4. **In progress (cones → polytopes):** `Polytope` (H/V-rep, `IsFaceOf`, `IsConic`,
-   polyhedral cones as cell complexes); `Cone` (`eulerCharacteristic_univ`,
-   soft IE, **halfspace-cone Euler char = 0**). Blocker: face↔cell bijection for
-   general `Euler_polyhedral_cone`, then `Euler_Poincare_full`.
+4. **In progress (cones → polytopes):** `Polytope` (H/V-rep, `IsFaceOf` = extreme+convex,
+   `IsConic`, polyhedral cones as cell complexes); `Cone` (univ EC, soft IE,
+   **halfspace-cone cell EC = 0**); `FaceCell` (**halfspace face↔cell + faceEulerSum = 0**).
+   Blocker: face lattice / minimal H-rep for *general* `Euler_polyhedral_cone`, then
+   `Euler_Poincare_full`.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
    only when proved.
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
@@ -32,5 +33,6 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Refinement invariance (Paulson insert/cutting: affDim drop + general insert)
 - [x] Cell-complex Compl/Diff; polyhedron/polytope/cone substrate
 - [x] Halfspace-cone cell Euler char = 0; soft inclusion-exclusion
-- [ ] Face↔cell bijection → general Euler_polyhedral_cone
+- [x] Halfspace face↔cell (`FaceCell`) + `faceEulerSum_halfspace_cone = 0`
+- [ ] Face lattice / general Euler_polyhedral_cone (beyond halfspace)
 - [ ] Euler_Poincare_full + 3D V−E+F=2 (then Results.lean)

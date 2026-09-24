@@ -46,12 +46,23 @@ Isabelle: `polytope`. -/
 def IsPolytope (S : Set E) : Prop :=
   ∃ V : Set E, V.Finite ∧ S = convexHull ℝ V
 
-/-- Face relation: Isabelle `face_of`. Alias of Mathlib `IsExtreme ℝ`. -/
-abbrev IsFaceOf (S T : Set E) : Prop := IsExtreme ℝ S T
+/-- Face relation: Isabelle `face_of` = extreme + convex.
+Mathlib `IsExtreme` alone does not require convexity of the face. -/
+structure IsFaceOf (S T : Set E) : Prop where
+  isExtreme : IsExtreme ℝ S T
+  convex : Convex ℝ T
 
-lemma isFaceOf_refl (S : Set E) : IsFaceOf S S := IsExtreme.rfl
+lemma isFaceOf_refl {S : Set E} (hS : Convex ℝ S) : IsFaceOf S S :=
+  ⟨IsExtreme.rfl, hS⟩
 
-lemma isFaceOf_subset {S T : Set E} (h : IsFaceOf S T) : T ⊆ S := h.subset
+lemma isFaceOf_subset {S T : Set E} (h : IsFaceOf S T) : T ⊆ S := h.isExtreme.subset
+
+lemma isFaceOf_empty (S : Set E) : IsFaceOf S (∅ : Set E) :=
+  ⟨⟨empty_subset _, fun _ _ _ _ _ hz _ => hz.elim⟩, convex_empty⟩
+
+lemma isFaceOf_isExtreme {S T : Set E} (h : IsFaceOf S T) : IsExtreme ℝ S T := h.isExtreme
+
+lemma isFaceOf_convex {S T : Set E} (h : IsFaceOf S T) : Convex ℝ T := h.convex
 
 /-- Combinatorial face Euler sum (Paulson left-hand side of Euler–Poincaré). -/
 noncomputable def faceEulerSum (S : Set E) (n : ℕ) : ℤ :=
