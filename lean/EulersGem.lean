@@ -8,3 +8,4 @@ import EulersGem.CellGeometry
 import EulersGem.Polytope
 import EulersGem.Cone
 import EulersGem.FaceCell
+import EulersGem.ConeFaceCell

@@ -43,8 +43,8 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` |
 
 In progress (not yet in Results): Paulson cones / Euler–Poincaré —
-`Polytope.lean` + `Cone.lean` (halfspace / two-halfspace / general polyhedral-cone
-cell Euler char = 0 via indexed IE; face↔cell bijection for general cones still open). Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
+`Polytope` + `Cone` + `ConeFaceCell` (general polyhedral-cone cell EC = 0 via indexed IE;
+**hyper2** cell→face via closure green; hyper1 / faceEulerSum still open). Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
 
 Open goals (stated in `lean/EulersGem/Polyhedron.lean` / `Cone.lean`, **not** in Results):
 general `Euler_polyhedral_cone`; `Euler_Poincare_full`; polyhedron formula for

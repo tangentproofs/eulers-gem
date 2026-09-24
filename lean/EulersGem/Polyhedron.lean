@@ -34,11 +34,11 @@ Michal's unfinished Isabelle `Poly100.thy` / `Poly100-notes.org` (copied under
 ## Status
 
 * **Proved:** `eulerChar_simplex`; tetrahedron `V-E+F=2` bookkeeping;
-  refinement invariance; cell-complex Euler char of a nontrivial halfspace cone is `0`.
-* **In progress:** polyhedron/polytope/`IsFaceOf`/`IsConic` substrate (`Polytope`);
-  conical cell structure (`Cone`); soft inclusion-exclusion.
-* **Open (not in Results.lean):** general `Euler_polyhedral_cone` (needs face↔cell
-  bijection); `Euler_Poincare_full`; polyhedron formula for arbitrary convex 3-polytopes.
+  refinement invariance; general polyhedral-cone cell EC = 0; halfspace faceEulerSum;
+  general-cone **hyper2** (cell ⊆ cone ⇒ closure is face).
+* **In progress:** hyper1 / RI recovery ⇒ `faceEulerSum` / `Euler_polyhedral_cone`.
+* **Open (not in Results.lean):** general `Euler_polyhedral_cone`; `Euler_Poincare_full`;
+  polyhedron formula for arbitrary convex 3-polytopes.
 * **Parked:** Pick's theorem; Platonic solids constructions.
 -/
 

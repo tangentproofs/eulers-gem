@@ -134,6 +134,8 @@ proof.
 - `EulersGem.Cone`: univ EC; soft + **indexed IE**; **halfspace / two-halfspace / general polyhedral-cone cell EC = 0**.
 - `EulersGem.FaceCell`: halfspace `hyper1`/`hyper2` — nonempty faces = `{cone, hyperplane}`;
   cells ⊆ cone match; **`faceEulerSum_halfspace_cone = 0`**.
+- `EulersGem.ConeFaceCell`: general-cone **hyper2** — sign patterns; closure of cell ⊆ cone
+  equals supporting-hyperplane face; `isFaceOf_closure_coneCell`.
 - Not yet in `Results.lean` (await general EP).
-- **Blocker:** face ↔ RI-cell bijection / minimal H-rep for general `faceEulerSum`
-  (cell EC = 0 for finite H-rep cones is proved).
+- **Blocker:** hyper1 (every face = closure of RI-cell) + RI recovery for general
+  `faceEulerSum` (cell EC = 0 and hyper2 face direction are proved).

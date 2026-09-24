@@ -21,7 +21,8 @@ Proved for nontrivial closed halfspace cones `{⟪a,x⟫ ≤ 0}`:
   (via a small radial step into the interior)
 * therefore nonempty faces = `{cone, hyperplane}`, and `faceEulerSum = 0`
 
-General polyhedral cones still need the face-lattice / minimal H-rep substrate.
+General polyhedral cones: **hyper2** (cell → face via closure) is in `ConeFaceCell`;
+hyper1 / RI recovery / `faceEulerSum` still open.
 -/
 
 open scoped RealInnerProductSpace BigOperators

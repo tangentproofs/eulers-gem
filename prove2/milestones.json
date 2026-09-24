@@ -231,6 +231,28 @@
       "note": "Indexed IE via Mathlib finset IE on arrangement cells; open dual EC=(-1)^finrank; De Morgan + cover gives cone cell EC=0 for any finite nonempty H-rep with nonempty open dual. Not in Results.lean (await faceEulerSum / EP)."
     },
     {
+      "id": "cone-hyper2-face",
+      "title": "General cone hyper2: cell \u2286 cone \u21d2 closure is a face",
+      "status": "proved",
+      "depends_on": [
+        "polyhedral-cone-cell-euler",
+        "polytope-substrate",
+        "halfspace-face-cell"
+      ],
+      "lean": [
+        "EulersGem.closure_halfSpace_lt",
+        "EulersGem.closure_iInter_halfSpace_lt",
+        "EulersGem.coneCellZeros",
+        "EulersGem.coneCellNegs",
+        "EulersGem.coneCell_sign_dichotomy",
+        "EulersGem.coneCell_eq_sign_pattern",
+        "EulersGem.isFaceOf_polyhedralCone_inter_zeros",
+        "EulersGem.closure_coneCell_eq_face",
+        "EulersGem.isFaceOf_closure_coneCell"
+      ],
+      "note": "Paulson hyper2 face direction for arbitrary finite H-rep cones. RI recovery + hyper1 still open. Not in Results.lean."
+    },
+    {
       "id": "euler-poincare-full",
       "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
       "status": "open",
@@ -238,9 +260,10 @@
         "halfspace-face-cell",
         "two-halfspace-cone-euler",
         "euler-char-invariance",
-        "polyhedral-cone-cell-euler"
+        "polyhedral-cone-cell-euler",
+        "cone-hyper2-face"
       ],
-      "note": "Open. Cell EC=0 for general polyhedral cones green. Blocker: face\u2194RI-cell / minimal H-rep for faceEulerSum, then EP full."
+      "note": "Open. Cell EC=0 and hyper2 (cell\u2192face) green. Blocker: hyper1 + RI recovery for faceEulerSum, then EP full."
     },
     {
       "id": "polyhedron-formula-3d",
