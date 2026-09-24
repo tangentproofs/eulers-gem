@@ -6,6 +6,7 @@ Authors: Michal Wallace, Grok Bot
 import EulersGem.SimplexEuler
 import EulersGem.Polyhedron
 import EulersGem.EulerPoincare
+import EulersGem.ConeSlice
 
 /-!
 # Paper-facing results
@@ -15,6 +16,8 @@ polytopes / the 3D polyhedron formula / Tverberg dissection live in
 `EulersGem/Polyhedron.lean` / `EulersGem/EulerPoincare.lean` as documentation
 strings and are not claimed.
 -/
+
+open scoped RealInnerProductSpace
 
 namespace Results
 
@@ -58,5 +61,22 @@ theorem results_euler_relation_of_faceEulerSum
     (hSolid : ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 3}.ncard) = 1) :
     (V : ℤ) - E_ + F = 2 :=
   EulersGem.euler_relation_of_faceEulerSum p V E_ F hsum hV hE hF hSolid
+
+
+/-- Height-1 H-rep polytope (with trivial homogenized height-0 section and nonempty open dual):
+Paulson `Euler_Poincare_lemma` — `faceEulerSum p (finrank - 1) = 1`. -/
+theorem results_faceEulerSum_of_height_one
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    {H : Set (EulersGem.Hyperplane E)} {i : E} {p : Set E}
+    (hH : H.Finite)
+    (hp : p = ⋂ h ∈ H, EulersGem.closedHalfspace h.1 h.2)
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hpne : p.Nonempty) (hConv : Convex ℝ p)
+    (h0sec : ∀ y, y ∈ (⋂ a ∈ EulersGem.homogenizeNormals H i, EulersGem.closedHalfspace a 0) →
+      ⟪i, y⟫ = 0 → y = 0)
+    (hpos : ({x : E | ∀ a ∈ EulersGem.homogenizeNormals H i, 0 < ⟪a, x⟫}).Nonempty)
+    (hn : 1 ≤ Module.finrank ℝ E) :
+    EulersGem.faceEulerSum p (Module.finrank ℝ E - 1) = 1 :=
+  EulersGem.faceEulerSum_of_height_one_polytope hH hp hht hpne hConv h0sec hpos hn
 
 end Results

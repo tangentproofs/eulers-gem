@@ -9,8 +9,8 @@
 4. **In progress (cones → polytopes):** cone `faceEulerSum = 0` green (hyper1+hyper2).
    **Cone→polytope lift** in `EulerPoincare.lean` + `ConeSlice.lean`: combinatorial
    `faceEulerSum_slice_of_cone`; geometric zero-face / face-of-conic / slice /
-   recover / homogenization⊆ / `InjOn`. Blocker: face-lift + `affDim+1` +
-   homogenized equality + embedding for `Euler_Poincare_full`.
+   recover / homogenization equality / `InjOn` / assembled `ConeSliceFaceBijection`
+   + height-1 EP. Blocker: `E×ℝ` embedding for `Euler_Poincare_full`.
 5. **Specialize:** convex 3-polytope ⇒ `V - E + F = 2`; re-export from Results.lean
    only when proved.
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
@@ -41,4 +41,5 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] Cone→polytope combinatorial reduction + apex/homogenization substrate (`EulerPoincare`)
 - [x] Simplex face-sum = 1 + 3D bookkeeping in Results.lean
 - [x] ConeSlice geometric substrate (zero-face, face-of-conic, slice/recover, homogenize⊆)
-- [ ] Complete ConeSliceFaceBijection (face-lift + affDim+1) + Euler_Poincare_full + 3D V−E+F=2
+- [x] ConeSliceFaceBijection (face-lift + affDim+1 + homogenized equality + height-1 EP)
+- [ ] Euler_Poincare_full via E×ℝ embedding + geometric 3D V−E+F=2

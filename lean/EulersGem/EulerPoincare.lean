@@ -21,10 +21,9 @@ Paulson AFP outline after `Euler_polyhedral_cone`:
 
 Landed here: conic-hull substrate, homogenization normals, **combinatorial cone→slice
 reduction** (under `ConeSliceFaceBijection`), simplex face-sum `= 1`, and 3D bookkeeping.
-Geometric pieces of the bijection live in `ConeSlice.lean` (zero-face, face-of-conic,
-slice/recover, homogenization inclusion, `InjOn`). Remaining blockers for
-`Euler_Poincare_full`: face-lift `conicHull F`, `affDim + 1`, homogenized equality,
-and the `E × ℝ` embedding.
+`ConeSlice.lean` discharges the full geometric bijection (face-lift, `affDim+1`,
+homogenized H-rep equality) and the height-1 EP lemma. Remaining blocker for
+`Euler_Poincare_full`: the `E × ℝ` embedding of a general full-dim polytope.
 -/
 
 open scoped RealInnerProductSpace BigOperators

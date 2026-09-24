@@ -4,23 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michal Wallace, Grok Bot
 -/
 import EulersGem.EulerPoincare
+import Mathlib.Analysis.Normed.Module.Convex
 import Mathlib.LinearAlgebra.AffineSpace.Dimension
+import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
 
 /-!
 # Geometric cone↔slice correspondence (Paulson)
 
-Partial geometric discharge of `ConeSliceFaceBijection` (Paulson slice lemma):
+Geometric discharge of `ConeSliceFaceBijection` (Paulson slice lemma):
 
 * `affDim = 0` ⇒ singleton (under `FiniteDimensional`)
 * faces of conic sets are conic (`face_of_conic`)
 * apex `{0}` is the unique 0-face of `conicHull p` on a height-1 convex slice
-* homogenization H-rep **contains** the cone (one inclusion; equality still open)
-* height-1 slice of a cone-face is a face of `p`
-* recover conic face from its height-1 slice (nonzero points)
-* `InjOn conicHull` on height-1 faces
-
-Still open for full bijection: lift `IsFaceOf p F → IsFaceOf (conicHull p) (conicHull F)`,
-`affDim (conicHull F) = affDim F + 1`, and homogenized H-rep equality.
+* face-lift: `IsFaceOf p F → IsFaceOf (conicHull p) (conicHull F)`
+* `affDim (conicHull F) = affDim F + 1` (nonempty height-1 faces)
+* homogenization H-rep **equality** (under a height-0 triviality hypothesis, e.g. polytopes)
+* height-1 slice of a cone-face is a face of `p`; recover conic face from its slice
+* `InjOn conicHull` on height-1 faces; assembled `ConeSliceFaceBijection`
 -/
 
 open scoped RealInnerProductSpace
@@ -236,5 +236,400 @@ lemma injOn_conicHull_faces {p : Set E} {i : E}
     F₁ = conicHull F₁ ∩ {x | ⟪i, x⟫ = 1} := h1
     _ = conicHull F₂ ∩ {x | ⟪i, x⟫ = 1} := by rw [hEq]
     _ = F₂ := h2.symm
+
+
+/-! ### Height-zero characterisation on conic hulls of height-1 sets -/
+
+lemma eq_zero_of_mem_conicHull_of_height_zero {p : Set E} {i : E} {y : E}
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hy : y ∈ conicHull p) (hyi : ⟪i, y⟫ = 0) :
+    y = 0 := by
+  obtain ⟨c, x, hc, hx, rfl⟩ := hy
+  have : c * ⟪i, x⟫ = 0 := by simpa [inner_smul_right] using hyi
+  have hc0 : c = 0 := by
+    rw [hht x hx, mul_one] at this; exact this
+  simp [hc0]
+
+lemma height_nonneg_of_mem_conicHull {p : Set E} {i : E} {y : E}
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hy : y ∈ conicHull p) : 0 ≤ ⟪i, y⟫ := by
+  obtain ⟨c, x, hc, hx, rfl⟩ := hy
+  simpa [inner_smul_right, hht x hx] using hc
+
+lemma inv_smul_mem_of_mem_conicHull {p : Set E} {i : E} {y : E}
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hy : y ∈ conicHull p) (hne : y ≠ 0) :
+    (⟪i, y⟫)⁻¹ • y ∈ p := by
+  obtain ⟨c, x, hc, hx, rfl⟩ := hy
+  have hcne : c ≠ 0 := fun h => by subst h; exact hne (by simp)
+  have hcpos : 0 < c := lt_of_le_of_ne hc (Ne.symm hcne)
+  have hiy : ⟪i, c • x⟫ = c := by simp [inner_smul_right, hht x hx]
+  simpa [hiy, smul_smul, inv_mul_cancel₀ hcpos.ne'] using hx
+
+/-! ### Face-lift -/
+
+lemma isFaceOf_conicHull_of_isFaceOf {p F : Set E} {i : E}
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hF : IsFaceOf p F) :
+    IsFaceOf (conicHull p) (conicHull F) := by
+  have hFsub : F ⊆ p := isFaceOf_subset hF
+  have hhtF : ∀ x ∈ F, ⟪i, x⟫ = 1 := fun x hx => hht x (hFsub hx)
+  refine ⟨⟨conicHull_mono hFsub, ?_⟩, convex_conicHull hF.convex⟩
+  intro x hxS y hyS z hzG hzSeg
+  obtain ⟨a, b, ha, hb, hab, hcomb⟩ := hzSeg
+  have hx_h := height_nonneg_of_mem_conicHull hht hxS
+  have hy_h := height_nonneg_of_mem_conicHull hht hyS
+  by_cases hz0 : z = 0
+  · -- Heights sum to 0 ⇒ both endpoints have height 0 ⇒ both are 0 ∈ conicHull F.
+    have hz_h : ⟪i, z⟫ = 0 := by simp [hz0]
+    have hsum : a * ⟪i, x⟫ + b * ⟪i, y⟫ = 0 := by
+      have := congrArg (fun w => ⟪i, w⟫) hcomb
+      simpa [inner_add_right, inner_smul_right, hz_h] using this
+    have hx0i : ⟪i, x⟫ = 0 := by
+      nlinarith [mul_nonneg ha.le hx_h, mul_nonneg hb.le hy_h]
+    have hy0i : ⟪i, y⟫ = 0 := by
+      nlinarith [mul_nonneg ha.le hx_h, mul_nonneg hb.le hy_h]
+    have hx0 : x = 0 := eq_zero_of_mem_conicHull_of_height_zero hht hxS hx0i
+    -- Need F nonempty to know 0 ∈ conicHull F; follows from z ∈ conicHull F.
+    have hFne : F.Nonempty := by
+      obtain ⟨c, w, _, hw, _⟩ := hzG
+      exact ⟨w, hw⟩
+    exact hx0 ▸ zero_mem_conicHull hFne
+  · -- z ≠ 0. If an endpoint is 0, scale the other back into the face-cone.
+    by_cases hxeq0 : x = 0
+    · -- z = b • y with 0 < b < 1; goal is x ∈ conicHull F and x = 0.
+      have hFne : F.Nonempty := by
+        obtain ⟨c, w, _, hw, _⟩ := hzG
+        exact ⟨w, hw⟩
+      exact hxeq0 ▸ zero_mem_conicHull hFne
+    · by_cases hyeq0 : y = 0
+      · -- y = 0 ⇒ z = a • x ⇒ x = a⁻¹ • z ∈ conicHull F.
+        have hx_eq : x = a⁻¹ • z := by
+          have : z = a • x := by
+            simpa [hyeq0, smul_zero, add_zero] using hcomb.symm
+          have ha0 : a ≠ 0 := ha.ne'
+          calc
+            x = a⁻¹ • (a • x) := by simp [smul_smul, inv_mul_cancel₀ ha0]
+            _ = a⁻¹ • z := by rw [← this]
+        rw [hx_eq]
+        exact (isConic_conicHull F) hzG a⁻¹ (inv_nonneg.mpr ha.le)
+      · -- Both endpoints nonzero: reduce to the height-1 slice.
+        have hxpos := height_pos_of_mem_conicHull hht hxS hxeq0
+        have hypos := height_pos_of_mem_conicHull hht hyS hyeq0
+        have hzpos := height_pos_of_mem_conicHull hht
+          ((conicHull_mono hFsub) hzG) hz0
+        set x' := (⟪i, x⟫)⁻¹ • x
+        set y' := (⟪i, y⟫)⁻¹ • y
+        set z' := (⟪i, z⟫)⁻¹ • z
+        have hx'p : x' ∈ p := inv_smul_mem_of_mem_conicHull hht hxS hxeq0
+        have hy'p : y' ∈ p := inv_smul_mem_of_mem_conicHull hht hyS hyeq0
+        have hz'F : z' ∈ F := by
+          have : z' ∈ conicHull F ∩ {w | ⟪i, w⟫ = 1} := by
+            refine ⟨(isConic_conicHull F) hzG _ (inv_nonneg.mpr hzpos.le), ?_⟩
+            simp [z', inner_smul_right, inv_mul_cancel₀ hzpos.ne']
+          rwa [conicHull_inter_height_one hhtF] at this
+        have hiz : ⟪i, z⟫ = a * ⟪i, x⟫ + b * ⟪i, y⟫ := by
+          have := congrArg (fun w => ⟪i, w⟫) hcomb.symm
+          simpa [inner_add_right, inner_smul_right] using this
+        set a' : ℝ := a * ⟪i, x⟫ / ⟪i, z⟫
+        set b' : ℝ := b * ⟪i, y⟫ / ⟪i, z⟫
+        have ha' : 0 < a' := div_pos (mul_pos ha hxpos) hzpos
+        have hb' : 0 < b' := div_pos (mul_pos hb hypos) hzpos
+        have hab' : a' + b' = 1 := by
+          dsimp [a', b']
+          rw [← add_div, ← hiz, div_self hzpos.ne']
+        have hcomb' : a' • x' + b' • y' = z' := by
+          dsimp [a', b', x', y', z']
+          calc
+            (a * ⟪i, x⟫ / ⟪i, z⟫) • ((⟪i, x⟫)⁻¹ • x) +
+                (b * ⟪i, y⟫ / ⟪i, z⟫) • ((⟪i, y⟫)⁻¹ • y) =
+              ((a * ⟪i, x⟫ / ⟪i, z⟫) * (⟪i, x⟫)⁻¹) • x +
+                ((b * ⟪i, y⟫ / ⟪i, z⟫) * (⟪i, y⟫)⁻¹) • y := by
+              simp only [smul_smul]
+            _ = (a / ⟪i, z⟫) • x + (b / ⟪i, z⟫) • y := by
+              field_simp [hxpos.ne', hypos.ne']
+            _ = (⟪i, z⟫)⁻¹ • (a • x + b • y) := by
+              simp [smul_add, smul_smul, div_eq_inv_mul, mul_comm]
+            _ = (⟪i, z⟫)⁻¹ • z := by rw [hcomb]
+        have hseg' : z' ∈ openSegment ℝ x' y' := ⟨a', b', ha', hb', hab', hcomb'⟩
+        have hx'F := hF.isExtreme.left_mem_of_mem_openSegment hx'p hy'p hz'F hseg'
+        have : x = ⟪i, x⟫ • x' := by
+          dsimp [x']
+          simp [smul_smul, mul_inv_cancel₀ hxpos.ne']
+        rw [this]
+        exact ⟨⟪i, x⟫, x', hxpos.le, hx'F, rfl⟩
+
+
+/-! ### Affine dimension: `affDim (conicHull F) = affDim F + 1` -/
+
+lemma conicHull_subset_span (F : Set E) :
+    conicHull F ⊆ (Submodule.span ℝ F : Set E) := by
+  rintro _ ⟨c, x, _, hx, rfl⟩
+  exact Submodule.smul_mem _ _ (Submodule.subset_span hx)
+
+lemma conicHull_subset_affineSpan_insert_zero (F : Set E) :
+    conicHull F ⊆ (affineSpan ℝ (insert (0 : E) F) : Set E) := by
+  intro y hy
+  rw [affineSpan_insert_zero]
+  exact conicHull_subset_span F hy
+
+lemma affDim_le_of_subset [FiniteDimensional ℝ E] {s t : Set E} (h : s ⊆ t) :
+    affDim s ≤ affDim t := by
+  have hspan : affineSpan ℝ s ≤ affineSpan ℝ t := affineSpan_mono _ h
+  unfold affDim
+  cases hs : (affineSpan ℝ s).finDim with
+  | bot =>
+    show -1 ≤ _
+    cases (affineSpan ℝ t).finDim <;> simp
+  | coe m =>
+    have hsne : affineSpan ℝ s ≠ ⊥ := by
+      intro hb; simp [hb] at hs
+    have htne : affineSpan ℝ t ≠ ⊥ := fun hb => hsne (le_bot_iff.mp (hb ▸ hspan))
+    have hle := AffineSubspace.finDim_mono (R := ℝ) (s := affineSpan ℝ s) (t := affineSpan ℝ t) hspan
+    cases ht : (affineSpan ℝ t).finDim with
+    | bot => exact absurd (AffineSubspace.finDim_eq_bot_iff.mp ht) htne
+    | coe n =>
+      change (m : ℤ) ≤ n
+      have : (m : WithBot ℕ) ≤ n := by
+        simpa [hs, ht] using hle
+      exact_mod_cast this
+
+lemma affDim_insert_zero_of_not_mem [FiniteDimensional ℝ E] {F : Set E}
+    (hne : F.Nonempty) (h0 : (0 : E) ∉ affineSpan ℝ F) :
+    affDim (insert (0 : E) F) = affDim F + 1 := by
+  obtain ⟨p₀, hp₀F⟩ := hne
+  have hp₀ : p₀ ∈ affineSpan ℝ F := mem_affineSpan ℝ hp₀F
+  have hdir :
+      (affineSpan ℝ (insert (0 : E) F)).direction =
+        Submodule.span ℝ {(0 : E) -ᵥ p₀} ⊔ (affineSpan ℝ F).direction := by
+    rw [← affineSpan_insert_affineSpan, AffineSubspace.direction_affineSpan_insert hp₀]
+  have hnot : (0 : E) -ᵥ p₀ ∉ (affineSpan ℝ F).direction := by
+    intro hv
+    exact h0 ((AffineSubspace.vsub_right_mem_direction_iff_mem hp₀ (0 : E)).mp hv)
+  have hneBotF : affineSpan ℝ F ≠ ⊥ :=
+    (AffineSubspace.nonempty_iff_ne_bot _).mp ⟨p₀, hp₀⟩
+  have hneBotI : affineSpan ℝ (insert (0 : E) F) ≠ ⊥ :=
+    (AffineSubspace.nonempty_iff_ne_bot _).mp ⟨0, mem_affineSpan ℝ (Or.inl rfl)⟩
+  have hrank :
+      Module.finrank ℝ (affineSpan ℝ (insert (0 : E) F)).direction =
+        Module.finrank ℝ (affineSpan ℝ F).direction + 1 := by
+    have : Module.Finite ℝ E := inferInstance
+    rw [hdir, sup_comm, Submodule.finrank_sup_span_singleton hnot]
+  unfold affDim
+  have hfdF := AffineSubspace.finDim_eq_finrank hneBotF
+  have hfdI := AffineSubspace.finDim_eq_finrank hneBotI
+  rw [hfdF, hfdI, hrank]
+  simp
+
+lemma affineSpan_conicHull_eq_affineSpan_insert_zero {F : Set E} (hne : F.Nonempty) :
+    affineSpan ℝ (conicHull F) = affineSpan ℝ (insert (0 : E) F) := by
+  apply le_antisymm
+  · -- conicHull ⊆ affineSpan(insert 0 F) ⇒ span ≤ span
+    have h := affineSpan_mono (k := ℝ) (conicHull_subset_affineSpan_insert_zero F)
+    rwa [AffineSubspace.affineSpan_coe] at h
+  · rw [affineSpan_le, insert_subset_iff]
+    exact ⟨mem_affineSpan ℝ (zero_mem_conicHull hne),
+      fun x hx => mem_affineSpan ℝ (subset_conicHull F hx)⟩
+
+lemma affDim_conicHull_eq [FiniteDimensional ℝ E] {F : Set E} {i : E}
+    (hht : ∀ x ∈ F, ⟪i, x⟫ = 1) (hne : F.Nonempty) :
+    affDim (conicHull F) = affDim F + 1 := by
+  have h0 : (0 : E) ∉ affineSpan ℝ F := zero_not_mem_affineSpan_of_height hht
+  have hspan := affineSpan_conicHull_eq_affineSpan_insert_zero hne
+  rw [affDim_eq_of_affineSpan_eq hspan, affDim_insert_zero_of_not_mem hne h0]
+
+
+/-! ### Homogenized H-rep equality -/
+
+lemma homogenized_cone_subset_conicHull {H : Set (Hyperplane E)} {i : E} {p : Set E}
+    (hp : p = ⋂ h ∈ H, closedHalfspace h.1 h.2)
+    (_hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hpne : p.Nonempty)
+    (h0sec : ∀ y, y ∈ (⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0) →
+      ⟪i, y⟫ = 0 → y = 0) :
+    (⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0) ⊆ conicHull p := by
+  intro y hy
+  have hyi_nonneg : 0 ≤ ⟪i, y⟫ := by
+    have hineg : (-i) ∈ homogenizeNormals H i := Or.inr rfl
+    have : ⟪(-i), y⟫ ≤ 0 := by
+      simpa [closedHalfspace] using (mem_iInter.mp ((mem_iInter.mp hy) (-i))) hineg
+    simpa [inner_neg_left, neg_nonpos] using this
+  by_cases hyi0 : ⟪i, y⟫ = 0
+  · simpa [h0sec y hy hyi0] using zero_mem_conicHull hpne
+  · have hypos : 0 < ⟪i, y⟫ := lt_of_le_of_ne hyi_nonneg (Ne.symm hyi0)
+    set c := ⟪i, y⟫
+    set x := c⁻¹ • y
+    have hx1 : ⟪i, x⟫ = 1 := by
+      simp [x, c, inner_smul_right, inv_mul_cancel₀ hypos.ne']
+    have hy_eq : y = c • x := by
+      simp [x, smul_smul, mul_inv_cancel₀ hypos.ne']
+    have hxp : x ∈ p := by
+      rw [hp]
+      refine mem_iInter.mpr fun h => mem_iInter.mpr fun hh => ?_
+      have ha : (h.1 - h.2 • i) ∈ homogenizeNormals H i := Or.inl ⟨h, hh, rfl⟩
+      have hyh : ⟪h.1 - h.2 • i, y⟫ ≤ 0 := by
+        simpa [closedHalfspace] using (mem_iInter.mp ((mem_iInter.mp hy) _)) ha
+      change ⟪h.1, x⟫ ≤ h.2
+      have hrew : ⟪h.1 - h.2 • i, y⟫ = c * (⟪h.1, x⟫ - h.2) := by
+        rw [hy_eq, inner_smul_right, inner_sub_left, real_inner_smul_left, hx1, mul_one, mul_sub]
+      have hcpos : 0 < c := hypos
+      nlinarith [hyh, hcpos, hrew]
+    exact ⟨c, x, hypos.le, hxp, hy_eq⟩
+
+lemma conicHull_eq_homogenized_cone {H : Set (Hyperplane E)} {i : E} {p : Set E}
+    (hp : p = ⋂ h ∈ H, closedHalfspace h.1 h.2)
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hpne : p.Nonempty)
+    (h0sec : ∀ y, y ∈ (⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0) →
+      ⟪i, y⟫ = 0 → y = 0) :
+    conicHull p = ⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0 :=
+  subset_antisymm (conicHull_subset_homogenized_cone hp hht)
+    (homogenized_cone_subset_conicHull hp hht hpne h0sec)
+
+lemma homogenized_height_zero_eq_zero_of_isPolytope
+    {H : Set (Hyperplane E)} {i : E} {p : Set E}
+    (hp : p = ⋂ h ∈ H, closedHalfspace h.1 h.2)
+    (_hht : ∀ x ∈ p, ⟪i, x⟫ = 1)
+    (hP : IsPolytope p) (hpne : p.Nonempty) {y : E}
+    (hy : y ∈ ⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0)
+    (hyi : ⟪i, y⟫ = 0) :
+    y = 0 := by
+  by_contra hyne
+  obtain ⟨V, hV, hpeq⟩ := hP
+  have hBdd : Bornology.IsBounded p := by
+    rw [hpeq]
+    exact (isBounded_convexHull (E := E)).2 hV.isBounded
+  obtain ⟨C, hCpos, hC⟩ := hBdd.exists_pos_norm_le
+  obtain ⟨x₀, hx₀⟩ := hpne
+  have hray : ∀ t : ℝ, 0 ≤ t → x₀ + t • y ∈ p := by
+    intro t ht
+    rw [hp]
+    refine mem_iInter.mpr fun h => mem_iInter.mpr fun hh => ?_
+    have hx₀h : ⟪h.1, x₀⟫ ≤ h.2 := by
+      have : x₀ ∈ closedHalfspace h.1 h.2 :=
+        (mem_iInter.mp ((mem_iInter.mp (hp ▸ hx₀)) h)) hh
+      simpa [closedHalfspace] using this
+    have ha : (h.1 - h.2 • i) ∈ homogenizeNormals H i := Or.inl ⟨h, hh, rfl⟩
+    have hyh : ⟪h.1 - h.2 • i, y⟫ ≤ 0 := by
+      simpa [closedHalfspace] using (mem_iInter.mp ((mem_iInter.mp hy) _)) ha
+    have hy1 : ⟪h.1, y⟫ ≤ 0 := by
+      have : ⟪h.1 - h.2 • i, y⟫ = ⟪h.1, y⟫ - h.2 * ⟪i, y⟫ := by
+        simp [inner_sub_left, inner_smul_left]
+      simpa [this, hyi] using hyh
+    change ⟪h.1, x₀ + t • y⟫ ≤ h.2
+    have : ⟪h.1, x₀ + t • y⟫ = ⟪h.1, x₀⟫ + t * ⟪h.1, y⟫ := by
+      simp [inner_add_right, inner_smul_right]
+    rw [this]
+    nlinarith [mul_nonpos_of_nonneg_of_nonpos ht hy1]
+  have hynorm : 0 < ‖y‖ := norm_pos_iff.mpr hyne
+  set t : ℝ := (C + ‖x₀‖ + 1) / ‖y‖
+  have hnum : 0 ≤ C + ‖x₀‖ + 1 := by positivity
+  have ht0 : 0 ≤ t := div_nonneg hnum hynorm.le
+  have ht_ge : t * ‖y‖ - ‖x₀‖ ≤ ‖x₀ + t • y‖ := by
+    have htri : ‖t • y‖ ≤ ‖x₀ + t • y‖ + ‖x₀‖ := by
+      have h := norm_sub_le (x₀ + t • y) x₀
+      have heq : (x₀ + t • y) - x₀ = t • y := by simp
+      rwa [heq] at h
+    have hnorm : ‖t • y‖ = t * ‖y‖ := by
+      rw [norm_smul, Real.norm_eq_abs, abs_of_nonneg ht0]
+    linarith
+  have hval : t * ‖y‖ - ‖x₀‖ = C + 1 := by
+    dsimp [t]
+    field_simp [hynorm.ne']
+    ring
+  have hmem := hray t ht0
+  have hle : ‖x₀ + t • y‖ ≤ C := hC _ hmem
+  linarith
+
+lemma conicHull_eq_homogenized_cone_of_isPolytope
+    {H : Set (Hyperplane E)} {i : E} {p : Set E}
+    (hp : p = ⋂ h ∈ H, closedHalfspace h.1 h.2)
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hpne : p.Nonempty) (hP : IsPolytope p) :
+    conicHull p = ⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0 :=
+  conicHull_eq_homogenized_cone hp hht hpne
+    (fun _y hy hyi => homogenized_height_zero_eq_zero_of_isPolytope hp hht hP hpne hy hyi)
+
+/-! ### Assemble `ConeSliceFaceBijection` -/
+
+lemma exists_mem_ne_zero_of_affDim_pos {G : Set E} {d : ℕ}
+    (hdim : affDim G = ((d + 1 : ℕ) : ℤ)) : ∃ z ∈ G, z ≠ 0 := by
+  by_contra hall
+  push Not at hall
+  have hsub : G ⊆ ({0} : Set E) := hall
+  have hneG : G.Nonempty := by
+    by_contra hempty
+    have : G = ∅ := not_nonempty_iff_eq_empty.mp hempty
+    simp [this, affDim_empty] at hdim
+    omega
+  obtain ⟨z, hz⟩ := hneG
+  have hz0 : z = 0 := hsub hz
+  have : G = ({0} : Set E) :=
+    Subset.antisymm hsub (singleton_subset_iff.mpr (by simpa [hz0] using hz))
+  simp [this, affDim_singleton] at hdim
+  omega
+
+lemma faces_succ_conicHull [FiniteDimensional ℝ E] {p : Set E} {i : E} (d : ℕ)
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) :
+    {f : Set E | IsFaceOf (conicHull p) f ∧ affDim f = ((d + 1 : ℕ) : ℤ)} =
+      conicHull '' {F : Set E | IsFaceOf p F ∧ affDim F = (d : ℤ)} := by
+  apply subset_antisymm
+  · intro G ⟨hG, hdim⟩
+    obtain ⟨z, hzG, hzne⟩ := exists_mem_ne_zero_of_affDim_pos (d := d) hdim
+    have hConicG : IsConic G := isConic_of_isFaceOf (isConic_conicHull p) hG
+    have hpos : ∀ x ∈ G, x ≠ 0 → 0 < ⟪i, x⟫ := fun x hx hxne =>
+      height_pos_of_mem_conicHull hht (hG.isExtreme.subset hx) hxne
+    set F := G ∩ {x : E | ⟪i, x⟫ = 1}
+    have hFaceF : IsFaceOf p F := isFaceOf_slice_of_isFaceOf_conicHull hht hG
+    have hEq : conicHull F = G :=
+      conicHull_inter_height_eq_of_isConic hConicG hpos ⟨z, hzG, hzne⟩
+    have hhtF : ∀ x ∈ F, ⟪i, x⟫ = 1 := fun _ hx => hx.2
+    have hFne : F.Nonempty := by
+      refine ⟨(⟪i, z⟫)⁻¹ • z, ?_⟩
+      have hzpos := hpos z hzG hzne
+      refine ⟨hConicG hzG _ (inv_nonneg.mpr hzpos.le), ?_⟩
+      simp [inner_smul_right, inv_mul_cancel₀ hzpos.ne']
+    have hdimF : affDim F = (d : ℤ) := by
+      have h := affDim_conicHull_eq (F := F) (i := i) hhtF hFne
+      rw [hEq] at h
+      -- h: affDim G = affDim F + 1; hdim: affDim G = ↑(d+1)
+      have : affDim F + 1 = ((d + 1 : ℕ) : ℤ) := by rw [← h, hdim]
+      omega
+    refine ⟨F, ⟨hFaceF, hdimF⟩, hEq⟩
+  · intro G hG
+    obtain ⟨F, ⟨hF, hdimF⟩, rfl⟩ := hG
+    have hFace := isFaceOf_conicHull_of_isFaceOf hht hF
+    have hFne : F.Nonempty := by
+      by_contra hempty
+      have : F = ∅ := not_nonempty_iff_eq_empty.mp hempty
+      simp [this, affDim_empty] at hdimF
+    have hhtF : ∀ x ∈ F, ⟪i, x⟫ = 1 := fun x hx => hht x (isFaceOf_subset hF hx)
+    refine ⟨hFace, ?_⟩
+    have h := affDim_conicHull_eq hhtF hFne
+    rw [h, hdimF]
+    norm_cast
+
+/-- Paulson cone↔slice face bijection for a height-1 convex set. -/
+theorem coneSliceFaceBijection [FiniteDimensional ℝ E] {p : Set E} {i : E} (n : ℕ)
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hne : p.Nonempty) (hConv : Convex ℝ p) :
+    ConeSliceFaceBijection (conicHull p) p n where
+  zero_face := coneSlice_zero_face hht hne hConv
+  faces_succ := fun d _hd => faces_succ_conicHull d hht
+  conic_inj := fun d _hd =>
+    injOn_conicHull_faces (fun _F hF x hx => hht x (isFaceOf_subset hF hx)) d
+
+/-- With homogenized equality, the cone is polyhedral so `faceEulerSum_polyhedral_cone`
+applies; combined with the bijection this yields the slice Euler sum. -/
+theorem faceEulerSum_of_height_one_polytope [FiniteDimensional ℝ E] [Nonempty E]
+    {H : Set (Hyperplane E)} {i : E} {p : Set E}
+    (hH : H.Finite)
+    (hp : p = ⋂ h ∈ H, closedHalfspace h.1 h.2)
+    (hht : ∀ x ∈ p, ⟪i, x⟫ = 1) (hpne : p.Nonempty) (hConv : Convex ℝ p)
+    (h0sec : ∀ y, y ∈ (⋂ a ∈ homogenizeNormals H i, closedHalfspace a 0) →
+      ⟪i, y⟫ = 0 → y = 0)
+    (hpos : ({x : E | ∀ a ∈ homogenizeNormals H i, 0 < ⟪a, x⟫}).Nonempty)
+    (hn : 1 ≤ Module.finrank ℝ E) :
+    faceEulerSum p (Module.finrank ℝ E - 1) = 1 := by
+  set n := Module.finrank ℝ E
+  have heq := conicHull_eq_homogenized_cone hp hht hpne h0sec
+  have hBij := coneSliceFaceBijection n hht hpne hConv
+  have hAsNe : (homogenizeNormals H i).Nonempty := ⟨-i, Or.inr rfl⟩
+  have hCone : faceEulerSum (conicHull p) n = 0 := by
+    rw [heq]
+    exact faceEulerSum_polyhedral_cone (homogenizeNormals_finite hH i) hAsNe hpos
+  exact faceEulerSum_slice_of_cone hBij hCone hn
 
 end EulersGem

@@ -80,7 +80,7 @@
     },
     {
       "id": "cell-geometry-open-affine",
-      "title": "Hyperplane cells: open\u2229affine + relative interior + halfspace affDim",
+      "title": "Hyperplane cells: open∩affine + relative interior + halfspace affDim",
       "status": "proved",
       "depends_on": [
         "hyperplane-arrangements",
@@ -115,7 +115,7 @@
         "EulersGem.eulerCharacteristic_insert",
         "EulersGem.eulerCharacteristic_invariant"
       ],
-      "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler\u2013Poincar\u00e9 / cones)."
+      "note": "Full Paulson refinement invariance green: affDim drops by 1 on proper hyperplane slices; cut-into-three sign identity; insert one hyperplane; invariant under refining finite arrangements. Not yet claimed in Results.lean (substrate for Euler–Poincaré / cones)."
     },
     {
       "id": "cellcomplex-compl-diff",
@@ -176,7 +176,7 @@
     },
     {
       "id": "halfspace-face-cell",
-      "title": "Halfspace cone: face \u2194 RI-cell bijection + faceEulerSum = 0",
+      "title": "Halfspace cone: face ↔ RI-cell bijection + faceEulerSum = 0",
       "status": "proved",
       "depends_on": [
         "halfspace-cone-euler",
@@ -191,7 +191,7 @@
         "EulersGem.faces_closedHalfspace_zero_eq",
         "EulersGem.faceEulerSum_halfspace_cone"
       ],
-      "note": "Paulson hyper1/hyper2 special case for closedHalfspace a 0. General face\u2194cell still open. Not in Results.lean."
+      "note": "Paulson hyper1/hyper2 special case for closedHalfspace a 0. General face↔cell still open. Not in Results.lean."
     },
     {
       "id": "two-halfspace-cone-euler",
@@ -205,7 +205,7 @@
         "EulersGem.eulerCharacteristic_two_halfspace_cone",
         "EulersGem.eulerCharacteristic_closedHalfspace_zero_of_mem"
       ],
-      "note": "Soft IE + open dual cell. Superseded for \u22653 by polyhedral-cone-cell-euler. Not in Results.lean."
+      "note": "Soft IE + open dual cell. Superseded for ≥3 by polyhedral-cone-cell-euler. Not in Results.lean."
     },
     {
       "id": "polyhedral-cone-cell-euler",
@@ -232,7 +232,7 @@
     },
     {
       "id": "cone-hyper2-face",
-      "title": "General cone hyper2: cell \u2286 cone \u21d2 closure is a face",
+      "title": "General cone hyper2: cell ⊆ cone ⇒ closure is a face",
       "status": "proved",
       "depends_on": [
         "polyhedral-cone-cell-euler",
@@ -270,11 +270,11 @@
         "EulersGem.faceEulerSum_eq_eulerCharacteristic",
         "EulersGem.faceEulerSum_polyhedral_cone"
       ],
-      "note": "Paulson Euler_polyhedral_cone: face\u2194RI-cell bijection; faceEulerSum=cell EC=0. Not in Results.lean (await EP full / 3D)."
+      "note": "Paulson Euler_polyhedral_cone: face↔RI-cell bijection; faceEulerSum=cell EC=0. Not in Results.lean (await EP full / 3D)."
     },
     {
       "id": "cone-slice-lift",
-      "title": "Cone\u2192polytope combinatorial lift substrate (Paulson EP lemma bookkeeping)",
+      "title": "Cone→polytope combinatorial lift substrate (Paulson EP lemma bookkeeping)",
       "status": "proved",
       "depends_on": [
         "cone-hyper1-faceEuler"
@@ -294,13 +294,15 @@
         "EulersGem.coneSlice_zero_face",
         "EulersGem.conicHull_subset_homogenized_cone",
         "EulersGem.isFaceOf_slice_of_isFaceOf_conicHull",
-        "EulersGem.injOn_conicHull_faces"
+        "EulersGem.injOn_conicHull_faces",
+        "EulersGem.coneSliceFaceBijection",
+        "Results.results_faceEulerSum_of_height_one"
       ],
-      "note": "Combinatorial reduction proved; ConeSlice.lean discharges zero-face / face-of-conic / slice / InjOn / homogenize inclusion. Face-lift + affDim+1 still open."
+      "note": "Combinatorial reduction + ConeSliceFaceBijection geometric discharge. Height-1 EP in Results."
     },
     {
       "id": "cone-slice-geometry",
-      "title": "Cone\u2194slice geometric substrate (zero-face, face-of-conic, slice/recover)",
+      "title": "Cone↔slice geometric bijection (ConeSliceFaceBijection)",
       "status": "proved",
       "depends_on": [
         "cone-slice-lift"
@@ -313,13 +315,33 @@
         "EulersGem.conicHull_subset_homogenized_cone",
         "EulersGem.isFaceOf_slice_of_isFaceOf_conicHull",
         "EulersGem.conicHull_inter_height_eq_of_isConic",
-        "EulersGem.injOn_conicHull_faces"
+        "EulersGem.injOn_conicHull_faces",
+        "EulersGem.isFaceOf_conicHull_of_isFaceOf",
+        "EulersGem.affDim_conicHull_eq",
+        "EulersGem.conicHull_eq_homogenized_cone",
+        "EulersGem.coneSliceFaceBijection",
+        "EulersGem.faceEulerSum_of_height_one_polytope"
       ],
-      "note": "Paulson geometric pieces toward ConeSliceFaceBijection. Face-lift + affDim+1 remain."
+      "note": "Paulson geometric ConeSliceFaceBijection complete: face-lift, affDim+1, homogenize equality, InjOn, assembled bijection."
+    },
+    {
+      "id": "height-one-ep",
+      "title": "Height-1 H-rep Euler–Poincaré lemma (Paulson slice)",
+      "status": "proved",
+      "depends_on": [
+        "cone-slice-geometry",
+        "cone-hyper1-faceEuler"
+      ],
+      "lean": [
+        "EulersGem.coneSliceFaceBijection",
+        "EulersGem.faceEulerSum_of_height_one_polytope",
+        "Results.results_faceEulerSum_of_height_one"
+      ],
+      "note": "faceEulerSum p (finrank-1)=1 for height-1 H-rep with homogenized equality + open dual."
     },
     {
       "id": "euler-poincare-full",
-      "title": "Euler\u2013Poincar\u00e9 for full-dimensional convex polytopes",
+      "title": "Euler–Poincaré for full-dimensional convex polytopes",
       "status": "in_progress",
       "depends_on": [
         "halfspace-face-cell",
@@ -328,9 +350,10 @@
         "polyhedral-cone-cell-euler",
         "cone-hyper2-face",
         "cone-hyper1-faceEuler",
-        "cone-slice-lift"
+        "cone-slice-lift",
+        "cone-slice-geometry"
       ],
-      "note": "Partial. ConeSlice geometric substrate green; blockers: face-lift conicHull F, affDim+1, homogenized H-rep equality, E\u00d7\u211d embedding."
+      "note": "Height-1 EP lemma green via ConeSliceFaceBijection. Blocker: E×ℝ embedding for general full-dim polytopes; then 3D V−E+F=2."
     },
     {
       "id": "polyhedron-formula-3d",

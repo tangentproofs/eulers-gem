@@ -43,14 +43,15 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` |
 | `results_faceEulerSum_simplex_faceCount` | Simplex face-sum (no empty face) `= 1` |
 | `results_euler_relation_of_faceEulerSum` | Bookkeeping: `faceEulerSum=1` + unique solid ⇒ `V−E+F=2` |
+| `results_faceEulerSum_of_height_one` | Height-1 H-rep: Paulson slice EP (`faceEulerSum = 1`) |
 
-In progress: Paulson cones / Euler–Poincaré — cone `faceEulerSum=0` green;
-`EulerPoincare.lean` has combinatorial cone→slice reduction + apex/homogenization
-substrate + `ConeSlice.lean` geometric pieces (zero-face, face-of-conic, slice/recover, homogenize⊆). Blocker: complete `ConeSliceFaceBijection` (face-lift + affDim+1) for `Euler_Poincare_full`.
+In progress: Paulson cones / Euler–Poincaré — `ConeSliceFaceBijection` + homogenized
+H-rep equality + height-1 EP lemma green. Remaining for `Euler_Poincare_full`:
+`E × ℝ` embedding of a general full-dim polytope as a height-1 slice.
 Mathlib gap survey in `lean/MATHLIB_SURVEY.md`.
 
 Open goals (not fully in Results as geometric theorems):
-`Euler_Poincare_full`; polyhedron formula for arbitrary convex 3-polytopes.
+`Euler_Poincare_full` (needs embedding); polyhedron formula for arbitrary convex 3-polytopes.
 
 ## Parked (do not start)
 
