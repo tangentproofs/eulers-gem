@@ -16,7 +16,7 @@
    `|det|=1` emptiness + witness-conditional shoelace Pick-form + combinatorial handshaking +
    unit-square witness↔disk with planar Euler discharged + fan existence for all `n≥3`
    + geometric fan shoelace / empty-interior Pick-form under primitivity hyps
-   (not classical Pick). Still open: `empty⇒|det|=1`, general triangulation existence,
+   (not classical Pick). Landed: `empty⇒|det|=1` (nondeg). Still open: `FanTrianglesEmpty` from polygon `I=0`, general triangulation existence,
    general EP→planar from `Euler_Poincare_full`, Haar/shoelace=measure. See `PHASE_B_PLAN.md`,
    `PICKS_CLAUDE_AUDIT.md`. Platonic geometric regularity: separate lane.
 
@@ -57,6 +57,7 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
   - [x] Unit-square witness ↔ combinatorial disk; planar Euler **proved** for unit square + fan disks (general EP→planar still open)
   - [x] Fan combinatorial triangulation existence for **all** `n ≥ 3` (`FanDiskTriangulation`)
   - [x] Geometric fan shoelace identity + empty-interior `shoelace = B/2−1` under fan-primitivity hyps (`LatticeFan.lean`; not classical Pick)
-  - [ ] Triangulation existence for arbitrary simple / convex lattice polygons (no primitivity hyp; `empty⇒|det|=1` open)
+  - [x] Nondegenerate empty closed triangle ⇒ `|det|=1` (`LatticeTriangleEmpty.lean`); `FanDetPrimitive` from empty fan ears + `FanDetsPos`
+  - [ ] `FanTrianglesEmpty` from polygon empty-interior (convex); triangulation existence without emptiness hyp
   - [ ] Discharge `hEuler_planar` from `Euler_Poincare_full` for general planar disks
   - [ ] Shoelace = Haar/Lebesgue; Claude audit PASS before any Pick-named Results claim

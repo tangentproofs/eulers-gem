@@ -297,3 +297,53 @@ untouched.
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 
+
+
+## Update 2026-09-24 (empty ⇒ `|det|=1`; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeTriangleEmpty.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem natAbs_det_eq_one_of_memClosedTriangle_eq_vertices
+    (a b c : ℤ × ℤ)
+    (hne : latticeDet a b c ≠ 0)
+    (h : ∀ p, MemClosedTriangle a b c p → p = a ∨ p = b ∨ p = c) :
+    Int.natAbs (latticeDet a b c) = 1
+
+theorem FanDetPrimitive_of_empty_fan_triangles
+    (P) (FanDetsPos P) (FanTrianglesEmpty P) :
+    FanDetPrimitive P
+
+theorem shoelace_eq_B_div_two_sub_one_of_empty_fan
+    (P) (Injective P.vertex) (PrimitiveEdges P)
+    (FanDetsPos P) (FanTrianglesEmpty P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_natAbs_det_eq_one_of_memClosedTriangle_eq_vertices`,
+`results_FanDetPrimitive_of_empty_fan_triangles`,
+`results_shoelace_eq_B_div_two_sub_one_of_empty_fan`.
+
+**Main prize partial:** converse of emptiness⇔`|det|=1` for **nondegenerate**
+lattice triangles (companion/Bézout construction). Fan-primitivity hyp discharged
+when each fan ear is empty + positively oriented. Still **not** classical Pick:
+proving `FanTrianglesEmpty` from polygon-empty-interior for convex fans,
+shoelace=Haar, general triangulation existence, and EP→planar remain open.
+Claude Platonic / Embed / Octahedron untouched.
+
+| Item | Status |
+|------|--------|
+| Handshaking from incidence | Green |
+| Planar Euler from disk-count axioms | Green |
+| Fan existence (`∀ n ≥ 3`) combinatorial | Green |
+| Algebraic geometric fan shoelace identity | Green |
+| `B = n` for primitive edges | Green |
+| Empty-interior shoelace `= B/2−1` (fan-primitivity hyps) | Green |
+| `empty ⇒ \|det\|=1` (nondegenerate triangle) | **Green** |
+| `FanDetPrimitive` from empty fan ears + `FanDetsPos` | **Green** |
+| `FanTrianglesEmpty` from polygon `I=0` (convex) | Open |
+| General EP → planar via `Euler_Poincare_full` | Open |
+| Geometric triangulation existence (no emptiness hyp) | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+

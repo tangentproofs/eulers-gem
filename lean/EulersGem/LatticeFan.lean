@@ -6,6 +6,7 @@ Authors: Michal Wallace, Grok Bot
 import Mathlib.Tactic
 import Mathlib.Data.Rat.Defs
 import EulersGem.LatticeTriangle
+import EulersGem.LatticeTriangleEmpty
 import EulersGem.LatticePolygon
 import EulersGem.Picks
 
@@ -16,7 +17,7 @@ Algebraic shoelace fan identity + empty-interior Pick-form under fan
 primitivity / primitive edges.
 
 **Honesty / not classical Pick:**
-* Fan primitivity is a hypothesis (`empty ⇒ |det|=1` still open).
+* Fan primitivity discharged from empty fan triangles + nondeg (`FanDetPrimitive_of_empty_fan_triangles`).
 * Shoelace ≠ Haar/Lebesgue.
 * Consistent orientation is a hyp (`0 ≤ fanDet`).
 * General lattice-polygon triangulation existence still open.
@@ -418,6 +419,44 @@ theorem shoelace_pick_form_empty_interior_of_primitive_fan
     (hprim : FanDetPrimitive P) :
     P.shoelace = (0 : ℚ) + (P.B : ℚ) / 2 - 1 := by
   simpa using shoelace_eq_B_div_two_sub_one_of_primitive_fan P hverts hedge hnn hprim
+
+/-! ## Discharge `FanDetPrimitive` from empty fan triangles -/
+
+/-- Each fan triangle contains no lattice points other than its three vertices. -/
+def FanTrianglesEmpty : Prop :=
+  ∀ (i : ℕ) (hi : i < P.nVertices - 2),
+    ∀ p, MemClosedTriangle (fanTriangle P i hi).a (fanTriangle P i hi).b
+        (fanTriangle P i hi).c p →
+      p = (fanTriangle P i hi).a ∨ p = (fanTriangle P i hi).b ∨
+        p = (fanTriangle P i hi).c
+
+/-- Strictly positive oriented fan dets (nondegenerate + CCW). -/
+def FanDetsPos : Prop :=
+  ∀ (i : ℕ) (hi : i < P.nVertices - 2), 0 < fanDet P i hi
+
+lemma FanDetsNonneg_of_pos (h : FanDetsPos P) : FanDetsNonneg P :=
+  fun i hi => le_of_lt (h i hi)
+
+/-- **Discharge fan-primitivity** from empty fan ears + nondegeneracy.
+Uses `natAbs_det_eq_one_of_memClosedTriangle_eq_vertices`. -/
+theorem FanDetPrimitive_of_empty_fan_triangles
+    (hpos : FanDetsPos P) (hempty : FanTrianglesEmpty P) :
+    FanDetPrimitive P := by
+  intro i hi
+  exact IsDetPrimitive_of_memClosedTriangle_eq_vertices
+    (fanTriangle P i hi) (ne_of_gt (hpos i hi)) (hempty i hi)
+
+/-- Empty-interior shoelace Pick-form with `FanDetPrimitive` discharged from
+empty fan triangles (not classical Pick). -/
+theorem shoelace_eq_B_div_two_sub_one_of_empty_fan
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hpos : FanDetsPos P)
+    (hempty : FanTrianglesEmpty P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 :=
+  shoelace_eq_B_div_two_sub_one_of_primitive_fan P hverts hedge
+    (FanDetsNonneg_of_pos P hpos)
+    (FanDetPrimitive_of_empty_fan_triangles P hpos hempty)
 
 end LatticeFan
 end Picks

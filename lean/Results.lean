@@ -18,6 +18,7 @@ import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
 import EulersGem.FanDisk
 import EulersGem.LatticeFan
+import EulersGem.LatticeTriangleEmpty
 
 /-!
 # Paper-facing results
@@ -366,6 +367,39 @@ theorem results_shoelace_eq_B_div_two_sub_one_of_primitive_fan
     P.shoelace = (P.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_primitive_fan
     P hverts hedge hnn hprim
+
+/-- **Empty closed lattice triangle ⇒ `|det|=1`** (nondegenerate; not classical Pick).
+
+Converse of `memClosedTriangle_eq_vertices_of_natAbs_det_eq_one`. Requires `det ≠ 0`
+(degenerate collinear triples can be vertex-only with `det = 0`). -/
+theorem results_natAbs_det_eq_one_of_memClosedTriangle_eq_vertices
+    (a b c : ℤ × ℤ)
+    (hne : EulersGem.Picks.LatticeTriangle.latticeDet a b c ≠ 0)
+    (h : ∀ p, EulersGem.Picks.LatticeTriangle.MemClosedTriangle a b c p →
+      p = a ∨ p = b ∨ p = c) :
+    Int.natAbs (EulersGem.Picks.LatticeTriangle.latticeDet a b c) = 1 :=
+  EulersGem.Picks.LatticeTriangle.natAbs_det_eq_one_of_memClosedTriangle_eq_vertices
+    a b c hne h
+
+/-- Fan-primitivity discharged from empty fan triangles + positive orientation. -/
+theorem results_FanDetPrimitive_of_empty_fan_triangles
+    (P : EulersGem.Picks.LatticePolygon)
+    (hpos : EulersGem.Picks.LatticeFan.FanDetsPos P)
+    (hempty : EulersGem.Picks.LatticeFan.FanTrianglesEmpty P) :
+    EulersGem.Picks.LatticeFan.FanDetPrimitive P :=
+  EulersGem.Picks.LatticeFan.FanDetPrimitive_of_empty_fan_triangles P hpos hempty
+
+/-- Empty-fan shoelace Pick-form with primitivity discharged (not classical Pick). -/
+theorem results_shoelace_eq_B_div_two_sub_one_of_empty_fan
+    (P : EulersGem.Picks.LatticePolygon)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hpos : EulersGem.Picks.LatticeFan.FanDetsPos P)
+    (hempty : EulersGem.Picks.LatticeFan.FanTrianglesEmpty P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_empty_fan
+    P hverts hedge hpos hempty
+
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
