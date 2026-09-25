@@ -1592,3 +1592,44 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+## Update 2026-09-25 (hpart + hspoke discharged; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem mem_interiorLatticePoints_of_mem_open_spoke
+theorem card_spokeInterior_eq_edgeGcd_sub_one
+theorem hspoke_of_interior_finset
+    -- #(spokeInterior) = edgeGcd − 1 when S = interior
+theorem eq_of_mem_edgeLatticePoints_two_spokes
+theorem card_eq_one_add_earOff_add_spoke
+theorem hpart_of_interior_finset
+    -- S.card = 1 + ∑ earOff + ∑ spoke
+theorem hbook_of_fan_ear_partition_of_interior
+    -- discharged hbook under interior Finset (hpart + hspoke)
+```
+
+Results exports: `results_hspoke_of_interior_finset`,
+`results_hpart_of_interior_finset`,
+`results_hbook_of_fan_ear_partition_of_interior`.
+
+**Prize progress:** fan-ear hbook arithmetic fully discharged for the geometric
+interior Finset (partition + spoke-gcd cards). Conditional fan-ear Pick-form now
+needs only ear IH. Still **not** classical Pick: ear IH / I=4 Finset Pick-form;
+Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Conditional fan-ear IH Pick-form | Green (hyps: ear IH + hbook) |
+| Triangle `B = ∑ edgeGcd` | Green |
+| Ear B under parent PrimitiveEdges | Green |
+| Conditional hbook (partition + spoke gcd cards) | Green |
+| Discharge `hpart` (earOff⊔spoke partition) | **Green** |
+| Discharge `hspoke` (`#(spokeInterior)=edgeGcd−1`) | **Green** |
+| Discharged hbook for interior Finset | **Green** |
+| I=4 geometric Finset Pick-form / ear IH | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+
