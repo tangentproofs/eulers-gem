@@ -30,6 +30,7 @@ from `z j` to `y`.
 -/
 
 open Set
+open scoped RealInnerProductSpace
 
 namespace EulersGem
 
@@ -125,6 +126,101 @@ theorem face_eq_convexHull_inter {V F : Set E}
   rw [← hcm']
   exact (convex_convexHull ℝ (V ∩ F)).sum_mem (fun i hi => hw0 i (hsub hi)) hsum'
     fun i hi => subset_convexHull ℝ _ (hmem i hi)
+
+
+/-! ## Supporting hyperplanes cut out faces
+
+A general tool for computing the face lattice of an explicitly given polytope: the part of
+a convex set where a supporting linear functional attains its bound is a face, and for a
+V-polytope that face is the hull of the generators attaining the bound.
+-/
+
+/-- **A supporting hyperplane cuts out a face.** If `⟪a, ·⟫ ≤ c` on a convex set `A`, then
+`{x ∈ A | ⟪a, x⟫ = c}` is a face of `A`. -/
+theorem isFaceOf_inter_hyperplane {A : Set E} (hA : Convex ℝ A) {a : E} {c : ℝ}
+    (hle : ∀ x ∈ A, ⟪a, x⟫ ≤ c) :
+    IsFaceOf A {x ∈ A | ⟪a, x⟫ = c} := by
+  refine ⟨⟨fun x hx => hx.1, ?_⟩, ?_⟩
+  · intro y hy z hz w hw hseg
+    obtain ⟨s, t, hs, ht, hst, hcomb⟩ := hseg
+    refine ⟨hy, ?_⟩
+    have hsplit : ⟪a, w⟫ = s * ⟪a, y⟫ + t * ⟪a, z⟫ := by
+      rw [← hcomb, inner_add_right, inner_smul_right, inner_smul_right]
+    have hyc : ⟪a, y⟫ ≤ c := hle y hy
+    have hzc : ⟪a, z⟫ ≤ c := hle z hz
+    rw [hw.2] at hsplit
+    by_contra hne
+    have hlt : ⟪a, y⟫ < c := lt_of_le_of_ne hyc hne
+    have hsc : s * c + t * c = c := by linear_combination c * hst
+    linarith [mul_pos hs (sub_pos.mpr hlt), mul_nonneg ht.le (sub_nonneg.mpr hzc),
+      mul_sub s c ⟪a, y⟫, mul_sub t c ⟪a, z⟫]
+  · intro x hx y hy s t hs ht hst
+    refine ⟨hA hx.1 hy.1 hs ht hst, ?_⟩
+    rw [inner_add_right, inner_smul_right, inner_smul_right, hx.2, hy.2]
+    linear_combination c * hst
+
+/-- For a V-polytope, a functional bounded on the generators is bounded on the hull. -/
+lemma inner_le_of_mem_convexHull {V : Set E} {a : E} {c : ℝ}
+    (h : ∀ v ∈ V, ⟪a, v⟫ ≤ c) :
+    ∀ x ∈ convexHull ℝ V, ⟪a, x⟫ ≤ c := fun _ hx =>
+  convexHull_min (fun v hv => h v hv) (convex_halfSpace_le (isLinearMap_inner a) c) hx
+
+/-- **The supported face of a V-polytope is the hull of the generators it contains.** -/
+theorem inter_hyperplane_eq_convexHull_argmax {V : Set E} {a : E} {c : ℝ}
+    (hle : ∀ v ∈ V, ⟪a, v⟫ ≤ c) :
+    {x ∈ convexHull ℝ V | ⟪a, x⟫ = c} = convexHull ℝ {v ∈ V | ⟪a, v⟫ = c} := by
+  classical
+  refine subset_antisymm ?_ ?_
+  · rintro x ⟨hxhull, hxc⟩
+    rw [convexHull_eq] at hxhull
+    obtain ⟨ι, t, w, z, hw0, hw1, hzV, hcm⟩ := hxhull
+    rw [Finset.centerMass_eq_of_sum_1 _ _ hw1] at hcm
+    have hzle : ∀ i ∈ t, ⟪a, z i⟫ ≤ c := fun i hi => hle _ (hzV i hi)
+    have hlin : ⟪a, x⟫ = ∑ i ∈ t, w i * ⟪a, z i⟫ := by
+      rw [← hcm, inner_sum]
+      exact Finset.sum_congr rfl fun i _ => inner_smul_right _ _ _
+    have hsum : ∑ i ∈ t, w i * ⟪a, z i⟫ = c := by rw [← hlin, hxc]
+    -- a generator with positive weight must attain the bound
+    have hattain : ∀ i ∈ t, 0 < w i → ⟪a, z i⟫ = c := by
+      intro i hi hwi
+      by_contra hne
+      have hlt : ⟪a, z i⟫ < c := lt_of_le_of_ne (hzle i hi) hne
+      have hstrict : ∑ j ∈ t, w j * ⟪a, z j⟫ < ∑ j ∈ t, w j * c := by
+        refine Finset.sum_lt_sum (fun j hj => ?_) ⟨i, hi, ?_⟩
+        · exact mul_le_mul_of_nonneg_left (hzle j hj) (hw0 j hj)
+        · exact mul_lt_mul_of_pos_left hlt hwi
+      rw [hsum, ← Finset.sum_mul, hw1, one_mul] at hstrict
+      exact absurd hstrict (lt_irrefl c)
+    -- discard the zero weights and rebuild `x`
+    set t' := t.filter fun i => 0 < w i with ht'
+    have hsub : t' ⊆ t := Finset.filter_subset _ _
+    have hzeroOut : ∀ i ∈ t, i ∉ t' → w i = 0 := by
+      intro i hi hni
+      have hnot : ¬ 0 < w i := fun hpos => hni (Finset.mem_filter.mpr ⟨hi, hpos⟩)
+      have := hw0 i hi
+      linarith [not_lt.mp hnot]
+    have hsum1' : ∑ i ∈ t', w i = 1 := by
+      rw [Finset.sum_subset hsub hzeroOut]; exact hw1
+    have hcm' : ∑ i ∈ t', w i • z i = x := by
+      rw [Finset.sum_subset hsub fun i hi hni => by rw [hzeroOut i hi hni, zero_smul]]
+      exact hcm
+    rw [← hcm']
+    refine (convex_convexHull ℝ _).sum_mem (fun i hi => hw0 i (hsub hi)) hsum1' fun i hi => ?_
+    exact subset_convexHull ℝ _
+      ⟨hzV i (hsub hi), hattain i (hsub hi) (Finset.mem_filter.mp hi).2⟩
+  · refine convexHull_min (fun v hv => ⟨subset_convexHull ℝ V hv.1, hv.2⟩) ?_
+    intro x hx y hy s t hs ht hst
+    refine ⟨(convex_convexHull ℝ V) hx.1 hy.1 hs ht hst, ?_⟩
+    rw [inner_add_right, inner_smul_right, inner_smul_right, hx.2, hy.2]
+    linear_combination c * hst
+
+/-- **Face lattice tool for explicit V-polytopes:** the hull of the generators on a
+supporting hyperplane is a face. -/
+theorem isFaceOf_convexHull_argmax {V : Set E} {a : E} {c : ℝ}
+    (hle : ∀ v ∈ V, ⟪a, v⟫ ≤ c) :
+    IsFaceOf (convexHull ℝ V) (convexHull ℝ {v ∈ V | ⟪a, v⟫ = c}) := by
+  rw [← inter_hyperplane_eq_convexHull_argmax hle]
+  exact isFaceOf_inter_hyperplane (convex_convexHull ℝ V) (inner_le_of_mem_convexHull hle)
 
 /-! ## Finiteness of the face lattice -/
 
