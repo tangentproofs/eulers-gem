@@ -6,10 +6,11 @@ Authors: Michal Wallace, Grok Bot
 import Mathlib.Tactic
 
 /-!
-# Number and combinatorial constructions of the Platonic solids
+# Combinatorial Schläfli classification (not geometric Platonic solids)
 
 Following Isabelle `Poly100.thy` (`PLATONIC_SOLIDS`) and the classical Euler
-argument (Richeson / Schläfli pairs):
+*count* argument (Richeson / Schläfli pairs). This is **not** a formalization of
+geometrically regular polyhedra in `ℝ³`.
 
 If every face is an `s`-gon, exactly `m` faces meet at each vertex (`s,m ≥ 3`),
 double-counting gives `s F = 2 E` and `m V = 2 E`, and Euler's formula
@@ -19,8 +20,7 @@ double-counting gives `s F = 2 E` and `m V = 2 E`, and Euler's formula
 (s, m) ∈ {(3,3), (3,4), (3,5), (4,3), (5,3)}
 ```
 
-We also exhibit the five combinatorial types as explicit `(V,E,F)` witnesses
-("Five Platonic solids constructions" — Euler bookkeeping).
+We also exhibit five combinatorial `(V,E,F)` witnesses (Euler bookkeeping only).
 
 Key identity (multiply Euler by `s m` and substitute double-counting):
 

@@ -58,16 +58,16 @@
       <tbody>
         <tr><td><a href="docs/Results.html#Results.results_eulerChar_simplex"><code>results_eulerChar_simplex</code></a></td><td>Euler char of an <code>n</code>-simplex (incl. empty face) is <code>0</code></td></tr>
         <tr><td><a href="docs/Results.html#Results.results_card_combinatorialFaces"><code>results_card_combinatorialFaces</code></a></td><td># of <code>m</code>-faces of an <code>n</code>-simplex is <code>C(n+1,m+1)</code></td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_tetrahedron_polyhedron_numbers"><code>results_tetrahedron_polyhedron_numbers</code></a></td><td>Tetrahedron: <code>V − E + F = 2</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_tetrahedron_polyhedron_numbers"><code>results_tetrahedron_polyhedron_numbers</code></a></td><td>Abstract 3-simplex face counts <code>C(4,1)−C(4,2)+C(4,3)=2</code></td></tr>
         <tr><td><a href="docs/Results.html#Results.results_polyhedron_formula_of_eulerChar"><code>results_polyhedron_formula_of_eulerChar</code></a></td><td>Bookkeeping: full Euler <code>0</code> ⇒ <code>F+V−E=2</code></td></tr>
         <tr><td><a href="docs/Results.html#Results.results_faceEulerSum_simplex_faceCount"><code>results_faceEulerSum_simplex_faceCount</code></a></td><td>Simplex face-sum (no empty face) <code>= 1</code></td></tr>
         <tr><td><a href="docs/Results.html#Results.results_euler_relation_of_faceEulerSum"><code>results_euler_relation_of_faceEulerSum</code></a></td><td>Bookkeeping: <code>faceEulerSum=1</code> + unique solid ⇒ <code>V−E+F=2</code></td></tr>
         <tr><td><a href="docs/Results.html#Results.results_faceEulerSum_of_height_one"><code>results_faceEulerSum_of_height_one</code></a></td><td>Height-1 H-rep: Paulson slice EP (<code>faceEulerSum = 1</code>)</td></tr>
         <tr><td><a href="docs/Results.html#Results.results_Euler_Poincare_full"><code>results_Euler_Poincare_full</code></a></td><td>Full-dim H+V-rep polytope: <code>faceEulerSum = 1</code></td></tr>
         <tr><td><a href="docs/Results.html#Results.results_euler_relation_convex_3polytope"><code>results_euler_relation_convex_3polytope</code></a></td><td>Convex 3-polytope (H+V-rep): <code>V − E + F = 2</code></td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_platonic_schlafli_classification"><code>results_platonic_schlafli_classification</code></a></td><td>Combinatorial Platonic: Schläfli <code>(s,m)</code> ∈ five pairs</td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_platonic_schlafli_classification"><code>results_platonic_schlafli_classification</code></a></td><td>Combinatorial Schläfli: <code>(s,m)</code> ∈ five pairs (<strong>not</strong> geometric Platonic)</td></tr>
         <tr><td><a href="docs/Results.html#Results.results_platonic_schlafli_card"><code>results_platonic_schlafli_card</code></a></td><td>Exactly five admissible Schläfli pairs</td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_platonic_five_constructions"><code>results_platonic_five_constructions</code></a></td><td>Five combinatorial <code>(V,E,F)</code> types (Euler bookkeeping)</td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_platonic_five_constructions"><code>results_platonic_five_constructions</code></a></td><td>Five combinatorial <code>(V,E,F)</code> witnesses (<strong>not</strong> geometric embeddings)</td></tr>
         <tr><td><a href="docs/Results.html#Results.results_funkenbusch_identity"><code>results_funkenbusch_identity</code></a></td><td>Funkenbusch count identity (<strong>not</strong> Pick)</td></tr>
         <tr><td><a href="docs/Results.html#Results.results_triangulation_count_identity"><code>results_triangulation_count_identity</code></a></td><td>Triangulation count identity (<strong>not</strong> Pick)</td></tr>
       </tbody>
@@ -102,7 +102,7 @@ docs/          Browsable Lean sources (built in CI from lean/)</code></pre>
 
     <h2>Phase B (#1535)</h2>
     <ul class="clean">
-      <li><strong>Landed:</strong> Platonic Schläfli classification + five combinatorial constructions; Funkenbusch / triangulation <em>count identities</em> (explicitly not Pick).</li>
+      <li><strong>Landed:</strong> combinatorial Schläfli classification + five <code>(V,E,F)</code> witnesses (not geometric Platonic); Funkenbusch / triangulation <em>count identities</em> (not Pick).</li>
       <li><strong>Still open:</strong> classical geometric Pick (lattice polygon + measure area + triangulation + planar Euler); geometric regular polyhedron embeddings. See <code>lean/PICKS_CLAUDE_AUDIT.md</code>.</li>
     </ul>
 

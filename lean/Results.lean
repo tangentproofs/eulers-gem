@@ -15,6 +15,9 @@ import EulersGem.Picks
 # Paper-facing results
 
 Only theorems that are **actually proved** appear here.
+Docstrings/names must survive a Claude honesty audit: no classical theorem name
+unless the *statement* matches the classical claim (lattice polygon + measure for
+Pick; geometric regularity for Platonic; etc.).
 
 ## Statement discipline (Mathlib auditability)
 
@@ -52,7 +55,8 @@ theorem results_card_combinatorialFaces (n m : ℕ) :
       (n + 1).choose (m + 1) :=
   EulersGem.card_combinatorialFaces n m
 
-/-- Tetrahedron satisfies `V - E + F = 2` (face counts `C(4,1), C(4,2), C(4,3)`). -/
+/-- Abstract 3-simplex face-count identity: `C(4,1) − C(4,2) + C(4,3) = 2`.
+Not a geometric embedded tetrahedron. -/
 theorem results_tetrahedron_polyhedron_numbers :
     ((4 : ℕ).choose 1 : ℤ) - (4 : ℕ).choose 2 + (4 : ℕ).choose 3 = 2 := by
   decide
@@ -69,10 +73,15 @@ theorem results_faceEulerSum_simplex_faceCount (n : ℕ) :
     ∑ d ∈ range (n + 1), (-1 : ℤ) ^ d * ((n + 1).choose (d + 1) : ℤ) = 1 := by
   simpa [EulersGem.faceCount] using EulersGem.faceEulerSum_simplex_faceCount n
 
-/-! ## Platonic solids (Mathlib-only statements; unpacks RegularNumbers) -/
+/-! ## Combinatorial Schläfli / Platonic counts (not geometric regular solids)
 
-/-- **Number of Platonic solids:** any combinatorially regular Schläfli pair
-`(s,m)` with Euler + double-counting lies in the five classical pairs. -/
+These classify integer Schläfli pairs under Euler + double-counting. They do
+**not** construct geometrically regular polyhedra in `ℝ³` (embeddings still open).
+-/
+
+/-- **Combinatorial Schläfli classification:** any combinatorially regular pair
+`(s,m)` with Euler + double-counting lies in the five classical pairs.
+Not a theorem about geometric Platonic solids in `ℝ³`. -/
 theorem results_platonic_schlafli_classification
     (V E F s m : ℕ)
     (hs : 3 ≤ s) (hm : 3 ≤ m) (hE : 0 < E)
@@ -90,8 +99,9 @@ theorem results_platonic_schlafli_card :
     ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)).card = 5 := by
   native_decide
 
-/-- **Five Platonic solids constructions** (Euler bookkeeping): each admissible
-Schläfli pair is realized by a combinatorial `(V,E,F)` type. -/
+/-- **Five combinatorial `(V,E,F)` witnesses** (Euler bookkeeping): each admissible
+Schläfli pair has some `(V,E,F)` satisfying the count equations.
+Not geometric regular embeddings. -/
 theorem results_platonic_five_constructions :
     ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)).card = 5 ∧
       ∀ p ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)),

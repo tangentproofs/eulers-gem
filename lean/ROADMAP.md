@@ -43,5 +43,5 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] ConeSlice geometric substrate (zero-face, face-of-conic, slice/recover, homogenize⊆)
 - [x] ConeSliceFaceBijection (face-lift + affDim+1 + homogenized equality + height-1 EP)
 - [x] Euler_Poincare_full via E×ℝ embedding + geometric 3D V−E+F=2
-- [x] Platonic Schläfli classification + five combinatorial constructions (#1535)
+- [x] Combinatorial Schläfli classification + five `(V,E,F)` witnesses (#1535; geometric regular embeddings open)
 - [ ] Classical geometric Pick's theorem (open; only Funkenbusch/triangulation *count identities* landed — not Pick; see `PICKS_CLAUDE_AUDIT.md`)

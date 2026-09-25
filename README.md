@@ -50,18 +50,18 @@ See `lean/Results.lean` (only claims what is actually proved):
 |---------|---------|-----------|
 | `results_eulerChar_simplex` | Euler char of an `n`-simplex (incl. empty face) is `0` | Mathlib-only |
 | `results_card_combinatorialFaces` | `#` of `m`-faces of an `n`-simplex is `C(n+1,m+1)` | Mathlib-only |
-| `results_tetrahedron_polyhedron_numbers` | Tetrahedron: `V − E + F = 2` | Mathlib-only |
+| `results_tetrahedron_polyhedron_numbers` | Abstract 3-simplex face counts: `C(4,1)−C(4,2)+C(4,3)=2` | Mathlib-only |
 | `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` | Mathlib-only |
 | `results_faceEulerSum_simplex_faceCount` | Simplex face-sum (no empty face) `= 1` | Mathlib-only |
-| `results_platonic_schlafli_classification` | Combinatorial Platonic: Schläfli `(s,m)` ∈ five pairs | Mathlib-only |
+| `results_platonic_schlafli_classification` | Combinatorial Schläfli: `(s,m)` ∈ five pairs (**not** geometric Platonic) | Mathlib-only |
 | `results_platonic_schlafli_card` | Exactly five admissible Schläfli pairs | Mathlib-only |
-| `results_platonic_five_constructions` | Five combinatorial `(V,E,F)` types (Euler bookkeeping) | Mathlib-only |
+| `results_platonic_five_constructions` | Five combinatorial `(V,E,F)` witnesses (**not** geometric embeddings) | Mathlib-only |
 | `results_funkenbusch_identity` | Funkenbusch count identity `A = I + B/2 − 1` (**not** Pick) | Mathlib-only |
 | `results_triangulation_count_identity` | Triangulation count identity (**not** Pick) | Mathlib-only |
 | `results_euler_relation_of_faceEulerSum` | Bookkeeping: `faceEulerSum=1` + unique solid ⇒ `V−E+F=2` | Geometric (`EulersGem`) |
 | `results_faceEulerSum_of_height_one` | Height-1 H-rep: Paulson slice EP (`faceEulerSum = 1`) | Geometric (`EulersGem`) |
-| `results_Euler_Poincare_full` | Full-dim H+V-rep polytope: `faceEulerSum = 1` | Geometric (`EulersGem`) |
-| `results_euler_relation_convex_3polytope` | Convex 3-polytope (H+V-rep): `V − E + F = 2` | Geometric (`EulersGem`) |
+| `results_Euler_Poincare_full` | Full-dim H+V-rep (`EulersGem` API): `faceEulerSum = 1` | Geometric (`EulersGem`) |
+| `results_euler_relation_convex_3polytope` | Full-dim convex 3-polytope H+V-rep (`EulersGem`): `V − E + F = 2` | Geometric (`EulersGem`) |
 
 **Mathlib-only** = theorem *statement* uses only Mathlib (`Nat.choose` / `Finset` / `ℤ` / `ℚ`); proofs may still call `EulersGem.*`. **Geometric** = needs polytope/face/`affDim` APIs Mathlib lacks (see `lean/MATHLIB_SURVEY.md`).
 
@@ -70,13 +70,15 @@ Paulson cone→slice→embed path green: `ConeSliceFaceBijection`, height-1 EP,
 Schläfli + Funkenbusch/triangulation *count identities* (not Pick). Surveys: `lean/MATHLIB_SURVEY.md`,
 `lean/PHASE_B_PLAN.md`.
 
-## Phase B (#1535) — landed (combinatorial)
+## Phase B (#1535) — landed (combinatorial counts)
 
-- **Platonic solids:** Schläfli classification + five Euler-bookkeeping constructions
-  (`lean/EulersGem/Platonic.lean`). Geometric regular embeddings still open.
+- **Combinatorial Schläfli / Platonic counts:** classification + five Euler-bookkeeping
+  `(V,E,F)` witnesses (`lean/EulersGem/Platonic.lean`). Geometric regular embeddings
+  still open — not classical “five Platonic solids in `ℝ³`”.
 - **Funkenbusch / triangulation count identities (not Pick):** algebraic glue in
   `lean/EulersGem/Picks.lean`. Classical geometric Pick is **not** claimed
   (Claude audit FAIL for presenting as Pick — see `lean/PICKS_CLAUDE_AUDIT.md`).
+  Full Results honesty notes: `lean/RESULTS_CLAUDE_NOTES.md`.
 
 ## Building (Lean)
 
