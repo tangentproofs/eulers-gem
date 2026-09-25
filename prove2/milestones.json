@@ -396,7 +396,7 @@
     },
     {
       "id": "picks-funkenbusch",
-      "title": "Pick's theorem: Euler \u2192 Funkenbusch / triangulation bookkeeping",
+      "title": "Pick bookkeeping (geometric Pick open): Euler \u2192 Funkenbusch / triangulation",
       "status": "proved",
       "depends_on": [
         "polyhedron-formula-3d"
