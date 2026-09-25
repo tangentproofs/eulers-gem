@@ -167,6 +167,10 @@ variable (P : LatticePolygon)
 /-- Number of listed vertices. -/
 def nVertices : ℕ := P.vertices.length
 
+lemma nVertices_pos : 0 < P.nVertices := by
+  have : 3 ≤ P.nVertices := P.length_ge
+  omega
+
 /-- The `i`-th vertex (requires `i < nVertices`). -/
 def vertex (i : Fin P.nVertices) : ℤ × ℤ :=
   P.vertices.get i
@@ -175,6 +179,45 @@ def vertex (i : Fin P.nVertices) : ℤ × ℤ :=
 def nextIdx (i : Fin P.nVertices) : Fin P.nVertices :=
   ⟨(i.1 + 1) % P.nVertices, Nat.mod_lt _ (by
     have : 3 ≤ P.nVertices := P.length_ge; omega)⟩
+
+/-- Previous index in the cycle. -/
+def prevIdx (i : Fin P.nVertices) : Fin P.nVertices :=
+  ⟨(i.1 + P.nVertices - 1) % P.nVertices, Nat.mod_lt _ (by
+    have : 3 ≤ P.nVertices := P.length_ge; omega)⟩
+
+private lemma mod_pred_succ (n i : ℕ) (hn : 0 < n) (hi : i < n) :
+    ((i + n - 1) % n + 1) % n = i := by
+  have h1 : i + n - 1 = i + (n - 1) := by omega
+  rw [h1]
+  by_cases h0 : i = 0
+  · subst h0
+    have : (n - 1) % n = n - 1 := Nat.mod_eq_of_lt (by omega)
+    simp only [Nat.zero_add]
+    rw [this, Nat.sub_add_cancel (Nat.succ_le_of_lt hn), Nat.mod_self]
+  · have hi0 : 1 ≤ i := Nat.pos_of_ne_zero h0
+    have hlt : i - 1 < n := by omega
+    have : i + (n - 1) = (i - 1) + n := by omega
+    rw [this, Nat.add_mod_right, Nat.mod_eq_of_lt hlt, Nat.sub_add_cancel hi0,
+      Nat.mod_eq_of_lt hi]
+
+private lemma mod_succ_pred (n i : ℕ) (hn : 0 < n) (hi : i < n) :
+    ((i + 1) % n + n - 1) % n = i := by
+  by_cases hlast : i + 1 = n
+  · rw [hlast, Nat.mod_self, Nat.zero_add]
+    have : (n - 1) % n = n - 1 := Nat.mod_eq_of_lt (by omega)
+    rw [this]; omega
+  · have hlt : i + 1 < n := by omega
+    rw [Nat.mod_eq_of_lt hlt]
+    have : i + 1 + n - 1 = i + n := by omega
+    rw [this, Nat.add_mod_right, Nat.mod_eq_of_lt hi]
+
+lemma nextIdx_prevIdx (i : Fin P.nVertices) : P.nextIdx (P.prevIdx i) = i := by
+  apply Fin.ext
+  exact mod_pred_succ P.nVertices i.1 P.nVertices_pos i.2
+
+lemma prevIdx_nextIdx (i : Fin P.nVertices) : P.prevIdx (P.nextIdx i) = i := by
+  apply Fin.ext
+  exact mod_succ_pred P.nVertices i.1 P.nVertices_pos i.2
 
 /-- Consecutive edge pairs via indices `0..n-1`, each `(vertex i, vertex (i+1))`
 with modular wrap-around for the closing edge. -/
@@ -223,10 +266,6 @@ def shoelaceSum : ℤ := by
 /-- Polygon shoelace area `|∑|/2` as a rational.
 Not identified with Haar/Lebesgue measure. -/
 def shoelace : ℚ := (Int.natAbs P.shoelaceSum : ℚ) / 2
-
-lemma nVertices_pos : 0 < P.nVertices := by
-  have : 3 ≤ P.nVertices := P.length_ge
-  omega
 
 /-- A lattice point is on the polygon boundary iff it lies on some cyclic edge. -/
 theorem mem_boundaryLatticePoints_iff (p : ℤ × ℤ) :

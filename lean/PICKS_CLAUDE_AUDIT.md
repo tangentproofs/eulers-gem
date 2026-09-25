@@ -390,3 +390,48 @@ Octahedron untouched.
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (VerticesExtreme from StrictlyConvexCCW; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFan.lean` / `LatticePolygon.lean` (honest names; **not** classical Pick):
+
+```lean
+def ConvexCCW : Prop :=
+  ∀ i j, 0 ≤ latticeDet (vertex i) (vertex (nextIdx i)) (vertex j)
+
+def LocalCCWTurns : Prop :=
+  ∀ i, 0 < latticeDet (vertex (prevIdx i)) (vertex i) (vertex (nextIdx i))
+
+def StrictlyConvexCCW : Prop := ConvexCCW P ∧ LocalCCWTurns P
+
+theorem VerticesExtreme_of_strictlyConvexCCW
+    (P) (StrictlyConvexCCW P) (Injective P.vertex) :
+    VerticesExtreme P
+
+theorem FanDetsNonneg_of_ConvexCCW (P) (ConvexCCW P) : FanDetsNonneg P
+
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
+    (P) (Injective P.vertex) (PrimitiveEdges P)
+    (FanDetsPos P) (EmptyInterior P) (StrictlyConvexCCW P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_VerticesExtreme_of_strictlyConvexCCW`,
+`results_FanDetsNonneg_of_ConvexCCW`,
+`results_shoelace_eq_B_div_two_sub_one_of_empty_interior_convex`.
+
+**Prize progress:** `VerticesExtreme` discharged from the natural CCW convexity
+predicate (edge half-planes + strict local turns) via supporting-line /
+barycentric argument. Empty-interior Pick-form now takes `StrictlyConvexCCW`
+instead of bare `VerticesExtreme`. Still **not** classical Pick: `FanDetsPos`
+kept as orientation hyp (strict fan nondegeneracy); Haar; general triangulation
+existence; EP→planar open. Claude Cube / Octahedron / Platonic / Embed untouched.
+
+| Item | Status |
+|------|--------|
+| `FanTrianglesEmpty` from `I=∅` + extreme vertices | Green |
+| Discharge `VerticesExtreme` from `StrictlyConvexCCW` | **Green** |
+| Empty-interior shoelace with convexity predicate | **Green** |
+| Discharge `FanDetsPos` from strict convexity | Open (nonneg from `ConvexCCW`) |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

@@ -436,6 +436,34 @@ theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior
   EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_empty_interior
     P hverts hedge hpos hI hext
 
+/-- Strict CCW convexity ⇒ listed vertices are extreme in the vertex hull. -/
+theorem results_VerticesExtreme_of_strictlyConvexCCW
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    EulersGem.Picks.LatticeFan.VerticesExtreme P :=
+  EulersGem.Picks.LatticeFan.VerticesExtreme_of_strictlyConvexCCW P hsc hinj
+
+/-- Fan dets nonnegative from CCW edge half-planes. -/
+theorem results_FanDetsNonneg_of_ConvexCCW
+    (P : EulersGem.Picks.LatticePolygon)
+    (h : EulersGem.Picks.LatticeFan.ConvexCCW P) :
+    EulersGem.Picks.LatticeFan.FanDetsNonneg P :=
+  EulersGem.Picks.LatticeFan.FanDetsNonneg_of_ConvexCCW P h
+
+/-- Empty-interior shoelace Pick-form with `VerticesExtreme` discharged from
+`StrictlyConvexCCW` (not classical Pick). -/
+theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
+    (P : EulersGem.Picks.LatticePolygon)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hpos : EulersGem.Picks.LatticeFan.FanDetsPos P)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
+    P hverts hedge hpos hI hsc
+
 /-- Barycentric closed triangle ⇒ Euclidean convex hull of the three vertices. -/
 theorem results_mem_convexHull_of_memClosedTriangle
     (a b c p : ℤ × ℤ)
