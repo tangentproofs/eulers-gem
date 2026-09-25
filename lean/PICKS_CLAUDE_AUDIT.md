@@ -2524,3 +2524,37 @@ volume compose without PE. Classical Pick **still FAIL** (no rename).
 | Discharge Finset finiteness of `I` | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (B-telescope + empty parent shoelace without PE; still FAIL)
+
+Landed PE-free empty-parent substrate on the EP spine:
+
+```lean
+theorem B_fanTriangle_eq_sum_edgeGcd
+theorem sum_B_fan_ears_eq_B_add_two_mul_n_sub_three
+    -- EmptyInterior + StrictlyConvexCCW + inj ⇒ ∑ B(earᵢ) = B + 2(n−3)
+    -- (internal chords counted twice with gcd=1; boundary edges once)
+theorem sum_B_div_two_sub_one_fan_ears_eq_B_div_two_sub_one
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe
+    -- EmptyInterior StrictlyConvexCCW shoelace = B/2 − 1 without PrimitiveEdges
+```
+
+Results: `results_B_fanTriangle_eq_sum_edgeGcd`,
+`results_sum_B_fan_ears_eq_B_add_two_mul_n_sub_three`,
+`results_sum_B_div_two_sub_one_fan_ears_eq_B_div_two_sub_one`,
+`results_shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe`.
+
+**Still open for PE-free parent Pick:** strong induction parent without PE
+(nonempty I); volume compose without PE. Classical Pick **still FAIL** (no rename).
+
+| Item | Status |
+|------|--------|
+| PE-free empty fan-ear `EmptyInterior` | **Green** |
+| Chord primitivity under empty interior | **Green** |
+| Fan-ear empty shoelace `= B/2−1` (no PE) | **Green** |
+| B-telescope `∑ B_ear = B+2(n−3)` | **Green** |
+| Empty-interior PE-free parent shoelace | **Green** |
+| Drop parent `PrimitiveEdges` (combinatorial + volume, nonempty I) | Open |
+| Discharge Finset finiteness of `I` | Open |
+| Classical Pick | **Still FAIL** |
+

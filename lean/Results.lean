@@ -2181,6 +2181,70 @@ theorem results_shoelace_fanTriangle_eq_B_div_two_sub_one_of_empty
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_fanTriangle_eq_B_div_two_sub_one_of_empty
     P hsc hinj hI i hi
 
+/-- Fan-ear triangle `B` as sum of three edge gcds (no PE; not classical Pick). -/
+theorem results_B_fanTriangle_eq_sum_edgeGcd
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        (EulersGem.Picks.LatticeFan.fanTriangle P i hi).a
+        (EulersGem.Picks.LatticeFan.fanTriangle P i hi).b
+        (EulersGem.Picks.LatticeFan.fanTriangle P i hi).c).B =
+      EulersGem.Picks.LatticeTriangle.edgeGcd
+          (EulersGem.Picks.LatticeFan.fanTriangle P i hi).a
+          (EulersGem.Picks.LatticeFan.fanTriangle P i hi).b +
+        EulersGem.Picks.LatticeTriangle.edgeGcd
+          (EulersGem.Picks.LatticeFan.fanTriangle P i hi).b
+          (EulersGem.Picks.LatticeFan.fanTriangle P i hi).c +
+          EulersGem.Picks.LatticeTriangle.edgeGcd
+            (EulersGem.Picks.LatticeFan.fanTriangle P i hi).c
+            (EulersGem.Picks.LatticeFan.fanTriangle P i hi).a :=
+  EulersGem.Picks.LatticeFan.InteriorFan.B_fanTriangle_eq_sum_edgeGcd P hsc hinj i hi
+
+/-- **B-telescope**: `∑ᵢ B(earᵢ) = B(P) + 2(n−3)` under EmptyInterior (not classical Pick). -/
+theorem results_sum_B_fan_ears_eq_B_add_two_mul_n_sub_three
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P) :
+    (∑ i : Fin (P.nVertices - 2),
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          (EulersGem.Picks.LatticeFan.fanTriangle P i.val i.isLt).a
+          (EulersGem.Picks.LatticeFan.fanTriangle P i.val i.isLt).b
+          (EulersGem.Picks.LatticeFan.fanTriangle P i.val i.isLt).c).B) =
+      P.B + 2 * (P.nVertices - 3) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.sum_B_fan_ears_eq_B_add_two_mul_n_sub_three
+    P hsc hinj hI
+
+/-- Empty-ear B-arithmetic: `∑(Bᵢ/2 − 1) = B/2 − 1` (not classical Pick). -/
+theorem results_sum_B_div_two_sub_one_fan_ears_eq_B_div_two_sub_one
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P) :
+    (∑ i : Fin (P.nVertices - 2),
+        (((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            (EulersGem.Picks.LatticeFan.fanTriangle P i.val i.isLt).a
+            (EulersGem.Picks.LatticeFan.fanTriangle P i.val i.isLt).b
+            (EulersGem.Picks.LatticeFan.fanTriangle P i.val i.isLt).c).B : ℚ) / 2 - 1)) =
+      (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.sum_B_div_two_sub_one_fan_ears_eq_B_div_two_sub_one
+    P hsc hinj hI
+
+/-- Empty-interior StrictlyConvexCCW shoelace without `PrimitiveEdges`
+(not classical Pick). -/
+theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe
+    P hsc hinj hI
+
+
+
 
 
 

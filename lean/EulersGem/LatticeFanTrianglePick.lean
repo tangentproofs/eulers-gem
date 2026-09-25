@@ -4060,14 +4060,10 @@ theorem edgeGcd_eq_one_of_empty_interior_fan_chord
 
 /-! ## Empty-interior parent shoelace without PrimitiveEdges (not classical Pick)
 
-**Green toward PE-free empty parent:**
-* chord `edgeGcd = 1` under EmptyInterior (above)
-* empty PE-free fan-ear `EmptyInterior` + empty triangle Pick
-* each fan ear: `shoelace = B/2 − 1` (lemma below)
-
-**Open:** B-telescope `∑ᵢ B(earᵢ) = B + 2(n−3)` under chord gcd=1, then
-`∑(Bᵢ/2−1) = B/2−1` via `shoelace_eq_sum_fan_shoelace`. After that: strong
-induction parent without PE; volume compose without PE. Classical Pick FAIL.
+Vertex fan from `v₀` + empty PE-free triangles + chord `edgeGcd = 1` + `B = ∑ edgeGcd`
+telescoping: `∑ᵢ B(earᵢ) = B + 2(n−3)`, hence `∑(Bᵢ/2−1) = B/2−1`, and with
+`shoelace_eq_sum_fan_shoelace` the empty StrictlyConvexCCW parent has
+`shoelace = B/2 − 1` without `PrimitiveEdges`. Classical Pick FAIL.
 -/
 
 /-- Fan ear empty-interior Pick-form (feeds PE-free empty parent). -/
@@ -4093,6 +4089,349 @@ theorem shoelace_fanTriangle_eq_B_div_two_sub_one_of_empty
       shoelace_trianglePolygon_eq_half_natAbs_det, triangleShoelace]
   simpa [hT, a, b, c] using hpick
 
+/-- Fan-ear triangle `B` as sum of its three edge gcds (no PE). -/
+theorem B_fanTriangle_eq_sum_edgeGcd
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    (trianglePolygon (fanTriangle P i hi).a (fanTriangle P i hi).b
+        (fanTriangle P i hi).c).B =
+      edgeGcd (fanTriangle P i hi).a (fanTriangle P i hi).b +
+        edgeGcd (fanTriangle P i hi).b (fanTriangle P i hi).c +
+          edgeGcd (fanTriangle P i hi).c (fanTriangle P i hi).a := by
+  have hpos := FanDetsPos_of_strictlyConvexCCW P hsc hinj
+  have hD : latticeDet (fanTriangle P i hi).a (fanTriangle P i hi).b
+      (fanTriangle P i hi).c ≠ 0 :=
+    ne_of_gt (by simpa [fanDet, fanTriangle, Triangle.det] using hpos i hi)
+  exact B_trianglePolygon_eq_sum_edgeGcd _ _ _ hD
+
+/-- Pure ℕ telescope used by fan-ear B bookkeeping. -/
+private lemma sum_spoke_base_spoke_telescope
+    (n : ℕ) (hn : 3 ≤ n) (spoke : ℕ → ℕ) (base : ℕ → ℕ)
+    (hspoke : ∀ k, 2 ≤ k → k ≤ n - 2 → spoke k = 1) :
+    (∑ i ∈ Finset.range (n - 2), (spoke (i + 1) + base (i + 1) + spoke (i + 2))) =
+      spoke 1 + (∑ i ∈ Finset.range (n - 2), base (i + 1)) + spoke (n - 1) +
+        2 * (n - 3) := by
+  classical
+  have hlen : n - 2 = n - 3 + 1 := by omega
+  have hone_mid : ∀ i ∈ Finset.range (n - 3), spoke (i + 2) = 1 := by
+    intro i hi
+    have hi' : i < n - 3 := Finset.mem_range.mp hi
+    exact hspoke (i + 2) (by omega) (by omega)
+  have hsum_ones : (∑ i ∈ Finset.range (n - 3), spoke (i + 2)) = n - 3 := by
+    refine Eq.trans (Finset.sum_congr rfl hone_mid) ?_
+    simp [Finset.sum_const, Finset.card_range]
+  have hsplit :
+      (∑ i ∈ Finset.range (n - 2), (spoke (i + 1) + base (i + 1) + spoke (i + 2))) =
+        (∑ i ∈ Finset.range (n - 2), spoke (i + 1)) +
+          (∑ i ∈ Finset.range (n - 2), base (i + 1)) +
+            (∑ i ∈ Finset.range (n - 2), spoke (i + 2)) := by
+    simp_rw [add_assoc]
+    rw [Finset.sum_add_distrib, Finset.sum_add_distrib]
+  have hleft :
+      (∑ i ∈ Finset.range (n - 2), spoke (i + 1)) = spoke 1 + (n - 3) := by
+    rw [hlen]
+    -- sum_range_succ' : ∑ range (m+1) f = ∑ range m (f∘succ) + f 0
+    rw [Finset.sum_range_succ' (fun i => spoke (i + 1)) (n - 3)]
+    change (∑ i ∈ Finset.range (n - 3), spoke (i + 1 + 1)) + spoke (0 + 1) =
+      spoke 1 + (n - 3)
+    simp only [Nat.add_assoc, Nat.zero_add]
+    -- spoke (i+2) sum
+    change (∑ i ∈ Finset.range (n - 3), spoke (i + 2)) + spoke 1 = spoke 1 + (n - 3)
+    rw [hsum_ones, add_comm]
+  have hright :
+      (∑ i ∈ Finset.range (n - 2), spoke (i + 2)) =
+        (n - 3) + spoke (n - 1) := by
+    rw [hlen]
+    rw [Finset.sum_range_succ (fun i => spoke (i + 2)) (n - 3)]
+    change (∑ i ∈ Finset.range (n - 3), spoke (i + 2)) + spoke (n - 3 + 2) =
+      (n - 3) + spoke (n - 1)
+    rw [hsum_ones]
+    congr 2
+    omega
+  rw [hsplit, hleft, hright]
+  ring
+
+private lemma nVertices_ge_three : 3 ≤ P.nVertices := by
+  simpa [LatticePolygon.nVertices] using P.length_ge
+
+private lemma nextIdx_ofNat_lt
+    (k : ℕ) (hk : k + 1 < P.nVertices) :
+    P.nextIdx ⟨k, Nat.lt_of_succ_lt hk⟩ = ⟨k + 1, hk⟩ :=
+  Fin.ext (Nat.mod_eq_of_lt hk)
+
+private lemma nextIdx_last_eq_zero :
+    P.nextIdx ⟨P.nVertices - 1, Nat.sub_lt P.nVertices_pos (Nat.succ_pos 0)⟩ =
+      ⟨0, P.nVertices_pos⟩ := by
+  apply Fin.ext
+  have hpos : 0 < P.nVertices := P.nVertices_pos
+  have : P.nVertices - 1 + 1 = P.nVertices :=
+    Nat.sub_add_cancel (Nat.succ_le_of_lt hpos)
+  change (P.nVertices - 1 + 1) % P.nVertices = 0
+  rw [this, Nat.mod_self]
+
+/-- **B-telescope**: `∑ᵢ B(earᵢ) = B(P) + 2(n−3)` under EmptyInterior.
+Audit name `sum_B_fan_ears_eq_B_add_two_mul_n_sub_three`. -/
+theorem sum_B_fan_ears_eq_B_add_two_mul_n_sub_three
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hI : EmptyInterior P) :
+    (∑ i : Fin (P.nVertices - 2),
+        (trianglePolygon (fanTriangle P i.val i.isLt).a
+          (fanTriangle P i.val i.isLt).b
+          (fanTriangle P i.val i.isLt).c).B) =
+      P.B + 2 * (P.nVertices - 3) := by
+  classical
+  have hn := nVertices_ge_three (P := P)
+  set n := P.nVertices with hn_def
+  -- Boundary edge gcd function
+  let bound : ℕ → ℕ := fun k =>
+    if h : k < n then
+      edgeGcd (P.vertex ⟨k, h⟩) (P.vertex (P.nextIdx ⟨k, h⟩)) else 0
+  -- Spoke gcd from v0 to vk
+  let spoke : ℕ → ℕ := fun k =>
+    if h : k < n then
+      edgeGcd (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex ⟨k, h⟩) else 0
+  have hspoke_one : ∀ k, 2 ≤ k → k ≤ n - 2 → spoke k = 1 := by
+    intro k hk2 hk_le
+    have hk_lt : k < n := by omega
+    have hk_succ : k + 1 < n := by omega
+    simp only [spoke, dif_pos hk_lt]
+    exact edgeGcd_eq_one_of_empty_interior_fan_chord P hsc hinj hI
+      ⟨k, hk_lt⟩ ⟨hk2, hk_succ⟩
+  have hBear : ∀ i : Fin (n - 2),
+      (trianglePolygon (fanTriangle P i.val i.isLt).a
+          (fanTriangle P i.val i.isLt).b
+          (fanTriangle P i.val i.isLt).c).B =
+        spoke (i.val + 1) + bound (i.val + 1) + spoke (i.val + 2) := by
+    intro i
+    have hi : i.val < n - 2 := by simpa [n] using i.isLt
+    have h1 : i.val + 1 < n := by omega
+    have h2 : i.val + 2 < n := by omega
+    have hB := B_fanTriangle_eq_sum_edgeGcd P hsc hinj i.val (by simpa [n] using hi)
+    have hnext : P.nextIdx ⟨i.val + 1, h1⟩ = ⟨i.val + 2, h2⟩ :=
+      nextIdx_ofNat_lt P (i.val + 1) h2
+    -- fanTriangle edges: (v0,v_{i+1}), (v_{i+1},v_{i+2}), (v_{i+2},v0)
+    simp only [fanTriangle, spoke, bound, dif_pos h1, dif_pos h2, hnext,
+      edgeGcd_comm (P.vertex ⟨i.val + 2, h2⟩) (P.vertex ⟨0, P.nVertices_pos⟩)] at hB ⊢
+    -- Need to match edgeGcd c a with spoke (i+2) via edgeGcd_comm
+    simpa [fanTriangle, n] using hB
+  -- Actually rewrite more carefully
+  clear hBear
+  have hBear : ∀ i : Fin (n - 2),
+      (trianglePolygon (fanTriangle P i.val i.isLt).a
+          (fanTriangle P i.val i.isLt).b
+          (fanTriangle P i.val i.isLt).c).B =
+        spoke (i.val + 1) + bound (i.val + 1) + spoke (i.val + 2) := by
+    intro i
+    have hi : i.val < n - 2 := by simpa [n] using i.isLt
+    have h1 : i.val + 1 < n := by omega
+    have h2 : i.val + 2 < n := by omega
+    have hB := B_fanTriangle_eq_sum_edgeGcd P hsc hinj i.val (by simpa [n] using hi)
+    have hnext : P.nextIdx ⟨i.val + 1, Nat.lt_of_succ_lt h2⟩ = ⟨i.val + 2, h2⟩ :=
+      nextIdx_ofNat_lt P (i.val + 1) h2
+    have hs1 : spoke (i.val + 1) =
+        edgeGcd (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex ⟨i.val + 1, h1⟩) := by
+      simp [spoke, dif_pos h1]
+    have hs2 : spoke (i.val + 2) =
+        edgeGcd (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex ⟨i.val + 2, h2⟩) := by
+      simp [spoke, dif_pos h2]
+    have hb : bound (i.val + 1) =
+        edgeGcd (P.vertex ⟨i.val + 1, h1⟩) (P.vertex ⟨i.val + 2, h2⟩) := by
+      simp [bound, dif_pos h1, hnext]
+    have hca : edgeGcd (P.vertex ⟨i.val + 2, h2⟩) (P.vertex ⟨0, P.nVertices_pos⟩) =
+        spoke (i.val + 2) := by
+      rw [hs2, edgeGcd_comm]
+    -- fanTriangle a,b,c = v0, v_{i+1}, v_{i+2}
+    change (trianglePolygon (P.vertex ⟨0, P.nVertices_pos⟩)
+        (P.vertex ⟨i.val + 1, by omega⟩)
+        (P.vertex ⟨i.val + 2, by omega⟩)).B =
+      spoke (i.val + 1) + bound (i.val + 1) + spoke (i.val + 2)
+    have hB' :
+        (trianglePolygon (P.vertex ⟨0, P.nVertices_pos⟩)
+            (P.vertex ⟨i.val + 1, by omega⟩)
+            (P.vertex ⟨i.val + 2, by omega⟩)).B =
+          edgeGcd (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex ⟨i.val + 1, by omega⟩) +
+            edgeGcd (P.vertex ⟨i.val + 1, by omega⟩) (P.vertex ⟨i.val + 2, by omega⟩) +
+              edgeGcd (P.vertex ⟨i.val + 2, by omega⟩) (P.vertex ⟨0, P.nVertices_pos⟩) := by
+      simpa [fanTriangle, n] using hB
+    rw [hB', hs1, hb, hca]
+  have hsum_ears :
+      (∑ i : Fin (n - 2),
+          (trianglePolygon (fanTriangle P i.val i.isLt).a
+            (fanTriangle P i.val i.isLt).b
+            (fanTriangle P i.val i.isLt).c).B) =
+        ∑ i ∈ Finset.range (n - 2),
+          (spoke (i + 1) + bound (i + 1) + spoke (i + 2)) := by
+    simp_rw [hBear]
+    rw [Finset.sum_fin_eq_sum_range]
+    refine Finset.sum_congr rfl fun k hk => ?_
+    have hk' : k < n - 2 := Finset.mem_range.mp hk
+    simp [hk']
+  have htel :=
+    sum_spoke_base_spoke_telescope n hn spoke (fun k => bound k) hspoke_one
+  -- bound (i+1) in telescope matches
+  have htel' :
+      (∑ i ∈ Finset.range (n - 2), (spoke (i + 1) + bound (i + 1) + spoke (i + 2))) =
+        spoke 1 + (∑ i ∈ Finset.range (n - 2), bound (i + 1)) + spoke (n - 1) +
+          2 * (n - 3) := htel
+  -- Identify B(P) with spoke 1 + ∑ bound(i+1) + spoke(n-1)
+  have hB := B_eq_sum_edgeGcd P hsc hinj
+  have hB_expand :
+      P.B = spoke 1 + (∑ i ∈ Finset.range (n - 2), bound (i + 1)) + spoke (n - 1) := by
+    let f : ℕ → ℕ := fun k =>
+      if h : k < n then
+        edgeGcd (P.vertex ⟨k, h⟩) (P.vertex (P.nextIdx ⟨k, h⟩)) else 0
+    have hf_bound : ∀ k, f k = bound k := fun k => rfl
+    have hfin :
+        (∑ i : Fin n, edgeGcd (P.vertex i) (P.vertex (P.nextIdx i))) =
+          ∑ k ∈ Finset.range n, f k := by
+      refine Eq.trans (Finset.sum_fin_eq_sum_range
+        (fun i : Fin n => edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)))) ?_
+      refine Finset.sum_congr rfl fun k hk => ?_
+      have hk' : k < n := Finset.mem_range.mp hk
+      simp [f, hk']
+    have hsucc0 :
+        ∑ k ∈ Finset.range n, f k =
+          f 0 + ∑ k ∈ Finset.range (n - 1), f (k + 1) := by
+      have hlen : n = (n - 1) + 1 := by omega
+      rw [hlen]
+      simpa [add_comm] using Finset.sum_range_succ' f (n - 1)
+    have hsuccL :
+        ∑ k ∈ Finset.range (n - 1), f (k + 1) =
+          (∑ k ∈ Finset.range (n - 2), f (k + 1)) + f (n - 1) := by
+      have hlen2 : n - 1 = n - 2 + 1 := by
+        have : 1 ≤ n := by omega
+        omega
+      rw [hlen2]
+      simpa using Finset.sum_range_succ (fun k => f (k + 1)) (n - 2)
+    have hf0 : f 0 = spoke 1 := by
+      have h0 : (0 : ℕ) < n := by omega
+      have h1 : (1 : ℕ) < n := by omega
+      simp only [f, dif_pos h0, spoke, dif_pos h1]
+      rw [nextIdx_ofNat_lt P 0 (by omega)]
+    have hfL : f (n - 1) = spoke (n - 1) := by
+      have hlt : n - 1 < n := Nat.sub_lt P.nVertices_pos (Nat.succ_pos 0)
+      simp only [f, dif_pos hlt, spoke, dif_pos hlt]
+      have hnext := nextIdx_last_eq_zero (P := P)
+      have : P.nextIdx ⟨n - 1, hlt⟩ = ⟨0, P.nVertices_pos⟩ := hnext
+      rw [this, edgeGcd_comm]
+    have hmid :
+        (∑ k ∈ Finset.range (n - 2), f (k + 1)) =
+          ∑ i ∈ Finset.range (n - 2), bound (i + 1) := by
+      refine Finset.sum_congr rfl fun k hk => ?_
+      rfl
+    calc
+      P.B = ∑ i : Fin n, edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) := by
+            simpa [n] using hB
+      _ = ∑ k ∈ Finset.range n, f k := hfin
+      _ = f 0 + ∑ k ∈ Finset.range (n - 1), f (k + 1) := hsucc0
+      _ = f 0 + ((∑ k ∈ Finset.range (n - 2), f (k + 1)) + f (n - 1)) := by
+            rw [hsuccL]
+      _ = spoke 1 + (∑ i ∈ Finset.range (n - 2), bound (i + 1)) + spoke (n - 1) := by
+            rw [hf0, hfL, hmid]; abel
+  calc
+    (∑ i : Fin (n - 2),
+        (trianglePolygon (fanTriangle P i.val i.isLt).a
+          (fanTriangle P i.val i.isLt).b
+          (fanTriangle P i.val i.isLt).c).B)
+        = ∑ i ∈ Finset.range (n - 2),
+            (spoke (i + 1) + bound (i + 1) + spoke (i + 2)) := hsum_ears
+    _ = spoke 1 + (∑ i ∈ Finset.range (n - 2), bound (i + 1)) + spoke (n - 1) +
+          2 * (n - 3) := htel'
+    _ = P.B + 2 * (n - 3) := by rw [← hB_expand]
+
+/-- From B-telescope: `∑(Bᵢ/2 − 1) = B/2 − 1`. -/
+theorem sum_B_div_two_sub_one_fan_ears_eq_B_div_two_sub_one
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hI : EmptyInterior P) :
+    (∑ i : Fin (P.nVertices - 2),
+        (((trianglePolygon (fanTriangle P i.val i.isLt).a
+            (fanTriangle P i.val i.isLt).b
+            (fanTriangle P i.val i.isLt).c).B : ℚ) / 2 - 1)) =
+      (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hn := nVertices_ge_three (P := P)
+  set n := P.nVertices
+  have htel := sum_B_fan_ears_eq_B_add_two_mul_n_sub_three P hsc hinj hI
+  have hcard : (Fintype.card (Fin (n - 2)) : ℚ) = (n - 2 : ℕ) := by
+    simp [Fintype.card_fin]
+  have hn2 : ((n - 2 : ℕ) : ℚ) = (n : ℚ) - 2 := Nat.cast_sub (by omega : 2 ≤ n)
+  have hn3 : ((n - 3 : ℕ) : ℚ) = (n : ℚ) - 3 := Nat.cast_sub (by omega : 3 ≤ n)
+  have hsumB :
+      (∑ i : Fin (n - 2),
+          ((trianglePolygon (fanTriangle P i.val i.isLt).a
+              (fanTriangle P i.val i.isLt).b
+              (fanTriangle P i.val i.isLt).c).B : ℚ)) =
+        (P.B : ℚ) + 2 * ((n - 3 : ℕ) : ℚ) := by
+    have := congrArg (fun m : ℕ => (m : ℚ)) (by simpa [n] using htel)
+    simpa [Nat.cast_sum, Nat.cast_add, Nat.cast_mul] using this
+  calc
+    (∑ i : Fin (n - 2),
+        (((trianglePolygon (fanTriangle P i.val i.isLt).a
+            (fanTriangle P i.val i.isLt).b
+            (fanTriangle P i.val i.isLt).c).B : ℚ) / 2 - 1))
+        = (∑ i : Fin (n - 2),
+            ((trianglePolygon (fanTriangle P i.val i.isLt).a
+                (fanTriangle P i.val i.isLt).b
+                (fanTriangle P i.val i.isLt).c).B : ℚ) / 2) -
+          ∑ _i : Fin (n - 2), (1 : ℚ) := by
+          simp [Finset.sum_sub_distrib]
+    _ = (∑ i : Fin (n - 2),
+            ((trianglePolygon (fanTriangle P i.val i.isLt).a
+                (fanTriangle P i.val i.isLt).b
+                (fanTriangle P i.val i.isLt).c).B : ℚ)) / 2 -
+          (n - 2 : ℕ) := by
+          rw [← Finset.sum_div]
+          simp [Finset.card_univ, hcard]
+    _ = ((P.B : ℚ) + 2 * ((n - 3 : ℕ) : ℚ)) / 2 - ((n - 2 : ℕ) : ℚ) := by
+          rw [hsumB]
+    _ = (P.B : ℚ) / 2 - 1 := by
+          rw [hn2, hn3]; ring
+
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hI : EmptyInterior P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hn := nVertices_ge_three (P := P)
+  set n := P.nVertices
+  have hnn := FanDetsNonneg_of_pos P (FanDetsPos_of_strictlyConvexCCW P hsc hinj)
+  have hadd := shoelace_eq_sum_fan_shoelace P hnn hinj
+  have hre :
+      ∑ t ∈ fanTriangles P, t.shoelace =
+        ∑ i : Fin (n - 2), (fanTriangle P i.val i.isLt).shoelace := by
+    dsimp [fanTriangles]
+    have hinjImg : Function.Injective
+        (fun i : { x // x ∈ Finset.range (n - 2) } =>
+          fanTriangle P i.1 (Finset.mem_range.mp i.2)) := fun a b h =>
+      Subtype.ext (fanTriangle_eq_of_eq P (Finset.mem_range.mp a.2)
+        (Finset.mem_range.mp b.2) hinj h)
+    rw [Finset.sum_image (fun _ _ _ _ h => hinjImg h)]
+    let e : Fin (n - 2) ≃ { x // x ∈ Finset.range (n - 2) } :=
+      { toFun := fun i => ⟨i.val, Finset.mem_range.mpr i.isLt⟩
+        invFun := fun ⟨i, hi⟩ => ⟨i, Finset.mem_range.mp hi⟩
+        left_inv := fun _ => Fin.ext rfl
+        right_inv := fun _ => rfl }
+    exact (Fintype.sum_equiv e
+      (fun i => (fanTriangle P i.val i.isLt).shoelace)
+      (fun i => (fanTriangle P i.1 (Finset.mem_range.mp i.2)).shoelace)
+      (fun _ => rfl)).symm
+  have hear : ∀ i : Fin (n - 2),
+      (fanTriangle P i.val i.isLt).shoelace =
+        ((trianglePolygon (fanTriangle P i.val i.isLt).a
+          (fanTriangle P i.val i.isLt).b
+          (fanTriangle P i.val i.isLt).c).B : ℚ) / 2 - 1 :=
+    fun i => shoelace_fanTriangle_eq_B_div_two_sub_one_of_empty P hsc hinj hI i.val
+      (by simpa [n] using i.isLt)
+  have hsumB := sum_B_div_two_sub_one_fan_ears_eq_B_div_two_sub_one P hsc hinj hI
+  calc
+    P.shoelace = ∑ t ∈ fanTriangles P, t.shoelace := hadd
+    _ = ∑ i : Fin (n - 2), (fanTriangle P i.val i.isLt).shoelace := hre
+    _ = ∑ i : Fin (n - 2),
+          (((trianglePolygon (fanTriangle P i.val i.isLt).a
+            (fanTriangle P i.val i.isLt).b
+            (fanTriangle P i.val i.isLt).c).B : ℚ) / 2 - 1) := by
+          simp_rw [hear]
+    _ = (P.B : ℚ) / 2 - 1 := by simpa [n] using hsumB
 
 end InteriorFan
 end LatticeFan
