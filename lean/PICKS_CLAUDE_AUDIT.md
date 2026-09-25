@@ -1942,3 +1942,56 @@ MetricRegular / EdgeVertices untouched. Classical Pick **FAIL** — no rename.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (I≤3 triangle w/o PrimitiveEdges + I=5 / I≤5 geometric; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem edgeGcd_le_four_of_card_le_three_edgeStep
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three_triangle
+    -- I∈{0..3} Finset packaging without PrimitiveEdges; |det| induction via edgeStep
+    -- partition interior into left / right / open-chord; IH on halves; B/shoelace reassembly
+
+theorem card_earOffInterior_le_four_of_card_eq_five
+theorem spokeInterior_eq_empty_of_earOffInterior_card_eq_four_of_card_eq_five
+    -- parent #S=5 and #earOff=4 ⇒ every spoke from apex empty
+
+theorem shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_four_of_card_eq_five
+    -- ear Pick for parent I=5: #earOff≤3 ⇒ triangle I≤3 (no PrimitiveEdges);
+    -- #earOff=4 ⇒ adjacent spokes empty ⇒ I≤4 ear with PrimitiveEdges
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_five
+    (StrictlyConvexCCW + PrimitiveEdges parent + Injective)
+    (S.card = 5) (S = interior) :
+    shoelace = #S + B/2 - 1
+    -- no spokes-empty hyp; any apex; ears may have non-primitive sides
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_five
+    -- I∈{0..5} packaging
+```
+
+Results exports: `results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three_triangle`,
+`results_card_earOffInterior_le_four_of_card_eq_five`,
+`results_spokeInterior_eq_empty_of_earOffInterior_card_eq_four_of_card_eq_five`,
+`results_shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_four_of_card_eq_five`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_five`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_five`.
+
+**Prize progress:** triangle I≤3 drops `PrimitiveEdges` via Finset `|det|` / edgeStep induction
+(open-chord card cancels B-chord term). Geometric I=5 Finset Pick-form drops spokes-empty
+apex hyp: fan from any `q∈S`; `#earOff≤3` uses triangle I≤3 without PE; `#earOff=4` forces
+spokes empty ⇒ PE inheritance ⇒ I≤4 on ear. Discharged hbook closes fan-ear IH. Still **not**
+classical Pick: I≥6 / general induction; Haar; EP→planar. Claude Platonic / Cube /
+MetricRegular / EdgeVertices untouched. Classical Pick **FAIL** — no rename.
+
+| Item | Status |
+|------|--------|
+| Empty / UniqueInterior / TwoInterior / I≤2 / I≤3 triangle w/o PrimitiveEdges | **Green** |
+| I=4 / I≤4 without spokes-empty hyp | Green |
+| I=5 without spokes-empty hyp | **Green** |
+| I≤5 without spokes-empty hyp | **Green** |
+| I≥6 / general fan-ear induction | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
