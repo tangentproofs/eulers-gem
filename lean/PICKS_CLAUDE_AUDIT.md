@@ -1184,3 +1184,39 @@ Haar; EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouch
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (I=3 same-spoke edgeGcd=3 + adjacent det=3; still FAIL for classical Pick)
+
+Landed in `EulersGem/OnSpoke.lean` + `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma eq_steps_of_mem_edgeLatticePoints_of_edgeGcd_eq_three
+lemma latticeDet_eq_three_mul_of_edgeGcd_eq_three_step_one
+lemma edgeGcd_eq_one_of_edgeGcd_eq_three_step_one
+theorem edgeGcd_eq_three_of_threeInterior_sameSpoke
+    (ThreeInterior) (r,s both on spoke k) : edgeGcd = 3
+theorem interiorFanDet_eq_three_of_threeInterior_sameSpoke_{left,right}
+    : adjacent ears det = 3
+```
+
+Results exports: `results_edgeGcd_eq_three_of_threeInterior_sameSpoke`,
+`results_interiorFanDet_eq_three_of_threeInterior_sameSpoke_{left,right}`.
+
+**Prize progress:** Same-spoke I=3 substrate: both on one spoke ⇒ `edgeGcd=3`;
+trisect + empty third-ear ⇒ adjacent `det=3`. Full same-spoke Pick-form (fan sum
+`n+4`) still needs foreign-ear exclusion for on-spoke `{r,s}`. Still **not**
+classical Pick: Off-adjacent (det=4); two-spoke; Off-free Finset card=3; Haar;
+EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Same-spoke `edgeGcd=3` | **Green** |
+| Same-spoke adjacent `det=3` | **Green** |
+| Same-spoke Pick-form (fan sum n+4) | Open (foreign-ear exclusion) |
+| Off-adjacent (det=4 bookkeeping) | Open |
+| Two different spokes | Open |
+| Finset card=3 without Off-apex hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

@@ -949,6 +949,297 @@ theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior
     exact shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke
       P hsc hinj hedge h (P.nextIdx i) hs hne_q hne_v
 
+/-! ### Edge helpers for edgeGcd = 3 (same-spoke I = 3 substrate) -/
+
+/-- The two strict lattice points on an `edgeGcd = 3` segment are the step-1 and
+step-2 points (order unspecified). -/
+lemma eq_steps_of_mem_edgeLatticePoints_of_edgeGcd_eq_three
+    (a b r s : ℤ × ℤ) (hd : edgeGcd a b = 3)
+    (hr : r ∈ edgeLatticePoints a b) (hs : s ∈ edgeLatticePoints a b)
+    (hne_ra : r ≠ a) (hne_rb : r ≠ b) (hne_sa : s ≠ a) (hne_sb : s ≠ b)
+    (hne_rs : r ≠ s) :
+    let p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+    let p2 : ℤ × ℤ := (a.1 + 2 * ((b.1 - a.1) / 3), a.2 + 2 * ((b.2 - a.2) / 3))
+    (r = p1 ∧ s = p2) ∨ (r = p2 ∧ s = p1) := by
+  classical
+  set p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+  set p2 : ℤ × ℤ := (a.1 + 2 * ((b.1 - a.1) / 3), a.2 + 2 * ((b.2 - a.2) / 3))
+  have hab : a ≠ b := fun h => by
+    have : edgeGcd a b = 0 := (edgeGcd_eq_zero_iff a b).mpr h
+    omega
+  have hdvd1 : (edgeGcd a b : ℤ) ∣ (b.1 - a.1) := by
+    simpa [edgeGcd] using Int.gcd_dvd_left (b.1 - a.1) (b.2 - a.2)
+  have hdvd2 : (edgeGcd a b : ℤ) ∣ (b.2 - a.2) := by
+    simpa [edgeGcd] using Int.gcd_dvd_right (b.1 - a.1) (b.2 - a.2)
+  have hdx : (3 : ℤ) ∣ (b.1 - a.1) := by simpa [hd] using hdvd1
+  have hdy : (3 : ℤ) ∣ (b.2 - a.2) := by simpa [hd] using hdvd2
+  have hsx : (3 : ℤ) * ((b.1 - a.1) / 3) = b.1 - a.1 := by
+    rw [mul_comm]; exact Int.ediv_mul_cancel hdx
+  have hsy : (3 : ℤ) * ((b.2 - a.2) / 3) = b.2 - a.2 := by
+    rw [mul_comm]; exact Int.ediv_mul_cancel hdy
+  have hp1_mem : p1 ∈ edgeLatticePoints a b := by
+    have himg : p1 ∈ (Finset.range (3 + 1)).image fun k : ℕ =>
+        (a.1 + (k : ℤ) * ((b.1 - a.1) / 3),
+         a.2 + (k : ℤ) * ((b.2 - a.2) / 3)) := by
+      refine Finset.mem_image.mpr ⟨1, by simp, ?_⟩
+      simp [p1]
+    simpa [edgeLatticePoints, show edgeGcd a b = 3 from hd] using himg
+  have hp2_mem : p2 ∈ edgeLatticePoints a b := by
+    have himg : p2 ∈ (Finset.range (3 + 1)).image fun k : ℕ =>
+        (a.1 + (k : ℤ) * ((b.1 - a.1) / 3),
+         a.2 + (k : ℤ) * ((b.2 - a.2) / 3)) := by
+      refine Finset.mem_image.mpr ⟨2, by simp, rfl⟩
+    simpa [edgeLatticePoints, show edgeGcd a b = 3 from hd, p2] using himg
+  have hp1_ne_a : p1 ≠ a := by
+    intro h
+    have hx := congrArg Prod.fst h; simp only [p1] at hx
+    have hy := congrArg Prod.snd h; simp only [p1] at hy
+    exact hab (Prod.ext (by linarith [hx, hsx]) (by linarith [hy, hsy]))
+  have hp1_ne_b : p1 ≠ b := by
+    intro h
+    have hx := congrArg Prod.fst h; simp only [p1] at hx
+    have hy := congrArg Prod.snd h; simp only [p1] at hy
+    exact hab (Prod.ext (by linarith [hx, hsx]) (by linarith [hy, hsy]))
+  have hp2_ne_a : p2 ≠ a := by
+    intro h
+    have hx := congrArg Prod.fst h; simp only [p2] at hx
+    have hy := congrArg Prod.snd h; simp only [p2] at hy
+    exact hab (Prod.ext (by linarith [hx, hsx]) (by linarith [hy, hsy]))
+  have hp2_ne_b : p2 ≠ b := by
+    intro h
+    have hx := congrArg Prod.fst h; simp only [p2] at hx
+    have hy := congrArg Prod.snd h; simp only [p2] at hy
+    exact hab (Prod.ext (by linarith [hx, hsx]) (by linarith [hy, hsy]))
+  have hp1_ne_p2 : p1 ≠ p2 := by
+    intro h
+    have hx := congrArg Prod.fst h; simp only [p1, p2] at hx
+    have hy := congrArg Prod.snd h; simp only [p1, p2] at hy
+    exact hab (Prod.ext (by linarith [hx, hsx]) (by linarith [hy, hsy]))
+  have hsub : ({a, b, p1, p2} : Finset (ℤ × ℤ)) ⊆ edgeLatticePoints a b := by
+    intro x hx
+    have hx' : x = a ∨ x = b ∨ x = p1 ∨ x = p2 := by
+      simpa [Finset.mem_insert, Finset.mem_singleton] using hx
+    rcases hx' with hxa | hxb | hx1 | hx2
+    · rw [hxa]; exact self_mem_edgeLatticePoints a b
+    · rw [hxb]; exact other_mem_edgeLatticePoints a b
+    · rw [hx1]; exact hp1_mem
+    · rw [hx2]; exact hp2_mem
+  have heq : ({a, b, p1, p2} : Finset (ℤ × ℤ)) = edgeLatticePoints a b :=
+    Finset.eq_of_subset_of_card_le hsub (by
+      rw [card_edgeLatticePoints, hd]
+      have hcard4 : ({a, b, p1, p2} : Finset (ℤ × ℤ)).card = 4 := by
+        rw [Finset.card_insert_of_notMem (by simp [hab, hp1_ne_a.symm, hp2_ne_a.symm]),
+            Finset.card_insert_of_notMem (by simp [hp1_ne_b.symm, hp2_ne_b.symm]),
+            Finset.card_insert_of_notMem (by simp [hp1_ne_p2]),
+            Finset.card_singleton]
+      omega)
+  have hr_in : r ∈ ({a, b, p1, p2} : Finset (ℤ × ℤ)) := by rwa [heq]
+  have hs_in : s ∈ ({a, b, p1, p2} : Finset (ℤ × ℤ)) := by rwa [heq]
+  have hr' : r = a ∨ r = b ∨ r = p1 ∨ r = p2 := by
+    simpa [Finset.mem_insert, Finset.mem_singleton] using hr_in
+  have hs' : s = a ∨ s = b ∨ s = p1 ∨ s = p2 := by
+    simpa [Finset.mem_insert, Finset.mem_singleton] using hs_in
+  rcases hr' with hr1 | hr2 | hr3 | hr4
+  · exact (hne_ra hr1).elim
+  · exact (hne_rb hr2).elim
+  · rcases hs' with hs1 | hs2 | hs3 | hs4
+    · exact (hne_sa hs1).elim
+    · exact (hne_sb hs2).elim
+    · exact (hne_rs (hr3.trans hs3.symm)).elim
+    · exact Or.inl ⟨hr3, hs4⟩
+  · rcases hs' with hs1 | hs2 | hs3 | hs4
+    · exact (hne_sa hs1).elim
+    · exact (hne_sb hs2).elim
+    · exact Or.inr ⟨hr4, hs3⟩
+    · exact (hne_rs (hr4.trans hs4.symm)).elim
+
+/-- Step-1 point on an `edgeGcd = 3` segment: `3 · (p1 - a) = b - a`. -/
+lemma three_mul_sub_step_one_of_edgeGcd_eq_three
+    (a b : ℤ × ℤ) (hd : edgeGcd a b = 3) :
+    let p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+    (3 : ℤ) * (p1.1 - a.1) = b.1 - a.1 ∧
+      (3 : ℤ) * (p1.2 - a.2) = b.2 - a.2 := by
+  classical
+  set p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+  have hdvd1 : (edgeGcd a b : ℤ) ∣ (b.1 - a.1) := by
+    simpa [edgeGcd] using Int.gcd_dvd_left (b.1 - a.1) (b.2 - a.2)
+  have hdvd2 : (edgeGcd a b : ℤ) ∣ (b.2 - a.2) := by
+    simpa [edgeGcd] using Int.gcd_dvd_right (b.1 - a.1) (b.2 - a.2)
+  have hdx : (3 : ℤ) ∣ (b.1 - a.1) := by simpa [hd] using hdvd1
+  have hdy : (3 : ℤ) ∣ (b.2 - a.2) := by simpa [hd] using hdvd2
+  have hsx : (3 : ℤ) * ((b.1 - a.1) / 3) = b.1 - a.1 := by
+    rw [mul_comm]; exact Int.ediv_mul_cancel hdx
+  have hsy : (3 : ℤ) * ((b.2 - a.2) / 3) = b.2 - a.2 := by
+    rw [mul_comm]; exact Int.ediv_mul_cancel hdy
+  constructor
+  · simp [p1]; linarith [hsx]
+  · simp [p1]; linarith [hsy]
+
+/-- Determinant triples along an `edgeGcd = 3` spoke at a point `r` with
+`3 · (r - a) = b - a`. -/
+lemma latticeDet_eq_three_mul_of_three_mul_sub
+    (a b c r : ℤ × ℤ)
+    (hx : (3 : ℤ) * (r.1 - a.1) = b.1 - a.1)
+    (hy : (3 : ℤ) * (r.2 - a.2) = b.2 - a.2) :
+    latticeDet a b c = 3 * latticeDet a r c := by
+  simp only [latticeDet]
+  have hx' : b.1 - a.1 = 3 * (r.1 - a.1) := by linarith
+  have hy' : b.2 - a.2 = 3 * (r.2 - a.2) := by linarith
+  rw [hx', hy']; ring
+
+lemma latticeDet_eq_three_mul_of_edgeGcd_eq_three_step_one
+    (a b c : ℤ × ℤ) (hd : edgeGcd a b = 3) :
+    latticeDet a b c =
+      3 * latticeDet a (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3) c := by
+  obtain ⟨hx, hy⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a b hd
+  exact latticeDet_eq_three_mul_of_three_mul_sub a b c _ hx hy
+
+lemma latticeDet_eq_three_mul_ac_of_three_mul_sub
+    (a b c r : ℤ × ℤ)
+    (hx : (3 : ℤ) * (r.1 - a.1) = c.1 - a.1)
+    (hy : (3 : ℤ) * (r.2 - a.2) = c.2 - a.2) :
+    latticeDet a b c = 3 * latticeDet a b r := by
+  have h := latticeDet_eq_three_mul_of_three_mul_sub a c b r hx hy
+  have hsw1 : latticeDet a c b = -latticeDet a b c := by unfold latticeDet; ring
+  have hsw2 : latticeDet a r b = -latticeDet a b r := by unfold latticeDet; ring
+  linarith
+
+lemma latticeDet_eq_three_mul_ac_of_edgeGcd_eq_three_step_one
+    (a b c : ℤ × ℤ) (hd : edgeGcd a c = 3) :
+    latticeDet a b c =
+      3 * latticeDet a b (a.1 + (c.1 - a.1) / 3, a.2 + (c.2 - a.2) / 3) := by
+  obtain ⟨hx, hy⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a c hd
+  exact latticeDet_eq_three_mul_ac_of_three_mul_sub a b c _ hx hy
+
+/-- Step-1 point is in `edgeLatticePoints`. -/
+lemma step_one_mem_edgeLatticePoints_of_edgeGcd_eq_three
+    (a b : ℤ × ℤ) (hd : edgeGcd a b = 3) :
+    (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3) ∈ edgeLatticePoints a b := by
+  have himg :
+      (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3) ∈
+        (Finset.range (3 + 1)).image fun k : ℕ =>
+          (a.1 + (k : ℤ) * ((b.1 - a.1) / 3),
+           a.2 + (k : ℤ) * ((b.2 - a.2) / 3)) := by
+    refine Finset.mem_image.mpr ⟨1, by simp, ?_⟩
+    simp
+  simpa [edgeLatticePoints, show edgeGcd a b = 3 from hd] using himg
+
+/-- Closed △`(a, p1, c)` sits inside △`(a, b, c)` when `p1` is step-1 on `a—b`. -/
+lemma memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_three_step_one
+    (a b c p : ℤ × ℤ) (hd : edgeGcd a b = 3)
+    (hp : MemClosedTriangle a
+      (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3) c p) :
+    MemClosedTriangle a b c p := by
+  set p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+  change MemClosedTriangle a p1 c p at hp
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+  obtain ⟨hx, hy⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a b hd
+  have hr1 : (p1.1 : ℝ) = (a.1 : ℝ) + (1 / 3) * ((b.1 : ℝ) - a.1) := by
+    have : (3 : ℤ) * (p1.1 - a.1) = b.1 - a.1 := by simpa [p1] using hx
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  have hr2 : (p1.2 : ℝ) = (a.2 : ℝ) + (1 / 3) * ((b.2 : ℝ) - a.2) := by
+    have : (3 : ℤ) * (p1.2 - a.2) = b.2 - a.2 := by simpa [p1] using hy
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  refine ⟨α + (2 : ℝ) / 3 * β, (1 : ℝ) / 3 * β, γ, by linarith, by linarith, hγ, by linarith, ?_⟩
+  apply Prod.ext
+  · have h1 := congrArg Prod.fst heq
+    simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+    calc
+      (α + (2 : ℝ) / 3 * β) * (a.1 : ℝ) + ((1 : ℝ) / 3 * β) * b.1 + γ * c.1
+          = α * a.1 + β * ((a.1 : ℝ) + (1 / 3) * (b.1 - a.1)) + γ * c.1 := by ring
+      _ = α * a.1 + β * p1.1 + γ * c.1 := by rw [← hr1]
+      _ = p.1 := h1
+  · have h2 := congrArg Prod.snd heq
+    simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+    calc
+      (α + (2 : ℝ) / 3 * β) * (a.2 : ℝ) + ((1 : ℝ) / 3 * β) * b.2 + γ * c.2
+          = α * a.2 + β * ((a.2 : ℝ) + (1 / 3) * (b.2 - a.2)) + γ * c.2 := by ring
+      _ = α * a.2 + β * p1.2 + γ * c.2 := by rw [← hr2]
+      _ = p.2 := h2
+
+/-- Closed △`(a, b, p1)` sits inside △`(a, b, c)` when `p1` is step-1 on `a—c`. -/
+lemma memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_three_step_one_ac
+    (a b c p : ℤ × ℤ) (hd : edgeGcd a c = 3)
+    (hp : MemClosedTriangle a b
+      (a.1 + (c.1 - a.1) / 3, a.2 + (c.2 - a.2) / 3) p) :
+    MemClosedTriangle a b c p := by
+  set p1 : ℤ × ℤ := (a.1 + (c.1 - a.1) / 3, a.2 + (c.2 - a.2) / 3)
+  change MemClosedTriangle a b p1 p at hp
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+  obtain ⟨hx, hy⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a c hd
+  have hr1 : (p1.1 : ℝ) = (a.1 : ℝ) + (1 / 3) * ((c.1 : ℝ) - a.1) := by
+    have : (3 : ℤ) * (p1.1 - a.1) = c.1 - a.1 := by simpa [p1] using hx
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  have hr2 : (p1.2 : ℝ) = (a.2 : ℝ) + (1 / 3) * ((c.2 : ℝ) - a.2) := by
+    have : (3 : ℤ) * (p1.2 - a.2) = c.2 - a.2 := by simpa [p1] using hy
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  refine ⟨α + (2 : ℝ) / 3 * γ, β, (1 : ℝ) / 3 * γ, by linarith, hβ, by linarith, by linarith, ?_⟩
+  apply Prod.ext
+  · have h1 := congrArg Prod.fst heq
+    simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+    calc
+      (α + (2 : ℝ) / 3 * γ) * (a.1 : ℝ) + β * b.1 + ((1 : ℝ) / 3 * γ) * c.1
+          = α * a.1 + β * b.1 + γ * ((a.1 : ℝ) + (1 / 3) * (c.1 - a.1)) := by ring
+      _ = α * a.1 + β * b.1 + γ * p1.1 := by rw [← hr1]
+      _ = p.1 := h1
+  · have h2 := congrArg Prod.snd heq
+    simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+    calc
+      (α + (2 : ℝ) / 3 * γ) * (a.2 : ℝ) + β * b.2 + ((1 : ℝ) / 3 * γ) * c.2
+          = α * a.2 + β * b.2 + γ * ((a.2 : ℝ) + (1 / 3) * (c.2 - a.2)) := by ring
+      _ = α * a.2 + β * b.2 + γ * p1.2 := by rw [← hr2]
+      _ = p.2 := h2
+
+/-- Step-1 point of an `edgeGcd = 3` segment has `edgeGcd = 1` with the start. -/
+lemma edgeGcd_eq_one_of_edgeGcd_eq_three_step_one
+    (a b : ℤ × ℤ) (hd : edgeGcd a b = 3) :
+    edgeGcd a (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3) = 1 := by
+  set p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+  obtain ⟨hx, hy⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a b hd
+  have hgcd_ab : Int.gcd (b.1 - a.1) (b.2 - a.2) = 3 := by simpa [edgeGcd] using hd
+  have hx' : b.1 - a.1 = 3 * (p1.1 - a.1) := by simpa [p1] using hx.symm
+  have hy' : b.2 - a.2 = 3 * (p1.2 - a.2) := by simpa [p1] using hy.symm
+  have hmul := Int.gcd_mul_left (3 : ℤ) (p1.1 - a.1) (p1.2 - a.2)
+  have : 3 = 3 * Int.gcd (p1.1 - a.1) (p1.2 - a.2) := by
+    calc
+      3 = Int.gcd (b.1 - a.1) (b.2 - a.2) := hgcd_ab.symm
+      _ = Int.gcd (3 * (p1.1 - a.1)) (3 * (p1.2 - a.2)) := by rw [hx', hy']
+      _ = Int.natAbs (3 : ℤ) * Int.gcd (p1.1 - a.1) (p1.2 - a.2) := hmul
+      _ = 3 * Int.gcd (p1.1 - a.1) (p1.2 - a.2) := by simp
+  have : Int.gcd (p1.1 - a.1) (p1.2 - a.2) = 1 := by omega
+  simpa [edgeGcd, p1] using this
+
+/-- Collinearity: `latticeDet a p1 b = 0` for step-1 `p1` on `a—b`. -/
+lemma latticeDet_eq_zero_of_edgeGcd_eq_three_step_one
+    (a b : ℤ × ℤ) (hd : edgeGcd a b = 3) :
+    latticeDet a (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3) b = 0 := by
+  set p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+  obtain ⟨hx, hy⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a b hd
+  have hx' : b.1 - a.1 = 3 * (p1.1 - a.1) := by simpa [p1] using hx.symm
+  have hy' : b.2 - a.2 = 3 * (p1.2 - a.2) := by simpa [p1] using hy.symm
+  simp only [latticeDet]
+  change (p1.1 - a.1) * (b.2 - a.2) - (p1.2 - a.2) * (b.1 - a.1) = 0
+  rw [hx', hy']; ring
+
+/-- Step-2 vs step-1: `latticeDet a p1 p2 = 0`. -/
+lemma latticeDet_eq_zero_step_one_step_two_of_edgeGcd_eq_three
+    (a b : ℤ × ℤ) (_hd : edgeGcd a b = 3) :
+    let p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+    let p2 : ℤ × ℤ := (a.1 + 2 * ((b.1 - a.1) / 3), a.2 + 2 * ((b.2 - a.2) / 3))
+    latticeDet a p1 p2 = 0 := by
+  set p1 : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+  set p2 : ℤ × ℤ := (a.1 + 2 * ((b.1 - a.1) / 3), a.2 + 2 * ((b.2 - a.2) / 3))
+  have hx2 : p2.1 - a.1 = 2 * (p1.1 - a.1) := by simp [p2, p1]
+  have hy2 : p2.2 - a.2 = 2 * (p1.2 - a.2) := by simp [p2, p1]
+  simp only [latticeDet]
+  change (p1.1 - a.1) * (p2.2 - a.2) - (p1.2 - a.2) * (p2.1 - a.1) = 0
+  rw [hx2, hy2]; ring
+
+
 end InteriorFan
 end LatticeFan
 end Picks

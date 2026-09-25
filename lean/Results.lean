@@ -1453,6 +1453,59 @@ theorem results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke
     P hsc hinj hedge h k j hs hne_q hne_v hs_ear hoff_s hne_k hne_prev
 
 
+/-- Under `ThreeInterior`, both on same spoke ⇒ `edgeGcd = 3`. -/
+theorem results_edgeGcd_eq_three_of_threeInterior_sameSpoke
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex k)
+    (hne_rs : r ≠ s) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) = 3 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_three_of_threeInterior_sameSpoke
+    P hsc hinj hedge h k hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
+
+/-- Left-adjacent same-spoke ear has `interiorFanDet = 3`. -/
+theorem results_interiorFanDet_eq_three_of_threeInterior_sameSpoke_left
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex k)
+    (hne_rs : r ≠ s) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q k = 3 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_three_of_threeInterior_sameSpoke_left
+    P hsc hinj hedge h k hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
+
+/-- Right-adjacent same-spoke ear has `interiorFanDet = 3`. -/
+theorem results_interiorFanDet_eq_three_of_threeInterior_sameSpoke_right
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex k)
+    (hne_rs : r ≠ s) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q (P.prevIdx k) = 3 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_three_of_threeInterior_sameSpoke_right
+    P hsc hinj hedge h k hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
+
+
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane
