@@ -7,6 +7,7 @@ import EulersGem.PolytopeFaces
 import EulersGem.AffDim
 import Mathlib.Analysis.Convex.Combination
 import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
+import Mathlib.Analysis.InnerProductSpace.Dual
 
 /-!
 # The face lattice of a geometric simplex
@@ -37,6 +38,7 @@ barycentric coordinates plus `PolytopeFaces.face_eq_convexHull_inter`.
 -/
 
 open Set
+open scoped RealInnerProductSpace
 
 namespace EulersGem
 
@@ -270,6 +272,86 @@ theorem ncard_facesOfDim (d : ℤ) :
       {S : Finset ι | (S.card : ℤ) = d + 1}.ncard := by
   rw [facesOfDim_eq_image b d]
   exact Set.ncard_image_of_injective _ (face_injective b)
+
+
+/-! ## The simplex is full-dimensional -/
+
+lemma body_eq_face_univ : body b = face b (Finset.univ : Finset ι) := by
+  rw [face, body, Finset.coe_univ, Set.image_univ]
+
+/-- A simplex on an affine basis is full-dimensional: `affDim = finrank`. -/
+lemma affDim_body [FiniteDimensional ℝ E] :
+    affDim (body b) = (Module.finrank ℝ E : ℤ) := by
+  rw [body_eq_face_univ, affDim_face b (Finset.univ : Finset ι), Finset.card_univ,
+    b.card_eq_finrank_add_one]
+  push_cast
+  ring
+
+/-! ## H-representation of the simplex
+
+`Euler_Poincare_full` takes its polytope in H-form (a finite intersection of closed
+halfspaces `{x | ⟪a, x⟫ ≤ c}`). The simplex is cut out by its barycentric coordinates
+`0 ≤ b.coord i x`, and each `b.coord i` is an affine functional, hence of the form
+`x ↦ ⟪aᵢ, x⟫ + cᵢ` by Riesz representation. That turns the barycentric description into
+an H-representation.
+-/
+
+section HRep
+
+variable [FiniteDimensional ℝ E]
+
+/-- Riesz vector of the linear part of the `i`-th barycentric coordinate. -/
+noncomputable def coordVec (i : ι) : E :=
+  (InnerProductSpace.toDual ℝ E).symm
+    (LinearMap.toContinuousLinearMap (b.coord i).linear)
+
+lemma inner_coordVec (i : ι) (x : E) :
+    ⟪coordVec b i, x⟫ = (b.coord i).linear x := by
+  rw [coordVec, InnerProductSpace.toDual_symm_apply]
+  rfl
+
+/-- Each barycentric coordinate is an inner product plus a constant. -/
+lemma coord_eq_inner_add (i : ι) (x : E) :
+    b.coord i x = ⟪coordVec b i, x⟫ + b.coord i 0 := by
+  rw [inner_coordVec]
+  have h := AffineMap.decomp (b.coord i)
+  have := congrFun h x
+  simpa using this
+
+/-- The hyperplane cutting out `0 ≤ b.coord i ·`. -/
+noncomputable def coordHyperplane (i : ι) : Hyperplane E :=
+  (-(coordVec b i), b.coord i 0)
+
+lemma mem_coordHalfspace_iff (i : ι) (x : E) :
+    x ∈ closedHalfspace (coordHyperplane b i).1 (coordHyperplane b i).2 ↔
+      0 ≤ b.coord i x := by
+  have hcoord := coord_eq_inner_add b i x
+  simp only [closedHalfspace, coordHyperplane, Set.mem_setOf_eq, inner_neg_left]
+  constructor
+  · intro h; rw [hcoord]; linarith
+  · intro h; rw [hcoord] at h; linarith
+
+/-- The finite hyperplane arrangement of the barycentric coordinates. -/
+noncomputable def coordHyperplanes : Set (Hyperplane E) := Set.range (coordHyperplane b)
+
+lemma coordHyperplanes_finite : (coordHyperplanes b).Finite :=
+  Set.finite_range _
+
+/-- **H-representation of the simplex**: it is the intersection of the `Fintype.card ι`
+closed halfspaces given by its barycentric coordinates. -/
+theorem body_eq_iInter_closedHalfspace :
+    body b = ⋂ h ∈ coordHyperplanes b, closedHalfspace h.1 h.2 := by
+  ext x
+  rw [mem_body_iff b]
+  simp only [Set.mem_iInter, coordHyperplanes, Set.mem_range]
+  constructor
+  · intro hx h hh
+    obtain ⟨i, rfl⟩ := hh
+    exact (mem_coordHalfspace_iff b i x).mpr (hx i)
+  · intro hx i
+    exact (mem_coordHalfspace_iff b i x).mp (hx (coordHyperplane b i) ⟨i, rfl⟩)
+
+end HRep
 
 end Simplex
 
