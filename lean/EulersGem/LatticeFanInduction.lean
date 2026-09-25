@@ -22,7 +22,7 @@ On-spoke I=3: classification + `edgeGcd=2` + one-on-spoke/Off-nonadjacent
 Pick-form green; same-spoke `edgeGcd=3` + adjacent `det=3` + Pick-form green;
 Off-adj-left/right + two-spoke-nonadjacent + adjacent-two-spoke (vacuous under
 `PrimitiveEdges`: shared base `edgeGcd ≥ 2`) green; unified Finset card=3 under
-covered hyp green. Off-free Finset card=3 still open.
+covered hyp green. Off-free Finset card=3 discharged from ThreeInteriorCovered_of_threeInterior.
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -997,7 +997,7 @@ edges, `StrictlyConvexCCW`, and an apex `q ∈ S` such that every other interior
 point is `OffTriangleBoundary` in some fan ear from `q`. Covers all Off two-ear
 and same-ear configurations. On-spoke I=3 still open. Shoelace ≠ Haar.
 Classical Pick FAIL. -/
-theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_off
     (S : Finset (ℤ × ℤ))
     (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
     (hcard : S.card = 3)
@@ -4828,10 +4828,13 @@ theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_adjace
 Unifies Off (same-ear ∨ two-ear), on-spoke+Off-nonadjacent, Off-adjacent-left,
 Off-adjacent-right, same-spoke, non-adjacent two-spoke, and adjacent two-spoke
 (vacuous under `PrimitiveEdges`) into one Finset `card = 3` statement.
-Off-free Finset card=3 still open. Shoelace ≠ Haar. Classical Pick FAIL.
+Off-free Finset card=3 via ThreeInteriorCovered_of_threeInterior. Shoelace ≠ Haar. Classical Pick FAIL.
 -/
 
-/-- Covered I=3 configurations from apex `q` that already have Pick-form. -/
+/-- Covered I=3 configurations from apex `q` that already have Pick-form.
+
+Includes Off (same/two-ear), onSpoke+Off (nonadj / adj-left / adj-right) and the
+Off+onSpoke duals, sameSpoke, and twoSpoke (nonadj / adj). -/
 def ThreeInteriorCovered (q r s : ℤ × ℤ) : Prop :=
   ThreeInterior P q r s ∧ (
     (∃ i j : Fin P.nVertices,
@@ -4862,7 +4865,20 @@ def ThreeInteriorCovered (q r s : ℤ × ℤ) : Prop :=
     (∃ k m : Fin P.nVertices,
       r ∈ edgeLatticePoints q (P.vertex k) ∧ s ∈ edgeLatticePoints q (P.vertex m) ∧
         r ≠ q ∧ r ≠ P.vertex k ∧ s ≠ q ∧ s ≠ P.vertex m ∧ r ≠ s ∧
-          (m = P.nextIdx k ∨ m = P.prevIdx k)))
+          (m = P.nextIdx k ∨ m = P.prevIdx k)) ∨
+    (∃ k j : Fin P.nVertices,
+      s ∈ edgeLatticePoints q (P.vertex k) ∧ s ≠ q ∧ s ≠ P.vertex k ∧
+        MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r ∧
+          OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) r ∧
+            j ≠ k ∧ j ≠ P.prevIdx k) ∨
+    (∃ k : Fin P.nVertices,
+      s ∈ edgeLatticePoints q (P.vertex k) ∧ s ≠ q ∧ s ≠ P.vertex k ∧
+        MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) r ∧
+          OffTriangleBoundary q (P.vertex k) (P.vertex (P.nextIdx k)) r) ∨
+    (∃ k : Fin P.nVertices,
+      s ∈ edgeLatticePoints q (P.vertex k) ∧ s ≠ q ∧ s ≠ P.vertex k ∧
+        MemClosedTriangle q (P.vertex (P.prevIdx k)) (P.vertex k) r ∧
+          OffTriangleBoundary q (P.vertex (P.prevIdx k)) (P.vertex k) r))
 
 /-- **I = 3 shoelace Pick-form** under covered configurations (not classical Pick).
 
@@ -4889,7 +4905,10 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
       ⟨k, hr, hne_q, hne_v, hs, hoff_s⟩ |
       ⟨k, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs⟩ |
       ⟨k, m, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, hne_km, hne_next, hne_prev⟩ |
-      ⟨k, m, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, hmadj⟩
+      ⟨k, m, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, hmadj⟩ |
+      ⟨k, j, hs, hne_q, hne_v, hr, hoff_r, hne_k, hne_prev⟩ |
+      ⟨k, hs, hne_q, hne_v, hr, hoff_r⟩ |
+      ⟨k, hs, hne_q, hne_v, hr, hoff_r⟩
     · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off
         P hsc hverts hedge hThree i j hr hoff_r hs hoff_s
     · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off
@@ -4905,10 +4924,168 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
           hne_km hne_next hne_prev
     · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_adjacent
         P hsc hverts hedge hThree k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hmadj
+    · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off
+        P hsc hverts hedge (ThreeInterior_swap P hThree) k j hs hne_q hne_v hr hoff_r
+          hne_k hne_prev
+    · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off_adjacent_left
+        P hsc hverts hedge (ThreeInterior_swap P hThree) k hs hne_q hne_v hr hoff_r
+    · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off_adjacent_right
+        P hsc hverts hedge (ThreeInterior_swap P hThree) k hs hne_q hne_v hr hoff_r
   calc
     P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := harea
     _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by simp [hcard]
 
+
+
+/-! ### Every ThreeInterior is Covered (Off-free Finset card=3)
+
+Covering ears for `r` and `s` exist; each is Off or on-spoke. Exhaustion against
+`ThreeInteriorCovered` disjuncts (Off / onSpoke+Off duals / sameSpoke / twoSpoke).
+Shoelace ≠ Haar. Classical Pick FAIL.
+-/
+
+/-- Normalize a covering-ear on-spoke witness to `edgeLatticePoints q (vertex k)`. -/
+lemma exists_onSpoke_of_covering_class {q r : ℤ × ℤ} (i : Fin P.nVertices)
+    (hclass :
+      OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r ∨
+        r ∈ edgeLatticePoints q (P.vertex i) ∨
+          r ∈ edgeLatticePoints (P.vertex (P.nextIdx i)) q)
+    (hoff : ¬ OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    ∃ k : Fin P.nVertices, r ∈ edgeLatticePoints q (P.vertex k) ∧
+      (k = i ∨ k = P.nextIdx i) := by
+  rcases hclass with h | h | h
+  · exact (hoff h).elim
+  · exact ⟨i, h, Or.inl rfl⟩
+  · exact ⟨P.nextIdx i, mem_edgeLatticePoints_comm h, Or.inr rfl⟩
+
+/-- Classify Off ear index relative to spoke `k`: adj-left / adj-right / nonadj. -/
+lemma off_ear_rel_of_spoke (k j : Fin P.nVertices) :
+    j = k ∨ j = P.prevIdx k ∨ (j ≠ k ∧ j ≠ P.prevIdx k) := by
+  by_cases h1 : j = k
+  · exact Or.inl h1
+  · by_cases h2 : j = P.prevIdx k
+    · exact Or.inr (Or.inl h2)
+    · exact Or.inr (Or.inr ⟨h1, h2⟩)
+
+/-- **Every `ThreeInterior` is `ThreeInteriorCovered`** (not classical Pick).
+
+Hyps: `StrictlyConvexCCW`, injective vertices, `PrimitiveEdges`, fan from apex `q`.
+Covering ears + Off/on-spoke exhaustion fills all Covered disjuncts (including
+Off+onSpoke duals). Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem ThreeInteriorCovered_of_threeInterior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) :
+    ThreeInteriorCovered P q r s := by
+  classical
+  obtain ⟨i, hr, hclass_r⟩ :=
+    exists_offBoundary_or_onSpoke_covering_of_threeInterior_left P hsc hinj hedge h
+  obtain ⟨j, hs, hclass_s⟩ :=
+    exists_offBoundary_or_onSpoke_covering_of_threeInterior_right P hsc hinj hedge h
+  refine ⟨h, ?_⟩
+  -- Case on r's classification
+  by_cases hoff_r : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r
+  · -- r Off
+    by_cases hoff_s : OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) s
+    · -- both Off
+      exact Or.inl ⟨i, j, hr, hoff_r, hs, hoff_s⟩
+    · -- Off r, onSpoke s
+      obtain ⟨k, hs_sp, _⟩ :=
+        exists_onSpoke_of_covering_class (q := q) (r := s) P j hclass_s hoff_s
+      obtain ⟨hne_q, hne_v⟩ :=
+        ne_endpoints_of_threeInterior_onSpoke P (ThreeInterior_swap P h) k hs_sp
+      -- Off ear of r is i; classify vs spoke k
+      rcases off_ear_rel_of_spoke P k i with hik | hip | ⟨hne_k, hne_prev⟩
+      · -- adj left: Off r on ear k
+        have hr' : MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) r := by
+          simpa [hik] using hr
+        have hoff_r' :
+            OffTriangleBoundary q (P.vertex k) (P.vertex (P.nextIdx k)) r := by
+          simpa [hik] using hoff_r
+        exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <|
+          Or.inr <| Or.inl ⟨k, hs_sp, hne_q, hne_v, hr', hoff_r'⟩
+      · -- adj right: Off r on ear prevIdx k
+        have hr' : MemClosedTriangle q (P.vertex (P.prevIdx k)) (P.vertex k) r := by
+          have := hr
+          rw [hip] at this
+          simpa [P.nextIdx_prevIdx] using this
+        have hoff_r' :
+            OffTriangleBoundary q (P.vertex (P.prevIdx k)) (P.vertex k) r := by
+          have := hoff_r
+          rw [hip] at this
+          simpa [P.nextIdx_prevIdx] using this
+        exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <|
+          Or.inr <| Or.inr ⟨k, hs_sp, hne_q, hne_v, hr', hoff_r'⟩
+      · -- nonadj
+        exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <|
+          Or.inl ⟨k, i, hs_sp, hne_q, hne_v, hr, hoff_r, hne_k, hne_prev⟩
+  · -- r onSpoke
+    obtain ⟨k, hr_sp, _⟩ :=
+      exists_onSpoke_of_covering_class (q := q) (r := r) P i hclass_r hoff_r
+    obtain ⟨hne_rq, hne_rv⟩ := ne_endpoints_of_threeInterior_onSpoke P h k hr_sp
+    by_cases hoff_s : OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) s
+    · -- onSpoke r, Off s
+      rcases off_ear_rel_of_spoke P k j with hjk | hjp | ⟨hne_k, hne_prev⟩
+      · have hs' : MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) s := by
+          simpa [hjk] using hs
+        have hoff_s' :
+            OffTriangleBoundary q (P.vertex k) (P.vertex (P.nextIdx k)) s := by
+          simpa [hjk] using hoff_s
+        exact Or.inr <| Or.inr <| Or.inl ⟨k, hr_sp, hne_rq, hne_rv, hs', hoff_s'⟩
+      · have hs' : MemClosedTriangle q (P.vertex (P.prevIdx k)) (P.vertex k) s := by
+          have := hs
+          rw [hjp] at this
+          simpa [P.nextIdx_prevIdx] using this
+        have hoff_s' :
+            OffTriangleBoundary q (P.vertex (P.prevIdx k)) (P.vertex k) s := by
+          have := hoff_s
+          rw [hjp] at this
+          simpa [P.nextIdx_prevIdx] using this
+        exact Or.inr <| Or.inr <| Or.inr <| Or.inl
+          ⟨k, hr_sp, hne_rq, hne_rv, hs', hoff_s'⟩
+      · exact Or.inr <| Or.inl
+          ⟨k, j, hr_sp, hne_rq, hne_rv, hs, hoff_s, hne_k, hne_prev⟩
+    · -- both onSpoke
+      obtain ⟨m, hs_sp, _⟩ :=
+        exists_onSpoke_of_covering_class (q := q) (r := s) P j hclass_s hoff_s
+      obtain ⟨hne_sq, hne_sv⟩ :=
+        ne_endpoints_of_threeInterior_onSpoke P (ThreeInterior_swap P h) m hs_sp
+      have hne_rs : r ≠ s := h.2.2.1
+      by_cases hkm : m = k
+      · -- sameSpoke
+        exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl
+          ⟨k, hr_sp, by simpa [hkm] using hs_sp, hne_rq, hne_rv, hne_sq,
+            by simpa [hkm] using hne_sv, hne_rs⟩
+      · -- twoSpoke
+        by_cases hnext : m = P.nextIdx k
+        · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl
+            ⟨k, m, hr_sp, hs_sp, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, Or.inl hnext⟩
+        · by_cases hprev : m = P.prevIdx k
+          · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl
+              ⟨k, m, hr_sp, hs_sp, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, Or.inr hprev⟩
+          · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl
+              ⟨k, m, hr_sp, hs_sp, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs,
+                hkm, hnext, hprev⟩
+
+/-- **Finset `card = 3` shoelace Pick-form** from geometric hyps only
+(not classical Pick).
+
+Hyps: `↑S = interiorLatticePoints`, `S.card = 3`, injective vertices, primitive
+edges, `StrictlyConvexCCW`. No Off-apex / Covered witness required: every
+`ThreeInterior` is Covered. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 3)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  obtain ⟨q, r, s, hThree, hSeq⟩ := threeInterior_of_finset_card_three P S hS hcard
+  exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
+    P S hS hcard hverts hedge hsc
+    ⟨q, r, s, hSeq, ThreeInteriorCovered_of_threeInterior P hsc hverts hedge hThree⟩
 
 end InteriorFan
 end LatticeFan
