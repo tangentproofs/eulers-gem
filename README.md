@@ -46,22 +46,24 @@ and as an alternate strategy, not as the Lean roadmap.
 
 See `lean/Results.lean` (only claims what is actually proved):
 
-| Theorem | Meaning |
-|---------|---------|
-| `results_eulerChar_simplex` | Euler char of an `n`-simplex (incl. empty face) is `0` |
-| `results_card_combinatorialFaces` | `#` of `m`-faces of an `n`-simplex is `C(n+1,m+1)` |
-| `results_tetrahedron_polyhedron_numbers` | Tetrahedron: `V − E + F = 2` |
-| `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` |
-| `results_faceEulerSum_simplex_faceCount` | Simplex face-sum (no empty face) `= 1` |
-| `results_euler_relation_of_faceEulerSum` | Bookkeeping: `faceEulerSum=1` + unique solid ⇒ `V−E+F=2` |
-| `results_faceEulerSum_of_height_one` | Height-1 H-rep: Paulson slice EP (`faceEulerSum = 1`) |
-| `results_Euler_Poincare_full` | Full-dim H+V-rep polytope: `faceEulerSum = 1` |
-| `results_euler_relation_convex_3polytope` | Convex 3-polytope (H+V-rep): `V − E + F = 2` |
-| `results_platonic_schlafli_classification` | Combinatorial Platonic: Schläfli `(s,m)` ∈ five pairs |
-| `results_platonic_schlafli_card` | Exactly five admissible Schläfli pairs |
-| `results_platonic_five_constructions` | Five combinatorial `(V,E,F)` types (Euler bookkeeping) |
-| `results_picks_of_funkenbusch` | Euler + Funkenbusch ⇒ Pick `A = I + B/2 − 1` |
-| `results_picks_of_triangulation` | Triangulation handshaking ⇒ Pick |
+| Theorem | Meaning | Statement |
+|---------|---------|-----------|
+| `results_eulerChar_simplex` | Euler char of an `n`-simplex (incl. empty face) is `0` | Mathlib-only |
+| `results_card_combinatorialFaces` | `#` of `m`-faces of an `n`-simplex is `C(n+1,m+1)` | Mathlib-only |
+| `results_tetrahedron_polyhedron_numbers` | Tetrahedron: `V − E + F = 2` | Mathlib-only |
+| `results_polyhedron_formula_of_eulerChar` | Bookkeeping: full Euler `0` ⇒ `F+V−E=2` | Mathlib-only |
+| `results_faceEulerSum_simplex_faceCount` | Simplex face-sum (no empty face) `= 1` | Mathlib-only |
+| `results_platonic_schlafli_classification` | Combinatorial Platonic: Schläfli `(s,m)` ∈ five pairs | Mathlib-only |
+| `results_platonic_schlafli_card` | Exactly five admissible Schläfli pairs | Mathlib-only |
+| `results_platonic_five_constructions` | Five combinatorial `(V,E,F)` types (Euler bookkeeping) | Mathlib-only |
+| `results_picks_of_funkenbusch` | Euler + Funkenbusch ⇒ Pick `A = I + B/2 − 1` | Mathlib-only |
+| `results_picks_of_triangulation` | Triangulation handshaking ⇒ Pick | Mathlib-only |
+| `results_euler_relation_of_faceEulerSum` | Bookkeeping: `faceEulerSum=1` + unique solid ⇒ `V−E+F=2` | Geometric (`EulersGem`) |
+| `results_faceEulerSum_of_height_one` | Height-1 H-rep: Paulson slice EP (`faceEulerSum = 1`) | Geometric (`EulersGem`) |
+| `results_Euler_Poincare_full` | Full-dim H+V-rep polytope: `faceEulerSum = 1` | Geometric (`EulersGem`) |
+| `results_euler_relation_convex_3polytope` | Convex 3-polytope (H+V-rep): `V − E + F = 2` | Geometric (`EulersGem`) |
+
+**Mathlib-only** = theorem *statement* uses only Mathlib (`Nat.choose` / `Finset` / `ℤ` / `ℚ`); proofs may still call `EulersGem.*`. **Geometric** = needs polytope/face/`affDim` APIs Mathlib lacks (see `lean/MATHLIB_SURVEY.md`).
 
 Paulson cone→slice→embed path green: `ConeSliceFaceBijection`, height-1 EP,
 `E × ℝ` embedding, `Euler_Poincare_full`, geometric 3D. Phase B (#1535): Platonic
