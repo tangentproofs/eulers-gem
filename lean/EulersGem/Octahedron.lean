@@ -447,5 +447,318 @@ theorem affDim_face (c : Fin n → Option Bool) :
     omega
 
 
+/-! ## Classification of all faces -/
+
+lemma finrank_eq_of_orthonormalBasis (v : OrthonormalBasis (Fin n) ℝ E) :
+    Module.finrank ℝ E = n := by
+  haveI : Module.Finite ℝ E := Module.Finite.of_basis v.toBasis
+  simpa using Module.finrank_eq_card_basis v.toBasis
+
+/-- A face containing the origin is the whole cross-polytope: the body is symmetric, so
+every point lies on a segment through `0`. -/
+lemma eq_body_of_zero_mem {F : Set E} (hF : IsFaceOf (body b) F) (h0 : (0 : E) ∈ F) :
+    F = body b := by
+  refine subset_antisymm hF.isExtreme.subset ?_
+  intro x hx
+  by_cases hx0 : x = 0
+  · rw [hx0]; exact h0
+  · have hneg : -x ∈ body b := neg_mem_body b hx
+    have hseg : (0 : E) ∈ openSegment ℝ x (-x) :=
+      ⟨1 / 2, 1 / 2, by norm_num, by norm_num, by norm_num, by module⟩
+    exact hF.isExtreme.left_mem_of_mem_openSegment hx hneg h0 hseg
+
+/-- Vertices contained in a given set. -/
+noncomputable def faceVtxIdx (F : Set E) : Finset (Fin n × Bool) :=
+  open Classical in Finset.univ.filter fun p => vtx b p ∈ F
+
+lemma mem_faceVtxIdx {F : Set E} {p : Fin n × Bool} :
+    p ∈ faceVtxIdx b F ↔ vtx b p ∈ F := by
+  classical simp [faceVtxIdx]
+
+lemma range_inter_eq_image_faceVtxIdx {F : Set E} :
+    Set.range (vtx b) ∩ F = vtx b '' ↑(faceVtxIdx b F) := by
+  ext y
+  constructor
+  · rintro ⟨⟨p, rfl⟩, hyF⟩
+    exact ⟨p, Finset.mem_coe.mpr ((mem_faceVtxIdx b).mpr hyF), rfl⟩
+  · rintro ⟨p, hp, rfl⟩
+    exact ⟨⟨p, rfl⟩, (mem_faceVtxIdx b).mp (Finset.mem_coe.mp hp)⟩
+
+/-- **Every face of the cross-polytope is either a subface `face b c` or the whole body.**
+A face containing two antipodal vertices contains the origin, hence is everything. -/
+theorem eq_face_or_eq_body {F : Set E} (hF : IsFaceOf (body b) F) :
+    (∃ c : Fin n → Option Bool, F = face b c) ∨ F = body b := by
+  classical
+  by_cases hanti : ∃ i : Fin n, (i, true) ∈ faceVtxIdx b F ∧ (i, false) ∈ faceVtxIdx b F
+  · right
+    obtain ⟨i, h1, h2⟩ := hanti
+    have hv1 : vtx b (i, true) ∈ F := (mem_faceVtxIdx b).mp h1
+    have hv2 : vtx b (i, false) ∈ F := (mem_faceVtxIdx b).mp h2
+    have h0 : (0 : E) ∈ F := by
+      have hmid := hF.convex hv1 hv2 (by norm_num : (0:ℝ) ≤ 1/2) (by norm_num : (0:ℝ) ≤ 1/2)
+        (by norm_num)
+      have : (1/2 : ℝ) • vtx b (i, true) + (1/2 : ℝ) • vtx b (i, false) = 0 := by
+        simp [vtx, sgn, smul_smul]
+      rwa [this] at hmid
+    exact eq_body_of_zero_mem b hF h0
+  · left
+    push_neg at hanti
+    refine ⟨fun i => if (i, true) ∈ faceVtxIdx b F then some true
+      else if (i, false) ∈ faceVtxIdx b F then some false else none, ?_⟩
+    have hvtx : vtxIdx (fun i => if (i, true) ∈ faceVtxIdx b F then some true
+        else if (i, false) ∈ faceVtxIdx b F then some false else none)
+        = faceVtxIdx b F := by
+      ext p
+      obtain ⟨i, s⟩ := p
+      simp only [mem_vtxIdx]
+      by_cases h1 : (i, true) ∈ faceVtxIdx b F
+      · have h2 : (i, false) ∉ faceVtxIdx b F := hanti i h1
+        rw [if_pos h1]
+        cases s
+        · simp [h2]
+        · simp [h1]
+      · by_cases h2 : (i, false) ∈ faceVtxIdx b F
+        · rw [if_neg h1, if_pos h2]
+          cases s
+          · simp [h2]
+          · simp [h1]
+        · rw [if_neg h1, if_neg h2]
+          cases s <;> simp [h1, h2]
+    have hF' : IsFaceOf (convexHull ℝ (Set.range (vtx b))) F := hF
+    calc F = convexHull ℝ (Set.range (vtx b) ∩ F) := face_eq_convexHull_inter hF'
+      _ = convexHull ℝ (vtx b '' ↑(faceVtxIdx b F)) := by
+          rw [range_inter_eq_image_faceVtxIdx]
+      _ = face b _ := by rw [face, hvtx]
+
+/-! ## Counting faces by dimension -/
+
+/-- For `d < n` the `d`-faces are exactly the subfaces on `d + 1` selected vertices
+(the whole body is the only other face, and it has dimension `n`). -/
+theorem facesOfDim_eq_image (hn : 0 < n) (d : ℤ) (hd : d < (n : ℤ)) :
+    Platonic.facesOfDim (body b) d
+      = face b '' {c : Fin n → Option Bool | ((vtxIdx c).card : ℤ) = d + 1} := by
+  haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
+  ext F
+  constructor
+  · rintro ⟨hF, hdim⟩
+    rcases eq_face_or_eq_body b hF with ⟨c, rfl⟩ | rfl
+    · refine ⟨c, ?_, rfl⟩
+      have := affDim_face b c
+      rw [hdim] at this
+      simp only [Set.mem_setOf_eq]
+      omega
+    · exfalso
+      rw [affDim_body b hn, finrank_eq_of_orthonormalBasis b] at hdim
+      omega
+  · rintro ⟨c, hc, rfl⟩
+    have hcard : ((vtxIdx c).card : ℤ) = d + 1 := hc
+    refine ⟨isFaceOf_face b c, ?_⟩
+    rw [affDim_face b c, hcard]
+    ring
+
+theorem ncard_facesOfDim (hn : 0 < n) (d : ℤ) (hd : d < (n : ℤ)) :
+    (Platonic.facesOfDim (body b) d).ncard
+      = {c : Fin n → Option Bool | ((vtxIdx c).card : ℤ) = d + 1}.ncard := by
+  rw [facesOfDim_eq_image b hn d hd, Set.ncard_image_of_injective _ (face_injective b)]
+
+/-- Faces of dimension `d` inside a given subface, indexed by vertex selections. -/
+theorem ncard_facesOfDim_subset (hn : 0 < n) (d : ℤ) (hd : d < (n : ℤ))
+    (c₀ : Fin n → Option Bool) :
+    {e ∈ Platonic.facesOfDim (body b) d | e ⊆ face b c₀}.ncard
+      = {c : Fin n → Option Bool |
+          ((vtxIdx c).card : ℤ) = d + 1 ∧ vtxIdx c ⊆ vtxIdx c₀}.ncard := by
+  have hset : {e ∈ Platonic.facesOfDim (body b) d | e ⊆ face b c₀}
+      = face b '' {c : Fin n → Option Bool |
+          ((vtxIdx c).card : ℤ) = d + 1 ∧ vtxIdx c ⊆ vtxIdx c₀} := by
+    ext f
+    rw [Set.mem_sep_iff, facesOfDim_eq_image b hn d hd]
+    constructor
+    · rintro ⟨⟨c, hc, rfl⟩, hsub⟩
+      exact ⟨c, ⟨hc, (face_subset_iff b).mp hsub⟩, rfl⟩
+    · rintro ⟨c, ⟨hc, hsub⟩, rfl⟩
+      exact ⟨⟨c, hc, rfl⟩, (face_subset_iff b).mpr hsub⟩
+  rw [hset, Set.ncard_image_of_injective _ (face_injective b)]
+
+/-- Faces of dimension `d` containing a given subface, indexed by vertex selections. -/
+theorem ncard_facesOfDim_superset (hn : 0 < n) (d : ℤ) (hd : d < (n : ℤ))
+    (c₀ : Fin n → Option Bool) :
+    {e ∈ Platonic.facesOfDim (body b) d | face b c₀ ⊆ e}.ncard
+      = {c : Fin n → Option Bool |
+          ((vtxIdx c).card : ℤ) = d + 1 ∧ vtxIdx c₀ ⊆ vtxIdx c}.ncard := by
+  have hset : {e ∈ Platonic.facesOfDim (body b) d | face b c₀ ⊆ e}
+      = face b '' {c : Fin n → Option Bool |
+          ((vtxIdx c).card : ℤ) = d + 1 ∧ vtxIdx c₀ ⊆ vtxIdx c} := by
+    ext f
+    rw [Set.mem_sep_iff, facesOfDim_eq_image b hn d hd]
+    constructor
+    · rintro ⟨⟨c, hc, rfl⟩, hsub⟩
+      exact ⟨c, ⟨hc, (face_subset_iff b).mp hsub⟩, rfl⟩
+    · rintro ⟨c, ⟨hc, hsub⟩, rfl⟩
+      exact ⟨⟨c, hc, rfl⟩, (face_subset_iff b).mpr hsub⟩
+  rw [hset, Set.ncard_image_of_injective _ (face_injective b)]
+
+
+/-! ## The geometric octahedron (`n = 3`)
+
+All four incidence counts and the three face counts are decided from the vertex-selection
+correspondence: faces of the octahedron are the `26` partial sign assignments of
+`Fin 3 → Option Bool` with nonempty support, plus the body.
+-/
+
+section Oct3
+
+set_option maxRecDepth 100000
+
+private lemma count_card_1 :
+    {c : Fin 3 → Option Bool | ((vtxIdx c).card : ℤ) = 0 + 1}.ncard = 6 := by
+  rw [ncard_setOf_fintype]; decide
+
+private lemma count_card_2 :
+    {c : Fin 3 → Option Bool | ((vtxIdx c).card : ℤ) = 1 + 1}.ncard = 12 := by
+  rw [ncard_setOf_fintype]; decide
+
+private lemma count_card_3 :
+    {c : Fin 3 → Option Bool | ((vtxIdx c).card : ℤ) = 2 + 1}.ncard = 8 := by
+  rw [ncard_setOf_fintype]; decide
+
+/-- Every triangular 2-face of the octahedron has three edges. -/
+private lemma count_edges_of_face (c₀ : Fin 3 → Option Bool)
+    (h : ((vtxIdx c₀).card : ℤ) = 2 + 1) :
+    {c : Fin 3 → Option Bool |
+      ((vtxIdx c).card : ℤ) = 1 + 1 ∧ vtxIdx c ⊆ vtxIdx c₀}.ncard = 3 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+/-- Every edge of the octahedron lies in two 2-faces. -/
+private lemma count_faces_of_edge (c₀ : Fin 3 → Option Bool)
+    (h : ((vtxIdx c₀).card : ℤ) = 1 + 1) :
+    {c : Fin 3 → Option Bool |
+      ((vtxIdx c).card : ℤ) = 2 + 1 ∧ vtxIdx c₀ ⊆ vtxIdx c}.ncard = 2 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+/-- Four edges meet at every vertex of the octahedron. -/
+private lemma count_edges_of_vertex (c₀ : Fin 3 → Option Bool)
+    (h : ((vtxIdx c₀).card : ℤ) = 0 + 1) :
+    {c : Fin 3 → Option Bool |
+      ((vtxIdx c).card : ℤ) = 1 + 1 ∧ vtxIdx c₀ ⊆ vtxIdx c}.ncard = 4 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+/-- Every edge of the octahedron has two vertices. -/
+private lemma count_vertices_of_edge (c₀ : Fin 3 → Option Bool)
+    (h : ((vtxIdx c₀).card : ℤ) = 1 + 1) :
+    {c : Fin 3 → Option Bool |
+      ((vtxIdx c).card : ℤ) = 0 + 1 ∧ vtxIdx c ⊆ vtxIdx c₀}.ncard = 2 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+variable (b : OrthonormalBasis (Fin 3) ℝ E)
+
+/-- **Face counts of a geometric octahedron: `V = 6`, `E = 12`, `F = 8`.**
+Geometric face counts (`IsFaceOf` + `affDim`), via the cross-polytope face lattice. -/
+theorem octahedron_face_counts :
+    (Platonic.facesOfDim (body b) 0).ncard = 6 ∧
+      (Platonic.facesOfDim (body b) 1).ncard = 12 ∧
+      (Platonic.facesOfDim (body b) 2).ncard = 8 := by
+  refine ⟨?_, ?_, ?_⟩
+  · rw [ncard_facesOfDim b (by norm_num) 0 (by norm_num)]; exact count_card_1
+  · rw [ncard_facesOfDim b (by norm_num) 1 (by norm_num)]; exact count_card_2
+  · rw [ncard_facesOfDim b (by norm_num) 2 (by norm_num)]; exact count_card_3
+
+lemma affDim_body_oct : affDim (body b) = 3 := by
+  haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
+  rw [affDim_body b (by norm_num), finrank_eq_of_orthonormalBasis b]
+  norm_num
+
+/-- **`V − E + F = 2` for a geometric octahedron, discharged from Euler–Poincaré.** -/
+theorem octahedron_euler_relation :
+    ((Platonic.facesOfDim (body b) 0).ncard : ℤ) - (Platonic.facesOfDim (body b) 1).ncard
+      + (Platonic.facesOfDim (body b) 2).ncard = 2 := by
+  haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
+  haveI : Nonempty E := ⟨0⟩
+  exact euler_relation_convex_3polytope (hyperplanes_finite b)
+    (body_eq_iInter_closedHalfspace b (by norm_num)) (isPolytope_body b)
+    (affDim_body_oct b) (finrank_eq_of_orthonormalBasis b)
+
+/-- **The four incidence counts of a geometric octahedron, proved from its face lattice:**
+`3` edges per 2-face (triangles), `2` 2-faces per edge, `4` edges per vertex, `2` vertices
+per edge. -/
+theorem octahedron_incidence :
+    (∀ f ∈ Platonic.facesOfDim (body b) 2,
+        {e ∈ Platonic.facesOfDim (body b) 1 | e ⊆ f}.ncard = 3) ∧
+      (∀ e ∈ Platonic.facesOfDim (body b) 1,
+        {f ∈ Platonic.facesOfDim (body b) 2 | e ⊆ f}.ncard = 2) ∧
+      (∀ v ∈ Platonic.facesOfDim (body b) 0,
+        {e ∈ Platonic.facesOfDim (body b) 1 | v ⊆ e}.ncard = 4) ∧
+      (∀ e ∈ Platonic.facesOfDim (body b) 1,
+        {v ∈ Platonic.facesOfDim (body b) 0 | v ⊆ e}.ncard = 2) := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro f hf
+    rw [facesOfDim_eq_image b (by norm_num) 2 (by norm_num)] at hf
+    obtain ⟨c₀, hc₀, rfl⟩ := hf
+    rw [ncard_facesOfDim_subset b (by norm_num) 1 (by norm_num) c₀]
+    exact count_edges_of_face c₀ hc₀
+  · intro e he
+    rw [facesOfDim_eq_image b (by norm_num) 1 (by norm_num)] at he
+    obtain ⟨c₀, hc₀, rfl⟩ := he
+    rw [ncard_facesOfDim_superset b (by norm_num) 2 (by norm_num) c₀]
+    exact count_faces_of_edge c₀ hc₀
+  · intro v hv
+    rw [facesOfDim_eq_image b (by norm_num) 0 (by norm_num)] at hv
+    obtain ⟨c₀, hc₀, rfl⟩ := hv
+    rw [ncard_facesOfDim_superset b (by norm_num) 1 (by norm_num) c₀]
+    exact count_edges_of_vertex c₀ hc₀
+  · intro e he
+    rw [facesOfDim_eq_image b (by norm_num) 1 (by norm_num)] at he
+    obtain ⟨c₀, hc₀, rfl⟩ := he
+    rw [ncard_facesOfDim_subset b (by norm_num) 0 (by norm_num) c₀]
+    exact count_vertices_of_edge c₀ hc₀
+
+/-- **A geometric octahedron is Platonic `{3,4}` on the Euler–Poincaré spine.**
+
+The double-counting identities come from face-lattice incidence, Euler's relation from
+`Euler_Poincare_full`, and `(3,4)` is one of the five classical Schläfli pairs. Nothing in
+this chain assumes `V − E + F = 2`. -/
+theorem octahedron_platonic :
+    3 * (Platonic.facesOfDim (body b) 2).ncard
+        = 2 * (Platonic.facesOfDim (body b) 1).ncard ∧
+      4 * (Platonic.facesOfDim (body b) 0).ncard
+        = 2 * (Platonic.facesOfDim (body b) 1).ncard ∧
+      ((Platonic.facesOfDim (body b) 0).ncard : ℤ) - (Platonic.facesOfDim (body b) 1).ncard
+        + (Platonic.facesOfDim (body b) 2).ncard = 2 ∧
+      ((3 : ℕ), (4 : ℕ)) ∈ Platonic.schlafliPairs := by
+  haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
+  haveI : Nonempty E := ⟨0⟩
+  obtain ⟨h2e, he2, hv4, he0⟩ := octahedron_incidence b
+  obtain ⟨hFace, hVert, hEuler⟩ :=
+    Platonic.regular_polytope_counts (s := 3) (m := 4) (hyperplanes_finite b)
+      (body_eq_iInter_closedHalfspace b (by norm_num)) (isPolytope_body b)
+      (affDim_body_oct b) (finrank_eq_of_orthonormalBasis b) h2e he2 hv4 he0
+  refine ⟨hFace, hVert, hEuler, ?_⟩
+  exact Platonic.schlafli_pair_mem_of_regular_polytope (hyperplanes_finite b)
+    (body_eq_iInter_closedHalfspace b (by norm_num)) (isPolytope_body b)
+    (affDim_body_oct b) (finrank_eq_of_orthonormalBasis b) (by norm_num) (by norm_num)
+    h2e he2 hv4 he0
+
+end Oct3
+
+/-- Every 3-dimensional real inner product space contains a geometric octahedron. -/
+theorem exists_octahedron_basis {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] (hE : Module.finrank ℝ E = 3) :
+    Nonempty (OrthonormalBasis (Fin 3) ℝ E) := by
+  have h := stdOrthonormalBasis ℝ E
+  rw [hE] at h
+  exact ⟨h⟩
+
+
 end Octahedron
 end EulersGem

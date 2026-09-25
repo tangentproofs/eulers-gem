@@ -240,6 +240,14 @@ theorem isFaceOf_convexHull_argmax {V : Set E} {a : E} {c : ℝ}
   rw [← inter_hyperplane_eq_convexHull_argmax hle]
   exact isFaceOf_inter_hyperplane (convex_convexHull ℝ V) (inner_le_of_mem_convexHull hle)
 
+
+/-- Counting a decidable subset of a `Fintype` as a `Finset` card, so counts can be decided. -/
+lemma ncard_setOf_fintype {α : Type*} [Fintype α] (p : α → Prop) [DecidablePred p] :
+    {x : α | p x}.ncard = ((Finset.univ : Finset α).filter p).card := by
+  have h : {x : α | p x} = ↑((Finset.univ : Finset α).filter p) := by
+    ext x; simp
+  rw [h, Set.ncard_coe_finset]
+
 /-! ## Finiteness of the face lattice -/
 
 /-- **The face lattice of a polytope is finite.** `F ↦ V ∩ F` is injective on faces by

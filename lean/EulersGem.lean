@@ -24,3 +24,5 @@ import EulersGem.PolytopeFaces
 import EulersGem.PlatonicOfEuler
 import EulersGem.SimplexFaces
 import EulersGem.GeometricPlatonic
+import EulersGem.LatticeTriangleEmpty
+import EulersGem.Octahedron
