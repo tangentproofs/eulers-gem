@@ -16,6 +16,7 @@ import EulersGem.SimplexFaces
 import EulersGem.GeometricPlatonic
 import EulersGem.Octahedron
 import EulersGem.Cube
+import EulersGem.MetricRegular
 import EulersGem.Picks
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
@@ -879,6 +880,54 @@ theorem results_cube_platonic
       ((4 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
   obtain ⟨h1, h2, h3, -⟩ := EulersGem.Cube.cube_platonic b
   exact ⟨h1, h2, h3, by decide⟩
+
+/-! ### Metric regularity: equilateral solids
+
+The face-lattice results above are *combinatorial* regularity. These add the first metric
+content: vertices on a sphere and all edges of equal length — in particular a genuinely
+**regular** tetrahedron. Full metric regularity (congruent regular faces, flag-transitive
+symmetry group) is still not formalized; see `PLATONIC_CLAUDE_AUDIT.md`.
+-/
+
+/-- **All edges of a geometric octahedron have the same length** (squared length `2`), and all
+its vertices lie on the unit sphere. -/
+theorem results_octahedron_equilateral
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) :
+    (∀ p : Fin 3 × Bool, ‖EulersGem.Octahedron.vtx b p‖ ^ 2 = 1) ∧
+      (∀ c : Fin 3 → Option Bool, ∀ p ∈ EulersGem.Octahedron.vtxIdx c,
+        ∀ q ∈ EulersGem.Octahedron.vtxIdx c, p ≠ q →
+          ‖EulersGem.Octahedron.vtx b p - EulersGem.Octahedron.vtx b q‖ ^ 2 = 2) :=
+  ⟨EulersGem.Octahedron.norm_sq_vtx b,
+    fun _ _ hp _ hq hpq => EulersGem.Octahedron.edges_equilateral b hp hq hpq⟩
+
+/-- **A regular tetrahedron is Platonic `{3,3}` on the Euler–Poincaré spine.**
+
+`EulersGem.Cube.regularTetra b hE` is the tetrahedron on four alternating corners of the cube.
+Its four vertices are pairwise equidistant (squared distance `8`) and lie on a sphere (squared
+radius `3`); its geometric face counts are `4, 6, 4`; `V − E + F = 2` comes from
+`Euler_Poincare_full`; and `(3,3)` is one of the five Schläfli pairs. -/
+theorem results_regular_tetrahedron_platonic
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) (hE : Module.finrank ℝ E = 3) :
+    (∀ k l : Fin 4, k ≠ l →
+        ‖EulersGem.Cube.regularTetra b hE k - EulersGem.Cube.regularTetra b hE l‖ ^ 2 = 8) ∧
+      (∀ k : Fin 4, ‖EulersGem.Cube.regularTetra b hE k‖ ^ 2 = 3) ∧
+      (EulersGem.Platonic.facesOfDim
+        (EulersGem.Simplex.body (EulersGem.Cube.regularTetra b hE)) 0).ncard = 4 ∧
+      (EulersGem.Platonic.facesOfDim
+        (EulersGem.Simplex.body (EulersGem.Cube.regularTetra b hE)) 1).ncard = 6 ∧
+      (EulersGem.Platonic.facesOfDim
+        (EulersGem.Simplex.body (EulersGem.Cube.regularTetra b hE)) 2).ncard = 4 ∧
+      ((EulersGem.Platonic.facesOfDim
+          (EulersGem.Simplex.body (EulersGem.Cube.regularTetra b hE)) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim
+          (EulersGem.Simplex.body (EulersGem.Cube.regularTetra b hE)) 1).ncard
+        + (EulersGem.Platonic.facesOfDim
+          (EulersGem.Simplex.body (EulersGem.Cube.regularTetra b hE)) 2).ncard = 2 ∧
+      ((3 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
+  obtain ⟨h1, h2, h3, h4, h5, h6, -⟩ := EulersGem.Cube.regularTetra_platonic b hE
+  exact ⟨h1, h2, h3, h4, h5, h6, by decide⟩
 
 /-- **Three of the five Platonic solids, geometrically, with Euler from EP.**
 

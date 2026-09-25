@@ -29,3 +29,4 @@ import EulersGem.LatticeTriangleEmpty
 import EulersGem.Octahedron
 import EulersGem.Cube
 import EulersGem.EdgeVertices
+import EulersGem.MetricRegular
