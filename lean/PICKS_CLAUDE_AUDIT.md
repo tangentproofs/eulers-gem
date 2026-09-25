@@ -1415,3 +1415,48 @@ EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+## Update 2026-09-25 (I=3 adjacent two-spoke vacuous under PrimitiveEdges; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma nextIdx_ne_prevIdx
+lemma latticeDet_eq_zero_of_mem_edgeLatticePoints_both
+lemma edgeGcd_ge_two_of_two_spoke_midpoints
+    -- midpoints on two spokes ⇒ tip-chord edgeGcd ≥ 2
+theorem false_of_threeInterior_twoSpoke_adjacent_next
+theorem false_of_threeInterior_twoSpoke_adjacent_prev
+theorem interiorFanDet_eq_four_of_threeInterior_twoSpoke_adjacent_next
+    -- vacuous (False.elim); geometric intent: |det(q,r,s)|=1 + double-doubling
+theorem interiorFanDet_eq_two_of_threeInterior_twoSpoke_adjacent_next_outer
+theorem interiorFanDet_eq_one_of_threeInterior_twoSpoke_adjacent_next_foreign
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_adjacent
+    (ThreeInterior) (r on spoke k) (s on spoke m)
+    (m = nextIdx k ∨ m = prevIdx k) :
+    P.shoelace = 3 + B/2 − 1   -- vacuous under PrimitiveEdges
+-- ThreeInteriorCovered extended with two-spoke-adjacent disjunct
+```
+
+Results exports: `results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_adjacent`,
+`results_false_of_threeInterior_twoSpoke_adjacent_next`,
+`results_interiorFanDet_eq_four_of_threeInterior_twoSpoke_adjacent_next`,
+updated covered Finset card=3.
+
+**Prize progress:** Adjacent two-spoke closed under standing `PrimitiveEdges` hyp:
+both spokes have unique midpoints ⇒ shared base edge has lattice midpoint ⇒
+`edgeGcd ≥ 2`, contradicting primitivity; Pick-form holds vacuously. (Absent
+primitivity the shared ear would be `det = 4` via `|det(q,r,s)|=1` + double-doubling,
+outers `det = 2`, foreign `det = 1`, with `B = n+1` restoring Pick-form.)
+Still **not** classical Pick: Off-free Finset card=3; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Off-adjacent-left/right `det=4` + Pick-form | Green |
+| Non-adjacent two-spoke Pick-form | Green |
+| Adjacent two-spoke (vacuous under PrimitiveEdges) | **Green** |
+| Finset card=3 under covered (+ two-spoke-adj) | **Green** |
+| Finset card=3 without covered hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
