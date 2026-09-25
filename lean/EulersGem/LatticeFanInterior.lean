@@ -27,9 +27,10 @@ and boundary edges are primitive, then each `|det| = 1`, hence
 `shoelace = n/2 = B/2 = 1 + B/2 − 1`.
 
 **Geometric discharge (I = 1):**
-`InteriorFanDetsPos` discharges from `UniqueInterior q` + `StrictlyConvexCCW` +
-injective vertices + `PrimitiveEdges`. Non-boundary points in fan ears equal the
-unique apex. Full `InteriorFanTrianglesEmpty` (foreign-vertex extremality) open.
+`InteriorFanDetsPos` and `InteriorFanTrianglesEmpty` discharge from
+`UniqueInterior q` + `StrictlyConvexCCW` + injective vertices + `PrimitiveEdges`.
+Foreign vertices in an ear contradict the supporting half-plane at that vertex
+(CCW edge functional strictly positive at the unique interior apex).
 
 **Honesty / not classical Pick:**
 Shoelace ≠ Haar/Lebesgue. General I > 1 triangulation existence open. EP→planar open.
@@ -580,8 +581,7 @@ theorem mem_convexHullRegion_of_memClosedTriangle_interiorFan
   exact convexHull_min hsub (convex_convexHull ℝ _) htrip
 
 /-- Non-boundary lattice points in an interior-fan ear equal the unique interior
-apex. Foreign-vertex emptiness (boundary case) still needs extremality
-renormalization — see audit. -/
+apex. -/
 theorem eq_apex_of_mem_interiorFan_of_uniqueInterior
     {q : ℤ × ℤ} (hU : UniqueInterior P q) (i : Fin P.nVertices) {p : ℤ × ℤ}
     (hp : MemClosedTriangle (interiorFanTriangle P q i).a
@@ -596,10 +596,163 @@ theorem eq_apex_of_mem_interiorFan_of_uniqueInterior
       show (toReal : ℤ × ℤ → ℝ × ℝ) = Picks.toReal from rfl] using hhull
   exact hU.2 p hint
 
+lemma detR_affine_combination3 (a b x y z : ℝ × ℝ) (α β γ : ℝ)
+    (hsum : α + β + γ = 1) :
+    detR a b (α • x + β • y + γ • z) =
+      α * detR a b x + β * detR a b y + γ * detR a b z := by
+  let w : Fin 3 → ℝ := ![α, β, γ]
+  let zs : Fin 3 → ℝ × ℝ := ![x, y, z]
+  have hw1 : ∑ i : Fin 3, w i = 1 := by
+    simp [w, Fin.sum_univ_three, hsum]
+  have hpts : ∑ i : Fin 3, w i • zs i = α • x + β • y + γ • z := by
+    simp [w, zs, Fin.sum_univ_three]
+  have hsum' := detR_sum_smul a b w zs hw1
+  -- Rewrite both sides to the expanded form.
+  have hrs : ∑ i : Fin 3, w i * detR a b (zs i) =
+      α * detR a b x + β * detR a b y + γ * detR a b z := by
+    simp [w, zs, Fin.sum_univ_three]
+  simpa [hpts, hrs] using hsum'
+
+/-- Supporting half-plane functional at vertex `j` (from the incoming edge). -/
+lemma detR_prev_vertex_eq_zero (j : Fin P.nVertices) :
+    detR (toReal (P.vertex (P.prevIdx j))) (toReal (P.vertex j))
+      (toReal (P.vertex j)) = 0 := by
+  simp [detR]; ring
+
+lemma detR_prev_vertex_nonneg_of_ConvexCCW (h : ConvexCCW P)
+    (j k : Fin P.nVertices) :
+    0 ≤ detR (toReal (P.vertex (P.prevIdx j))) (toReal (P.vertex j))
+      (toReal (P.vertex k)) := by
+  have hZ := det_nonneg_prev_of_ConvexCCW P h j k
+  have : (0 : ℝ) ≤
+      (latticeDet (P.vertex (P.prevIdx j)) (P.vertex j) (P.vertex k) : ℝ) :=
+    Int.cast_nonneg hZ
+  simpa [detR_toReal] using this
+
+lemma detR_prev_apex_pos_of_InteriorFanDetsPos {q : ℤ × ℤ}
+    (hpos : InteriorFanDetsPos P q) (j : Fin P.nVertices) :
+    0 < detR (toReal (P.vertex (P.prevIdx j))) (toReal (P.vertex j))
+      (toReal q) := by
+  have hpos' : 0 < interiorFanDet P q (P.prevIdx j) := hpos (P.prevIdx j)
+  have hcyc : interiorFanDet P q (P.prevIdx j) =
+      latticeDet (P.vertex (P.prevIdx j)) (P.vertex j) q := by
+    simp only [interiorFanDet, interiorFanTriangle, Triangle.det, P.nextIdx_prevIdx]
+    exact latticeDet_cycle q _ _
+  have hZ : 0 < latticeDet (P.vertex (P.prevIdx j)) (P.vertex j) q := by
+    simpa [hcyc] using hpos'
+  have hR : (0 : ℝ) <
+      (latticeDet (P.vertex (P.prevIdx j)) (P.vertex j) q : ℝ) :=
+    Int.cast_pos.mpr hZ
+  simpa [detR_toReal] using hR
+
+/-- **Prize:** unique interior + strict CCW + primitive edges ⇒ each interior-fan
+ear meets lattice points only at its three vertices.
+
+Geometry: ear ⊂ hull; non-boundary points equal the unique apex; boundary points
+are listed vertices (`PrimitiveEdges`); a foreign vertex in the ear would be a
+convex combination involving `q`, contradicting the supporting half-plane at that
+vertex (CCW functional vanishes at the vertex and is strictly positive at `q`). -/
+theorem InteriorFanTrianglesEmpty_of_uniqueInterior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hU : UniqueInterior P q) :
+    InteriorFanTrianglesEmpty P q := by
+  classical
+  intro i p hp
+  by_cases hbd : p ∈ P.boundaryLatticePoints
+  · -- Boundary: constructive boundary = vertex set under primitivity.
+    have hbound := boundaryLatticePoints_eq_vertexFinset P hedge hinj
+    have hpV : p ∈ P.vertexFinset := by simpa [hbound] using hbd
+    have hpV' : p ∈ (Finset.univ : Finset (Fin P.nVertices)).image P.vertex := by
+      rwa [← vertexFinset_eq_univ_image P]
+    obtain ⟨j, _, hj⟩ := Finset.mem_image.mp hpV'
+    subst hj
+    -- Same as an ear endpoint?
+    by_cases hBi : P.vertex j = P.vertex i
+    · exact Or.inr (Or.inl (by simpa [interiorFanTriangle] using hBi))
+    · by_cases hCi : P.vertex j = P.vertex (P.nextIdx i)
+      · exact Or.inr (Or.inr (by simpa [interiorFanTriangle] using hCi))
+      · -- Foreign vertex in △(q, vᵢ, vᵢ₊₁): supporting half-plane contradiction.
+        exfalso
+        obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+        set A := toReal (P.vertex (P.prevIdx j))
+        set B := toReal (P.vertex j)
+        have hpos := InteriorFanDetsPos_of_uniqueInterior P hsc hinj hedge hU
+        have hφq : 0 < detR A B (toReal q) := by
+          simpa [A, B] using detR_prev_apex_pos_of_InteriorFanDetsPos P hpos j
+        have hφvi : 0 ≤ detR A B (toReal (P.vertex i)) := by
+          simpa [A, B] using detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j i
+        have hφvn : 0 ≤ detR A B (toReal (P.vertex (P.nextIdx i))) := by
+          simpa [A, B] using
+            detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j (P.nextIdx i)
+        have hφj : detR A B (toReal (P.vertex j)) = 0 := by
+          simpa [A, B] using detR_prev_vertex_eq_zero P j
+        have hcomb :
+            detR A B (toReal (P.vertex j)) =
+              α * detR A B (toReal q) +
+                β * detR A B (toReal (P.vertex i)) +
+                  γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+          have heq' :
+              toReal (P.vertex j) =
+                α • toReal q + β • toReal (P.vertex i) +
+                  γ • toReal (P.vertex (P.nextIdx i)) := by
+            simpa [interiorFanTriangle] using heq.symm
+          have haff := detR_affine_combination3 A B
+            (toReal q) (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i)))
+            α β γ hsum
+          -- heq' : toReal v_j = α•q+β•v_i+γ•v_next
+          -- haff : detR A B (α•q+...) = α*detR A B q + ...
+          rw [heq', haff]
+        have hα0 : α = 0 := by
+          have hge :
+              α * detR A B (toReal q) ≤
+                α * detR A B (toReal q) +
+                  β * detR A B (toReal (P.vertex i)) +
+                    γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+            have h1 : 0 ≤ β * detR A B (toReal (P.vertex i)) :=
+              mul_nonneg hβ hφvi
+            have h2 : 0 ≤ γ * detR A B (toReal (P.vertex (P.nextIdx i))) :=
+              mul_nonneg hγ hφvn
+            linarith
+          have hαφ : α * detR A B (toReal q) ≤ 0 := by
+            -- RHS = φ(j) = 0
+            have : α * detR A B (toReal q) +
+                  β * detR A B (toReal (P.vertex i)) +
+                    γ * detR A B (toReal (P.vertex (P.nextIdx i))) = 0 := by
+              simpa [hφj] using hcomb.symm
+            linarith
+          have hαφ' : 0 ≤ α * detR A B (toReal q) :=
+            mul_nonneg hα (le_of_lt hφq)
+          have hαφ0 : α * detR A B (toReal q) = 0 := le_antisymm hαφ hαφ'
+          exact (mul_eq_zero.mp hαφ0).resolve_right (ne_of_gt hφq)
+        -- α = 0 ⇒ vertex j lies on the primitive edge (vᵢ, vᵢ₊₁).
+        have hseg :
+            toReal (P.vertex j) ∈
+              segment ℝ (toReal (P.vertex i))
+                (toReal (P.vertex (P.nextIdx i))) := by
+          refine ⟨β, γ, hβ, hγ, ?_, ?_⟩
+          · linarith [hsum, hα0]
+          · have heq' :
+                α • toReal (interiorFanTriangle P q i).a +
+                    β • toReal (interiorFanTriangle P q i).b +
+                      γ • toReal (interiorFanTriangle P q i).c =
+                  toReal (P.vertex j) := heq
+            simp only [interiorFanTriangle] at heq'
+            simpa [hα0, zero_smul, zero_add] using heq' 
+        have hprim : edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) = 1 := by
+          simpa [LatticePolygon.edgePair] using hedge i
+        have hend := eq_endpoints_of_mem_segment_of_edgeGcd_eq_one
+          (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j) hprim hseg
+        exact hend.elim (fun h => hBi h) (fun h => hCi h)
+  · -- Non-boundary ⇒ unique apex.
+    exact Or.inl
+      (eq_apex_of_mem_interiorFan_of_uniqueInterior P hU i hp hbd)
+
 /-- **I = 1 shoelace Pick-form** with `InteriorFanDetsPos` discharged from
 `UniqueInterior` + `StrictlyConvexCCW` (not classical Pick).
 
-Still takes `InteriorFanTrianglesEmpty` (foreign-vertex extremality open). -/
+Still takes `InteriorFanTrianglesEmpty` as an optional alternate hyp; prefer the
+fully geometric form below. -/
 theorem shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior_of_empty
     (hverts : Function.Injective P.vertex)
     (hedge : PrimitiveEdges P)
@@ -609,6 +762,21 @@ theorem shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior_of_empty
     P.shoelace = (1 : ℚ) + (P.B : ℚ) / 2 - 1 :=
   shoelace_eq_I_add_B_div_two_sub_one_of_interior_fan P hverts hedge
     (InteriorFanDetsPos_of_uniqueInterior P hsc hverts hedge hU) hempty
+
+/-- **I = 1 shoelace Pick-form** with fan emptiness discharged from geometric hyps
+(not classical Pick).
+
+Hyps: injective vertices, primitive edges, `StrictlyConvexCCW`, unique interior
+lattice point. Concludes `shoelace = 1 + B/2 − 1`. No `InteriorFanTrianglesEmpty`
+hyp. Still shoelace ≠ Haar; classical Pick FAIL. -/
+theorem shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P)
+    {q : ℤ × ℤ} (hU : UniqueInterior P q) :
+    P.shoelace = (1 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior_of_empty P hverts hedge hsc hU
+    (InteriorFanTrianglesEmpty_of_uniqueInterior P hsc hverts hedge hU)
 
 /-! ## I > 1 gap (honest)
 

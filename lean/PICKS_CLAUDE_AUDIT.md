@@ -559,3 +559,41 @@ EP→planar open. Claude Cube / Octahedron / Platonic / EdgeVertices untouched.
 | Full `InteriorFanTrianglesEmpty` (foreign vertices) | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (InteriorFanTrianglesEmpty from UniqueInterior; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem InteriorFanTrianglesEmpty_of_uniqueInterior
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (UniqueInterior P q) :
+    InteriorFanTrianglesEmpty P q
+
+theorem shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior
+    (Injective P.vertex) (PrimitiveEdges P) (StrictlyConvexCCW P)
+    (UniqueInterior P q) :
+    P.shoelace = (1 : ℚ) + (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_InteriorFanTrianglesEmpty_of_uniqueInterior`,
+`results_shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior`.
+
+**Prize progress:** foreign-vertex extremality closed via supporting half-plane at
+the foreign vertex (CCW incoming-edge functional vanishes at the vertex, is
+nonnegative on all vertices, and is strictly positive at the unique interior
+apex — so the apex weight in a barycentric combination must be zero, reducing to
+a primitive boundary edge). Full geometric I=1 shoelace form takes only injective
+vertices + primitive edges + `StrictlyConvexCCW` + `UniqueInterior`. Still **not**
+classical Pick: Haar/Lebesgue; general I>1 triangulation existence; EP→planar open.
+Claude Cube / Octahedron / Platonic / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Discharge `InteriorFanDetsPos` from `UniqueInterior` + CCW | Green |
+| Non-boundary ear points = unique apex | Green |
+| Full `InteriorFanTrianglesEmpty` (foreign vertices) | **Green** |
+| I=1 shoelace under only geometric hyps | **Green** |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+
