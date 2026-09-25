@@ -1357,6 +1357,102 @@ theorem results_offBoundary_or_onSpoke_of_mem_interiorFan
   EulersGem.Picks.LatticeFan.InteriorFan.offBoundary_or_onSpoke_of_mem_interiorFan
     P hr_int i hr
 
+/-- Strict on-spoke endpoints under `ThreeInterior`. -/
+theorem results_ne_endpoints_of_threeInterior_onSpoke
+    (P : EulersGem.Picks.LatticePolygon) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k)) :
+    r ≠ q ∧ r ≠ P.vertex k :=
+  EulersGem.Picks.LatticeFan.InteriorFan.ne_endpoints_of_threeInterior_onSpoke P h k hs
+
+/-- Under `ThreeInterior`, on-spoke `r` with `s` off that spoke ⇒ `edgeGcd = 2`. -/
+theorem results_edgeGcd_eq_two_of_threeInterior_onSpoke
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (hs_not : s ∉ EulersGem.Picks.edgeLatticePoints q (P.vertex k)) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) = 2 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_two_of_threeInterior_onSpoke
+    P hsc hinj hedge h k hs hne_q hne_v hs_not
+
+/-- Covering ear for `r` under `ThreeInterior` is Off or on-spoke. -/
+theorem results_exists_offBoundary_or_onSpoke_covering_of_threeInterior_left
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s) :
+    ∃ i : Fin P.nVertices,
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+        (P.vertex (P.nextIdx i)) r ∧
+        (EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+          (P.vertex i) (P.vertex (P.nextIdx i)) r ∨
+          r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex i) ∨
+            r ∈ EulersGem.Picks.edgeLatticePoints (P.vertex (P.nextIdx i)) q) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.exists_offBoundary_or_onSpoke_covering_of_threeInterior_left
+    P hsc hinj hedge h
+
+/-- Left-adjacent on-spoke ear has `interiorFanDet = 2` under `ThreeInterior`. -/
+theorem results_interiorFanDet_eq_two_of_threeInterior_onSpoke_left
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (hs_not_spoke : s ∉ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs_not_ear : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex k)
+      (P.vertex (P.nextIdx k)) s) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q k = 2 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_two_of_threeInterior_onSpoke_left
+    P hsc hinj hedge h k hs hne_q hne_v hs_not_spoke hs_not_ear
+
+/-- Right-adjacent on-spoke ear has `interiorFanDet = 2` under `ThreeInterior`. -/
+theorem results_interiorFanDet_eq_two_of_threeInterior_onSpoke_right
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (hs_not_spoke : s ∉ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs_not_ear : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle q
+      (P.vertex (P.prevIdx k)) (P.vertex k) s) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q (P.prevIdx k) = 2 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_two_of_threeInterior_onSpoke_right
+    P hsc hinj hedge h k hs hne_q hne_v hs_not_spoke hs_not_ear
+
+/-- **I = 3 shoelace Pick-form** under on-spoke `r` + Off `s` in a non-adjacent
+ear (not classical Pick). -/
+theorem results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k j : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (hs_ear : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex j)
+      (P.vertex (P.nextIdx j)) s)
+    (hoff_s : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex j) (P.vertex (P.nextIdx j)) s)
+    (hne_k : j ≠ k) (hne_prev : j ≠ P.prevIdx k) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off
+    P hsc hinj hedge h k j hs hne_q hne_v hs_ear hoff_s hne_k hne_prev
+
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane

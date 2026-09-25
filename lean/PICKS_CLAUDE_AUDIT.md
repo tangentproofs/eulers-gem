@@ -1142,3 +1142,45 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (I=3 on-spoke one+Off-nonadjacent; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma ne_endpoints_of_threeInterior_onSpoke
+theorem edgeGcd_eq_two_of_threeInterior_onSpoke
+    (ThreeInterior) (r on spoke k) (s ∉ that spoke) : edgeGcd = 2
+theorem exists_offBoundary_or_onSpoke_covering_of_threeInterior_left/right
+theorem interiorFanDet_eq_two_of_threeInterior_onSpoke_{left,right}
+    (s absent from adjacent ear) : interiorFanDet = 2
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off
+    (ThreeInterior) (r on spoke k) (s Off in ear j non-adjacent) :
+    P.shoelace = 3 + B/2 − 1
+```
+
+Results exports: `results_ne_endpoints_of_threeInterior_onSpoke`,
+`results_edgeGcd_eq_two_of_threeInterior_onSpoke`,
+`results_exists_offBoundary_or_onSpoke_covering_of_threeInterior_left`,
+`results_interiorFanDet_eq_two_of_threeInterior_onSpoke_{left,right}`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off`.
+
+**Prize progress:** I=3 on-spoke substrate: classify coverings Off/on-spoke;
+occupied spoke with companion off-spoke has `edgeGcd=2`; half-ear emptiness +
+doubling give adjacent `det=2`; combine with Off ear `det=3` for non-adjacent
+companion ⇒ fan sum `n+4` Pick-form. Still **not** classical Pick: same-spoke
+both-on-spoke / Off-in-adjacent-ear; full Finset card=3 without Off-apex hyp;
+Haar; EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Off/on-spoke covering classification (ThreeInterior) | **Green** |
+| `edgeGcd=2` when companion off spoke | **Green** |
+| Adjacent det=2 under ThreeInterior on-spoke | **Green** |
+| I=3 Pick-form on-spoke + Off non-adjacent | **Green** |
+| Same-spoke / both-on-spoke / Off-adjacent | Open |
+| Finset card=3 without Off-apex hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+
