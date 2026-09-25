@@ -1639,11 +1639,56 @@ theorem results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off_adjacent_right
     P hsc hinj hedge h k hr hne_q hne_v hs_ear hoff_s
 
+/-- **I = 3 shoelace Pick-form** under non-adjacent two-spoke (not classical Pick).
+
+Four ears `det = 2`; foreign `det = 1`; fan sum `n+4`. Adjacent two-spoke still open. -/
+theorem results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_nonadjacent
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k m : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hne_km : m ≠ k) (hne_m_next : m ≠ P.nextIdx k) (hne_m_prev : m ≠ P.prevIdx k) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_nonadjacent
+    P hsc hinj hedge h k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
+      hne_km hne_m_next hne_m_prev
+
+/-- On-spoke `r` with non-adjacent companion spoke occupies exactly two adjacent ears. -/
+theorem results_eq_of_mem_interiorFan_of_threeInterior_twoSpoke
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k m j : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hne_km : m ≠ k) (hne_m_next : m ≠ P.nextIdx k) (hne_m_prev : m ≠ P.prevIdx k)
+    (hrj : EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      q (P.vertex j) (P.vertex (P.nextIdx j)) r) :
+    j = k ∨ j = P.prevIdx k :=
+  EulersGem.Picks.LatticeFan.InteriorFan.eq_of_mem_interiorFan_of_threeInterior_twoSpoke
+    P hsc hinj hedge h k m j hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
+      hne_km hne_m_next hne_m_prev hrj
+
 /-- **I = 3 shoelace Pick-form** under covered configurations (not classical Pick).
 
 Finset `card = 3` when interior points form a `ThreeInteriorCovered` configuration
-(Off / on-spoke+Off-nonadjacent / Off-adjacent-left/right / same-spoke).
-Two-spoke still open. Shoelace ≠ Haar. Classical Pick FAIL. -/
+(Off / on-spoke+Off-nonadjacent / Off-adjacent-left/right / same-spoke /
+two-spoke-nonadjacent). Adjacent two-spoke still open. Shoelace ≠ Haar.
+Classical Pick FAIL. -/
 theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
     (P : EulersGem.Picks.LatticePolygon)
     (S : Finset (ℤ × ℤ))
@@ -1658,7 +1703,7 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
     P S hS hcard hverts hedge hsc hcov
 
-/-- Covered I=3 predicate (Off ∨ onSpoke-Off-nonadj ∨ Off-adj-left/right ∨ sameSpoke). -/
+/-- Covered I=3 predicate (Off ∨ onSpoke-Off-nonadj ∨ Off-adj-left/right ∨ sameSpoke ∨ twoSpoke-nonadj). -/
 def results_ThreeInteriorCovered :=
   @EulersGem.Picks.LatticeFan.InteriorFan.ThreeInteriorCovered
 
