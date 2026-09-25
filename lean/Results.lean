@@ -695,6 +695,27 @@ arbitrary 3-dimensional real inner product space. Its face lattice is computed i
 `SimplexFaces.lean`, so all hypotheses below are discharged.
 -/
 
+/-- **The number of `d`-faces of a geometric `n`-simplex is `C(n+1, d+1)`.**
+The *geometric* face counts (`IsFaceOf` + `affDim`) of the convex hull of `n+1` affinely
+independent points match the combinatorial face counts of the abstract `n`-simplex. -/
+theorem results_geometric_simplex_face_counts
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    {n : ℕ} (b : AffineBasis (Fin (n + 1)) ℝ E) (d : ℕ) :
+    (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) (d : ℤ)).ncard
+      = (n + 1).choose (d + 1) :=
+  (EulersGem.Simplex.geometric_simplex_euler_poincare b).1 d
+
+/-- **Euler–Poincaré for a geometric simplex in every dimension.** For the convex hull of
+`n+1` affinely independent points, the alternating sum of its geometric face counts is `1`.
+This is the geometric counterpart of `results_faceEulerSum_simplex_faceCount`. -/
+theorem results_geometric_simplex_euler_poincare
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    {n : ℕ} (b : AffineBasis (Fin (n + 1)) ℝ E) :
+    ∑ d ∈ range (n + 1),
+      (-1 : ℤ) ^ d * ((EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) (d : ℤ)).ncard : ℤ)
+      = 1 :=
+  (EulersGem.Simplex.geometric_simplex_euler_poincare b).2
+
 /-- **Geometric tetrahedron face counts: `V = 4`, `E = 6`, `F = 4`.**
 These count geometric faces (`IsFaceOf` + `affDim`), computed from the simplex face lattice. -/
 theorem results_tetrahedron_face_counts

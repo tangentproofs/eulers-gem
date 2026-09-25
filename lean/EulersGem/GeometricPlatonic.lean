@@ -265,6 +265,58 @@ theorem tetrahedron_platonic (hE : Module.finrank ℝ E = 3) :
 
 end Tetrahedron
 
+/-! ## Face counts of a geometric simplex in every dimension -/
+
+section SimplexCounts
+
+variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+variable {ι : Type*} [Fintype ι] (b : AffineBasis ι ℝ E)
+
+/-- The `(d+1)`-element subsets of the vertex index set are counted by a binomial
+coefficient. -/
+lemma ncard_setOf_card_eq (k : ℕ) :
+    {S : Finset ι | S.card = k}.ncard = (Fintype.card ι).choose k := by
+  classical
+  have hset : {S : Finset ι | S.card = k}
+      = ↑((Finset.univ : Finset ι).powersetCard k) := by
+    ext S
+    simp [Finset.mem_powersetCard, Finset.subset_univ]
+  rw [hset, Set.ncard_coe_finset, Finset.card_powersetCard, Finset.card_univ]
+
+/-- **The number of `d`-faces of a geometric simplex is `C(n+1, d+1)`.**
+`Fintype.card ι = n + 1` vertices, so the geometric face counts of the simplex match the
+combinatorial face counts of the abstract `n`-simplex. -/
+theorem ncard_facesOfDim_body_eq_choose (d : ℕ) :
+    (facesOfDim (body b) (d : ℤ)).ncard = (Fintype.card ι).choose (d + 1) := by
+  rw [ncard_facesOfDim_body b (d : ℤ)]
+  have hset : {S : Finset ι | (S.card : ℤ) = (d : ℤ) + 1} = {S : Finset ι | S.card = d + 1} := by
+    ext S
+    simp only [Set.mem_setOf_eq]
+    omega
+  rw [hset, ncard_setOf_card_eq]
+
+/-- **Euler–Poincaré for a geometric simplex, in binomial form.** For a geometric
+`n`-simplex the alternating sum of its *geometric* face counts is `1`, and each count is the
+binomial coefficient of the abstract `n`-simplex. -/
+theorem geometric_simplex_euler_poincare {n : ℕ} (b : AffineBasis (Fin (n + 1)) ℝ E) :
+    (∀ d : ℕ, (facesOfDim (body b) (d : ℤ)).ncard = (n + 1).choose (d + 1)) ∧
+      ∑ d ∈ Finset.range (n + 1),
+        (-1 : ℤ) ^ d * ((facesOfDim (body b) (d : ℤ)).ncard : ℤ) = 1 := by
+  have hcount : ∀ d : ℕ, (facesOfDim (body b) (d : ℤ)).ncard = (n + 1).choose (d + 1) := by
+    intro d
+    rw [ncard_facesOfDim_body_eq_choose b d]
+    simp
+  refine ⟨hcount, ?_⟩
+  have hsum := faceEulerSum_simplex_faceCount n
+  calc ∑ d ∈ Finset.range (n + 1), (-1 : ℤ) ^ d * ((facesOfDim (body b) (d : ℤ)).ncard : ℤ)
+      = ∑ d ∈ Finset.range (n + 1), (-1 : ℤ) ^ d * (faceCount n d : ℤ) := by
+        refine Finset.sum_congr rfl fun d _ => ?_
+        rw [hcount d, faceCount]
+    _ = 1 := hsum
+
+end SimplexCounts
+
+
 /-! ## Existence of a geometric tetrahedron -/
 
 /-- Every 3-dimensional real inner product space contains a geometric tetrahedron, so the
