@@ -1691,6 +1691,67 @@ lemma shoelaceSum_trianglePolygon (a b c : ℤ × ℤ) :
     _ = cross a b + cross b c + cross c a := hsum
     _ = latticeDet a b c := (latticeDet_eq_cross_cycle a b c).symm
 
+/-- Closed triangle with exactly one Off interior lattice point has `det = 3`
+(I=1 shoelace on `trianglePolygon`; not classical Pick). -/
+theorem latticeDet_eq_three_of_subset_four_off
+    (a b c s : ℤ × ℤ) (hD : 0 < latticeDet a b c)
+    (hsub : ∀ p, MemClosedTriangle a b c p → p = a ∨ p = b ∨ p = c ∨ p = s)
+    (hoff : OffTriangleBoundary a b c s)
+    (hs_mem : MemClosedTriangle a b c s) :
+    latticeDet a b c = 3 := by
+  classical
+  set T := trianglePolygon a b c
+  have hscT : StrictlyConvexCCW T := StrictlyConvexCCW_trianglePolygon a b c hD
+  have hinjT : Function.Injective T.vertex :=
+    injective_vertex_trianglePolygon a b c (ne_of_gt hD)
+  have hedgeT : PrimitiveEdges T :=
+    PrimitiveEdges_trianglePolygon_of_subset_four_off a b c s (ne_of_gt hD) hsub hoff
+  have hs_not_bd : s ∉ T.boundaryLatticePoints :=
+    not_mem_boundary_trianglePolygon_of_OffTriangleBoundary hoff
+  have hs_hull : toReal s ∈ T.convexHullRegion := by
+    rw [trianglePolygon_convexHullRegion]
+    exact mem_convexHull_of_memClosedTriangle a b c s hs_mem
+  have hU : UniqueInterior T s := by
+    refine ⟨⟨hs_hull, hs_not_bd⟩, ?_⟩
+    intro p hp
+    have hp_mem : MemClosedTriangle a b c p :=
+      memClosedTriangle_of_mem_convexHull a b c p (by
+        simpa [T, trianglePolygon_convexHullRegion] using hp.1)
+    have hp_not_bd : p ∉ T.boundaryLatticePoints := hp.2
+    rcases hsub p hp_mem with h1 | h2 | h3 | h4
+    · have hbd : a ∈ T.boundaryLatticePoints :=
+        T.vertices_mem_boundary (List.mem_cons_self (a := a) (l := [b, c]))
+      exact absurd (h1.symm ▸ hbd) hp_not_bd
+    · have hbd : b ∈ T.boundaryLatticePoints :=
+        T.vertices_mem_boundary
+          (List.mem_cons_of_mem a (List.mem_cons_self (a := b) (l := [c])))
+      exact absurd (h2.symm ▸ hbd) hp_not_bd
+    · have hbd : c ∈ T.boundaryLatticePoints :=
+        T.vertices_mem_boundary
+          (List.mem_cons_of_mem a
+            (List.mem_cons_of_mem b (List.mem_singleton.mpr rfl)))
+      exact absurd (h3.symm ▸ hbd) hp_not_bd
+    · exact h4
+  have hshoelace : T.shoelace = (1 : ℚ) + (T.B : ℚ) / 2 - 1 :=
+    shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior T hinjT hedgeT hscT hU
+  have hB : T.B = 3 := by
+    have := B_eq_nVertices_of_primitive_edges T hedgeT hinjT
+    simpa [T, trianglePolygon_nVertices] using this
+  have harea : T.shoelace = (3 : ℚ) / 2 := by rw [hshoelace, hB]; ring
+  have hsum : T.shoelaceSum = latticeDet a b c := shoelaceSum_trianglePolygon a b c
+  have hnn : 0 ≤ T.shoelaceSum := by simpa [hsum] using le_of_lt hD
+  have hnat : Int.natAbs T.shoelaceSum = 3 := by
+    have : (Int.natAbs T.shoelaceSum : ℚ) / 2 = (3 : ℚ) / 2 := by
+      simpa [LatticePolygon.shoelace] using harea
+    have : (Int.natAbs T.shoelaceSum : ℚ) = 3 := by linarith
+    exact_mod_cast this
+  have hz : T.shoelaceSum = (Int.natAbs T.shoelaceSum : ℤ) :=
+    (Int.natAbs_of_nonneg hnn).symm
+  calc
+    latticeDet a b c = T.shoelaceSum := hsum.symm
+    _ = (Int.natAbs T.shoelaceSum : ℤ) := hz
+    _ = 3 := by rw [hnat]; norm_num
+
 /-- Occupied ear with `OffTriangleBoundary` has `StrictlyConvexCCW` and
 `PrimitiveEdges` as a `trianglePolygon` (not classical Pick). -/
 theorem StrictlyConvexCCW_PrimitiveEdges_trianglePolygon_of_twoInterior_occupied
