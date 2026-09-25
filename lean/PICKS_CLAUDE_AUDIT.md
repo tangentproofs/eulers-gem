@@ -99,7 +99,7 @@ Landed (honest names; **not** classical Pick in Results):
 | `memClosedTriangle_eq_vertices_of_natAbs_det_eq_one` | Green (emptiness) |
 | `PrimitiveLatticeTriangulationWitness` | Green |
 | `results_shoelace_pick_form_of_primitive_triangulation_witness` | Green; **conditional** on witness + `hEuler_planar` + handshaking |
-| Classical Pick | **Still FAIL** — existence, EP→planar, handshaking, measure open |
+| Classical Pick | **Still FAIL** — general existence, general EP→planar, measure open |
 
 ### Candidate statement (do NOT rename to Pick until re-audit PASS)
 
@@ -135,7 +135,44 @@ theorem two_E_eq_three_T_add_B {α} [DecidableEq α]
 | Item | Status |
 |------|--------|
 | Handshaking from incidence | Green (combinatorial) |
-| Geometric witness → incidence structure | Open |
-| EP → planar Euler | Open (`planar_disk_euler_of_EP_bridge` records hyp) |
-| Triangulation existence | Open |
+| Geometric witness → incidence structure | Partial (unit square green; general open) |
+| EP → planar Euler | Partial (unit square / fan n≤5 / fan counts green; general `Euler_Poincare_full` open) |
+| Triangulation existence | Partial (combinatorial fan n≤5; general open) |
+| Classical Pick | **Still FAIL** |
+
+## Update 2026-09-24 (unit-square Euler discharge + fan existence; still FAIL)
+
+Landed (honest names; **not** classical Pick):
+
+```lean
+theorem planar_disk_euler_of_fan_counts
+    (n V E T B F : ℕ) (hn : 3 ≤ n)
+    (hV : V = n) (hB : B = n) (hT : T = n - 2)
+    (hE : E = 2 * n - 3) (hF : F = T + 1) :
+    (V : ℤ) - E + F = 2
+
+theorem unitSquare_planar_euler :
+    (unitSquare.planarCounts).eulerChar = 2
+
+theorem exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 5) :
+    Nonempty (CombinatorialDiskTriangulation (Fin n))
+
+theorem shoelace_pick_form_of_unit_square :
+    UnitSquareWitness.witness.shoelaceArea =
+      (UnitSquareWitness.witness.I : ℚ) + (UnitSquareWitness.witness.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_unit_square_planar_euler`,
+`results_planar_disk_euler_of_fan_counts`, `results_exists_fan_disk_triangulation`,
+`results_fan5_planar_euler`, `results_shoelace_pick_form_of_unit_square`.
+
+| Item | Status |
+|------|--------|
+| Handshaking from incidence | Green (combinatorial) |
+| Geometric witness → incidence (unit square) | Green |
+| Planar Euler (unit square + fan n≤5 + fan counts) | Green (concrete / combinatorial) |
+| General EP → planar via `Euler_Poincare_full` | Open (`planar_disk_euler_of_EP_bridge`) |
+| Triangulation existence (n≤5 combinatorial fan) | Green (small-n slice) |
+| Triangulation existence (arbitrary lattice polygons) | Open |
+| Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |

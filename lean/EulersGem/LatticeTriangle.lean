@@ -216,6 +216,7 @@ structure Triangle where
   a : ℤ × ℤ
   b : ℤ × ℤ
   c : ℤ × ℤ
+  deriving DecidableEq
 
 namespace Triangle
 

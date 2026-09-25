@@ -46,7 +46,7 @@ Planar/spherical Euler for Pick must be **discharged from that root** — not a 
 - `PrimitiveLatticeTriangulationWitness` + shoelace Pick-form **conditional on
   witness + `hEuler_planar`** (EP-spine hyp; discharge open).
 - **Claude audit: FAIL** for classical Pick — see `PICKS_CLAUDE_AUDIT.md`.
-- Still open: triangulation existence, EP→planar Euler, handshaking, shoelace=measure.
+- Still open: general triangulation existence, general EP→planar via `Euler_Poincare_full`, shoelace=measure. (Handshaking combinatorial green; unit-square Euler + fan n≤5 existence landed.)
 
 ## Deliverables
 

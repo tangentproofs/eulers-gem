@@ -251,6 +251,15 @@ theorem vertices_mem_boundary {v : ℤ × ℤ} (hv : v ∈ P.vertices) :
     simpa [edgePair] using hi
   simpa [this] using self_mem_edgeLatticePoints v (P.edgePair i).2
 
+/-- Every listed vertex lies in the convex-hull lattice-point set.
+Uses `subset_convexHull` — not Haar, not Pick. -/
+theorem mem_latticePointsInConvexHull_of_mem_vertices {v : ℤ × ℤ}
+    (hv : v ∈ P.vertices) : v ∈ P.latticePointsInConvexHull := by
+  have hvF : v ∈ P.vertexFinset := List.mem_toFinset.mpr hv
+  have himg : toReal v ∈ toReal '' (P.vertexFinset : Set (ℤ × ℤ)) :=
+    Set.mem_image_of_mem toReal hvF
+  exact subset_convexHull ℝ _ himg
+
 end LatticePolygon
 
 end Picks

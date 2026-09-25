@@ -13,9 +13,11 @@
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
 7. **Phase B (#1535) in progress:** combinatorial Platonic classification + five Schläfli
    constructions done; Pick on **EP spine** — count identities + lattice polygon I/B +
-   `|det|=1` emptiness + witness-conditional shoelace Pick-form landed (not classical Pick).
-   Still open: triangulation existence, EP→planar Euler discharge, handshaking, Haar.
-   See `PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`. Platonic geometric regularity: separate lane.
+   `|det|=1` emptiness + witness-conditional shoelace Pick-form + combinatorial handshaking +
+   unit-square witness↔disk with planar Euler discharged + fan existence for `n≤5`
+   (not classical Pick). Still open: general triangulation existence, general EP→planar
+   from `Euler_Poincare_full`, Haar/shoelace=measure. See `PHASE_B_PLAN.md`,
+   `PICKS_CLAUDE_AUDIT.md`. Platonic geometric regularity: separate lane.
 
 Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 
@@ -49,8 +51,10 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
   - [x] Funkenbusch / triangulation *count identities* (not Pick)
   - [x] Lattice polygon structure + geometric I/B defs (`LatticePolygon.lean`)
   - [x] `|det|=1` ⇒ closed triangle has only vertex lattice points
-  - [x] `PrimitiveLatticeTriangulationWitness` + shoelace Pick-form **conditional on witness + `hEuler_planar`** (EP discharge still open; not classical Pick)
-  - [ ] Triangulation existence for simple lattice polygons
-  - [ ] Discharge `hEuler_planar` from `Euler_Poincare_full` / planar-disk EP instance
-  - [ ] Discharge handshaking `2E=3T+B` from planar graph API
+  - [x] `PrimitiveLatticeTriangulationWitness` + shoelace Pick-form **conditional on witness + `hEuler_planar`** (not classical Pick)
+  - [x] Combinatorial handshaking `2E=3T+B` from disk incidence (`PlanarTriangulation`)
+  - [x] Unit-square witness ↔ combinatorial disk; planar Euler **proved** for unit square + fan `n≤5` (general EP→planar still open)
+  - [x] Fan combinatorial triangulation existence for `3 ≤ n ≤ 5` (`FanDiskTriangulation`)
+  - [ ] Triangulation existence for arbitrary simple / convex lattice polygons
+  - [ ] Discharge `hEuler_planar` from `Euler_Poincare_full` for general planar disks
   - [ ] Shoelace = Haar/Lebesgue; Claude audit PASS before any Pick-named Results claim

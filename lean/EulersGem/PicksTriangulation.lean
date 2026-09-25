@@ -31,13 +31,16 @@ This file provides:
 
 **Honesty / still open:**
 
-* Existence of a triangulation for an arbitrary simple lattice polygon.
-* Discharge of `hEuler_planar` from `Euler_Poincare_full` (disk / sphere /
-  planar complex).
+* Existence of a triangulation for an arbitrary simple lattice polygon
+  (combinatorial fan existence for `n ≤ 5` landed in `FanDiskTriangulation`;
+  geometric existence for general convex lattice polygons still open).
 * Discharge of handshaking `2E = 3T + B` from a *geometric* incidence structure
   (combinatorial discharge landed in `PlanarTriangulation.lean` —
-  `CombinatorialDiskTriangulation.two_E_eq_three_T_add_B`; wiring this witness
-  to that structure is still open).
+  `CombinatorialDiskTriangulation.two_E_eq_three_T_add_B`; unit-square witness
+  is wired below; general polygons still open).
+* Discharge of `hEuler_planar` for general polygons (unit square + fan disks
+  proved in `PlanarTriangulation.lean`; general EP→planar from
+  `Euler_Poincare_full` still open).
 * Shoelace = Haar/Lebesgue measure.
 * Classical Pick's theorem (gated by `PICKS_CLAUDE_AUDIT.md`).
 
@@ -177,6 +180,105 @@ theorem shoelace_pick_form_of_witness_of_combinatorial_disk
     rw [hT, hB] at h
     exact h
   exact W.shoelace_eq_I_add_B_div_two_sub_one V G.E F hV hF hEuler_planar hshake
+
+/-! ## Unit square: geometric witness ↔ combinatorial disk (Euler discharged)
+
+Concrete bridge: a `PrimitiveLatticeTriangulationWitness` for the unit square
+pairs with `UnitSquareTriangulation.unitSquare`, so
+`shoelace_pick_form_of_witness_of_combinatorial_disk` applies with **proved**
+planar Euler (no free `hEuler_planar`). **Not classical Pick** — one polygon
+only; shoelace ≠ Haar; audit remains FAIL.
+-/
+
+namespace UnitSquareWitness
+
+open UnitSquareTriangulation
+
+/-- Unit square as a cyclic lattice polygon. -/
+def polygon : LatticePolygon :=
+  ⟨[v00, v10, v11, v01], by decide⟩
+
+def tLowerTri : Triangle := ⟨v00, v10, v11⟩
+def tUpperTri : Triangle := ⟨v00, v11, v01⟩
+
+private lemma tLowerTri_primitive : tLowerTri.IsDetPrimitive := by
+  unfold Triangle.IsDetPrimitive Triangle.det latticeDet tLowerTri v00 v10 v11
+  decide
+
+private lemma tUpperTri_primitive : tUpperTri.IsDetPrimitive := by
+  unfold Triangle.IsDetPrimitive Triangle.det latticeDet tUpperTri v00 v11 v01
+  decide
+
+/-- Geometric primitive triangulation witness for the unit square. -/
+def witness : PrimitiveLatticeTriangulationWitness where
+  polygon := polygon
+  triangles := {tLowerTri, tUpperTri}
+  primitive := by
+    intro t ht
+    simp only [Finset.mem_insert, Finset.mem_singleton] at ht
+    rcases ht with rfl | rfl
+    · exact tLowerTri_primitive
+    · exact tUpperTri_primitive
+  verts_in_poly := by
+    intro t ht
+    simp only [Finset.mem_insert, Finset.mem_singleton] at ht
+    rcases ht with rfl | rfl
+    · exact ⟨polygon.mem_latticePointsInConvexHull_of_mem_vertices (by native_decide),
+        polygon.mem_latticePointsInConvexHull_of_mem_vertices (by native_decide),
+        polygon.mem_latticePointsInConvexHull_of_mem_vertices (by native_decide)⟩
+    · exact ⟨polygon.mem_latticePointsInConvexHull_of_mem_vertices (by native_decide),
+        polygon.mem_latticePointsInConvexHull_of_mem_vertices (by native_decide),
+        polygon.mem_latticePointsInConvexHull_of_mem_vertices (by native_decide)⟩
+  area_additivity := by
+    have hnin : tLowerTri ∉ ({tUpperTri} : Finset Triangle) := by native_decide
+    have hsum :
+        ∑ t ∈ ({tLowerTri, tUpperTri} : Finset Triangle), t.shoelace =
+          tLowerTri.shoelace + tUpperTri.shoelace := by
+      rw [Finset.sum_insert hnin, Finset.sum_singleton]
+    change polygon.shoelace = ∑ t ∈ ({tLowerTri, tUpperTri} : Finset Triangle), t.shoelace
+    rw [hsum]
+    native_decide
+  interior := ∅
+  interior_mem := by
+    intro p hp
+    cases hp
+
+theorem witness_I : witness.I = 0 := by native_decide
+theorem witness_B : witness.B = 4 := by native_decide
+theorem witness_T : witness.T = 2 := by native_decide
+theorem witness_shoelace : witness.shoelaceArea = 1 := by native_decide
+
+theorem witness_T_eq_unitSquare : unitSquare.T = witness.T := by native_decide
+theorem witness_B_eq_unitSquare : unitSquare.B = witness.B := by native_decide
+
+/-- Witness ↔ combinatorial disk: shared `T` and `B`. -/
+theorem witness_matches_unitSquare_disk :
+    unitSquare.T = witness.T ∧ unitSquare.B = witness.B :=
+  ⟨witness_T_eq_unitSquare, witness_B_eq_unitSquare⟩
+
+/-- **Unit-square shoelace Pick-form with planar Euler discharged** (not classical Pick).
+
+Uses the combinatorial disk triangulation + proved `unitSquare_planar_euler`.
+No free `hEuler_planar` hypothesis. Still not classical Pick: one polygon,
+shoelace not Haar, no general existence. -/
+theorem shoelace_pick_form_unit_square :
+    witness.shoelaceArea = (witness.I : ℚ) + (witness.B : ℚ) / 2 - 1 := by
+  have hV : (unitSquare.V : ℤ) = (witness.I : ℤ) + witness.B := by native_decide
+  have hF : ((unitSquare.T : ℤ) + 1) = (witness.T : ℤ) + 1 := by native_decide
+  have hEuler : (unitSquare.V : ℤ) - (unitSquare.E : ℤ) + ((unitSquare.T : ℤ) + 1) = 2 := by
+    simpa using unitSquare_planar_euler'
+  exact shoelace_pick_form_of_witness_of_combinatorial_disk
+    witness unitSquare witness_T_eq_unitSquare witness_B_eq_unitSquare
+    (unitSquare.V : ℤ) ((unitSquare.T : ℤ) + 1) hV hF hEuler
+
+end UnitSquareWitness
+
+/-- Convenience export: unit-square shoelace Pick-form (Euler discharged). -/
+theorem shoelace_pick_form_of_unit_square :
+    UnitSquareWitness.witness.shoelaceArea =
+      (UnitSquareWitness.witness.I : ℚ) + (UnitSquareWitness.witness.B : ℚ) / 2 - 1 :=
+  UnitSquareWitness.shoelace_pick_form_unit_square
+
 
 end Picks
 end EulersGem

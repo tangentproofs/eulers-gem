@@ -32,7 +32,8 @@ Pick; geometric regularity for Platonic; etc.).
 
 Phase B (#1535): combinatorial Platonic classification + five Schläfli
 constructions, Funkenbusch / triangulation *count identities* (not Pick), and a
-**witness-conditional** shoelace Pick-form on the EP spine (not classical Pick).
+**witness-conditional** shoelace Pick-form on the EP spine, plus a unit-square
+case with planar Euler discharged (still not classical Pick).
 **Classical geometric Pick's theorem is not claimed** — see `Picks.lean`,
 `PicksTriangulation.lean`, `PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`.
 -/
@@ -198,10 +199,37 @@ theorem results_unit_square_disk_triangulation_handshaking :
         EulersGem.Picks.UnitSquareTriangulation.unitSquare.B :=
   EulersGem.Picks.UnitSquareTriangulation.unitSquare_handshaking
 
+/-- **Planar Euler for the unit-square disk** (proved, not assumed).
+`V−E+F = 2` with `F = T+1`. Concrete planar-disk face of the EP spine identity;
+general `Euler_Poincare_full` → planar discharge still open. Not classical Pick. -/
+theorem results_unit_square_planar_euler :
+    (EulersGem.Picks.UnitSquareTriangulation.unitSquare.planarCounts).eulerChar = 2 :=
+  EulersGem.Picks.UnitSquareTriangulation.unitSquare_planar_euler
+
+/-- Fan count identities ⇒ planar Euler (combinatorial face of EP arithmetic). -/
+theorem results_planar_disk_euler_of_fan_counts
+    (n V E T B F : ℕ)
+    (hn : 3 ≤ n)
+    (hV : V = n) (hB : B = n) (hT : T = n - 2)
+    (hE : E = 2 * n - 3) (hF : F = T + 1) :
+    (V : ℤ) - E + F = 2 :=
+  EulersGem.Picks.planar_disk_euler_of_fan_counts n V E T B F hn hV hB hT hE hF
+
+/-- Combinatorial fan disk triangulation exists for every `n` with `3 ≤ n ≤ 5`. -/
+theorem results_exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 5) :
+    Nonempty (EulersGem.Picks.CombinatorialDiskTriangulation (Fin n)) :=
+  EulersGem.Picks.FanDiskTriangulation.exists_fan_disk_triangulation hn hN
+
+/-- Planar Euler for the abstract pentagon fan triangulation. -/
+theorem results_fan5_planar_euler :
+    (EulersGem.Picks.FanDiskTriangulation.fan5.planarCounts).eulerChar = 2 :=
+  EulersGem.Picks.FanDiskTriangulation.fan5_planar_euler
+
 /-! ## Witness-conditional shoelace Pick-form (not classical Pick)
 
-Geometric primitive triangulation witness + EP-spine planar Euler hyp.
-**Not** classical Pick — triangulation existence and EP→planar discharge open.
+Geometric primitive triangulation witness + EP-spine planar Euler.
+**Not** classical Pick — general triangulation existence and general EP→planar
+discharge remain open; unit-square case discharges Euler below.
 See `PICKS_CLAUDE_AUDIT.md`. Identifiers avoid claiming Pick proved.
 -/
 
@@ -241,6 +269,16 @@ theorem results_shoelace_pick_form_of_witness_of_combinatorial_disk
   EulersGem.Picks.shoelace_pick_form_of_witness_of_combinatorial_disk
     W G hT hB V F hV hF hEuler_planar
 
+/-- **Unit-square shoelace Pick-form with planar Euler discharged** (not classical Pick).
+
+Geometric witness + combinatorial disk + proved unit-square planar Euler.
+No free `hEuler_planar`. Still not classical Pick (one polygon; shoelace ≠ Haar;
+audit FAIL). -/
+theorem results_shoelace_pick_form_of_unit_square :
+    EulersGem.Picks.UnitSquareWitness.witness.shoelaceArea =
+      (EulersGem.Picks.UnitSquareWitness.witness.I : ℚ) +
+        (EulersGem.Picks.UnitSquareWitness.witness.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.shoelace_pick_form_of_unit_square
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 

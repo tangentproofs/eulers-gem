@@ -21,13 +21,16 @@ Euler–Poincaré (faceEulerSum / V−E+F=2 for convex polytopes)
 ## Current gap
 - `euler_relation_convex_3polytope` — real geometric EP (root OK).
 - Platonic `RegularNumbers.hEuler` — **assumed**, not discharged from EP.
-- Pick Funkenbusch identities — **assume** `heuler`, not discharged from planar EP.
+- Pick Funkenbusch identities — **assume** `heuler` in the general count form;
+  unit-square / fan disks now prove planar Euler concretely (still not a call to
+  `Euler_Poincare_full` for arbitrary disks).
 - Pick witness-conditional shoelace form — geometric witness + emptiness landed;
-  still takes `hEuler_planar` as EP-spine hyp (discharge open). Not classical Pick.
+  general form still takes `hEuler_planar` as EP-spine hyp. Unit-square case
+  discharges Euler via `unitSquare_planar_euler`. Not classical Pick.
 - Pick handshaking — **proved** for `CombinatorialDiskTriangulation` (incidence);
-  wiring geometric witness → combinatorial incidence still open.
-- Planar disk Euler bridge — `PlanarDiskEulerCounts` / `planar_disk_euler_of_EP_bridge`
-  records the EP discharge hyp; not yet derived from `Euler_Poincare_full`.
+  unit-square witness wired to combinatorial disk; general polygons open.
+- Planar disk Euler — fan-count lemma + unit square + fan `n≤5` proved;
+  `planar_disk_euler_of_EP_bridge` still records the open general EP→planar gap.
 
 ## Done means
 Results exports theorems whose proofs call the EP spine; auditors can follow Euler → corollary without a gap.
