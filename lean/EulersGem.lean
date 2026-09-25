@@ -15,3 +15,4 @@ import EulersGem.Embed
 import EulersGem.Platonic
 import EulersGem.Picks
 import EulersGem.LatticeTriangle
+import EulersGem.LatticePolygon
