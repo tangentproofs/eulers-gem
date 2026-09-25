@@ -458,6 +458,147 @@ lemma memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_two_mem_ac
       _ = α * a.2 + β * b.2 + γ * r.2 := by rw [← hr2]
       _ = p.2 := h2
 
+/-! ### Det additivity / diagonal doubling helpers (Off-adjacent substrate) -/
+
+/-- Collinear `r` on line `a—b` ⇒ oriented area splits across `r`. -/
+lemma latticeDet_add_of_collinear_ab
+    (a b c r : ℤ × ℤ) (h : latticeDet a b r = 0) :
+    latticeDet a b c = latticeDet a r c + latticeDet r b c := by
+  have H : latticeDet a b c - (latticeDet a r c + latticeDet r b c) =
+      latticeDet a b r := by
+    unfold latticeDet; ring
+  linarith
+
+/-- Lattice point on edge `a—b` ⇒ oriented area splits across it. -/
+lemma latticeDet_add_of_mem_edgeLatticePoints
+    (a b c r : ℤ × ℤ) (hr : r ∈ edgeLatticePoints a b) :
+    latticeDet a b c = latticeDet a r c + latticeDet r b c :=
+  latticeDet_add_of_collinear_ab a b c r (latticeDet_eq_zero_of_mem_edge_ab a b r hr)
+
+/-- Right half of an `edgeGcd = 2` edge is primitive. -/
+lemma edgeGcd_eq_one_right_of_edgeGcd_eq_two_mem
+    (a b r : ℤ × ℤ) (hd : edgeGcd a b = 2)
+    (hr : r ∈ edgeLatticePoints a b) (hne_a : r ≠ a) (hne_b : r ≠ b) :
+    edgeGcd r b = 1 := by
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a b r hd hr hne_a hne_b
+  have hx' : b.1 - a.1 = 2 * (r.1 - a.1) := by linarith
+  have hy' : b.2 - a.2 = 2 * (r.2 - a.2) := by linarith
+  have hx2 : b.1 - r.1 = r.1 - a.1 := by linarith
+  have hy2 : b.2 - r.2 = r.2 - a.2 := by linarith
+  have hleft : edgeGcd a r = 1 :=
+    edgeGcd_eq_one_left_of_edgeGcd_eq_two_mem a b r hd hr hne_a hne_b
+  simpa [edgeGcd, hx2, hy2] using hleft
+
+/-- Determinant doubles when the third vertex is the far endpoint of a midpoint
+on the `b—c` edge (`s` midpoint of `b—c`). -/
+lemma latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem_bc
+    (a b c s : ℤ × ℤ) (hd : edgeGcd b c = 2)
+    (hs : s ∈ edgeLatticePoints b c) (hne_b : s ≠ b) (hne_c : s ≠ c) :
+    latticeDet a b c = 2 * latticeDet a b s := by
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two b c s hd hs hne_b hne_c
+  simp only [latticeDet]
+  have hx' : c.1 - b.1 = 2 * (s.1 - b.1) := by linarith
+  have hy' : c.2 - b.2 = 2 * (s.2 - b.2) := by linarith
+  have hx2 : c.1 - a.1 = 2 * (s.1 - a.1) - (b.1 - a.1) := by linarith
+  have hy2 : c.2 - a.2 = 2 * (s.2 - a.2) - (b.2 - a.2) := by linarith
+  rw [hx2, hy2]; ring
+
+/-- Midpoint of `a—b`: closed △`(r,b,c)` sits inside △`(a,b,c)`. -/
+lemma memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_two_mem_right
+    (a b c r p : ℤ × ℤ) (hd : edgeGcd a b = 2)
+    (hr : r ∈ edgeLatticePoints a b) (hne_a : r ≠ a) (hne_b : r ≠ b)
+    (hp : MemClosedTriangle r b c p) :
+    MemClosedTriangle a b c p := by
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a b r hd hr hne_a hne_b
+  have hr1 : (r.1 : ℝ) = (a.1 : ℝ) + (1 / 2) * ((b.1 : ℝ) - a.1) := by
+    have : (2 : ℤ) * (r.1 - a.1) = b.1 - a.1 := hx
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  have hr2 : (r.2 : ℝ) = (a.2 : ℝ) + (1 / 2) * ((b.2 : ℝ) - a.2) := by
+    have : (2 : ℤ) * (r.2 - a.2) = b.2 - a.2 := hy
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  refine ⟨α / 2, α / 2 + β, γ, by linarith, by linarith, hγ, by linarith, ?_⟩
+  apply Prod.ext
+  · have h1 := congrArg Prod.fst heq
+    simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+    calc
+      (α / 2) * (a.1 : ℝ) + (α / 2 + β) * b.1 + γ * c.1
+          = α * ((a.1 : ℝ) + (1 / 2) * (b.1 - a.1)) + β * b.1 + γ * c.1 := by ring
+      _ = α * r.1 + β * b.1 + γ * c.1 := by rw [← hr1]
+      _ = p.1 := h1
+  · have h2 := congrArg Prod.snd heq
+    simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+    calc
+      (α / 2) * (a.2 : ℝ) + (α / 2 + β) * b.2 + γ * c.2
+          = α * ((a.2 : ℝ) + (1 / 2) * (b.2 - a.2)) + β * b.2 + γ * c.2 := by ring
+      _ = α * r.2 + β * b.2 + γ * c.2 := by rw [← hr2]
+      _ = p.2 := h2
+
+/-- Midpoint split: closed △`(a,b,c)` is the union of △`(a,r,c)` and △`(r,b,c)`. -/
+lemma memClosedTriangle_split_of_edgeGcd_eq_two_mem
+    (a b c r p : ℤ × ℤ) (hd : edgeGcd a b = 2)
+    (hr : r ∈ edgeLatticePoints a b) (hne_a : r ≠ a) (hne_b : r ≠ b)
+    (hp : MemClosedTriangle a b c p) :
+    MemClosedTriangle a r c p ∨ MemClosedTriangle r b c p := by
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a b r hd hr hne_a hne_b
+  have hr1 : (r.1 : ℝ) = (a.1 : ℝ) + (1 / 2) * ((b.1 : ℝ) - a.1) := by
+    have : (2 : ℤ) * (r.1 - a.1) = b.1 - a.1 := hx
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  have hr2 : (r.2 : ℝ) = (a.2 : ℝ) + (1 / 2) * ((b.2 : ℝ) - a.2) := by
+    have : (2 : ℤ) * (r.2 - a.2) = b.2 - a.2 := hy
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  by_cases hle : β ≤ α
+  · refine Or.inl ⟨α - β, 2 * β, γ, by linarith, by linarith, hγ, by linarith, ?_⟩
+    apply Prod.ext
+    · have h1 := congrArg Prod.fst heq
+      simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+      calc
+        (α - β) * (a.1 : ℝ) + (2 * β) * r.1 + γ * c.1
+            = α * a.1 + β * (2 * r.1 - a.1) + γ * c.1 := by ring
+        _ = α * a.1 + β * b.1 + γ * c.1 := by
+              have : (2 : ℝ) * r.1 - a.1 = b.1 := by linarith [hr1]
+              rw [this]
+        _ = p.1 := h1
+    · have h2 := congrArg Prod.snd heq
+      simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+      calc
+        (α - β) * (a.2 : ℝ) + (2 * β) * r.2 + γ * c.2
+            = α * a.2 + β * (2 * r.2 - a.2) + γ * c.2 := by ring
+        _ = α * a.2 + β * b.2 + γ * c.2 := by
+              have : (2 : ℝ) * r.2 - a.2 = b.2 := by linarith [hr2]
+              rw [this]
+        _ = p.2 := h2
+  · push Not at hle
+    refine Or.inr ⟨2 * α, β - α, γ, by linarith, by linarith, hγ, by linarith, ?_⟩
+    apply Prod.ext
+    · have h1 := congrArg Prod.fst heq
+      simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+      calc
+        (2 * α) * (r.1 : ℝ) + (β - α) * b.1 + γ * c.1
+            = α * (2 * r.1 - b.1) + β * b.1 + γ * c.1 := by ring
+        _ = α * a.1 + β * b.1 + γ * c.1 := by
+              have : (2 : ℝ) * r.1 - b.1 = a.1 := by linarith [hr1]
+              rw [this]
+        _ = p.1 := h1
+    · have h2 := congrArg Prod.snd heq
+      simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+      calc
+        (2 * α) * (r.2 : ℝ) + (β - α) * b.2 + γ * c.2
+            = α * (2 * r.2 - b.2) + β * b.2 + γ * c.2 := by ring
+        _ = α * a.2 + β * b.2 + γ * c.2 := by
+              have : (2 : ℝ) * r.2 - b.2 = a.2 := by linarith [hr2]
+              rw [this]
+        _ = p.2 := h2
+
 /-- Spoke endpoints agree when they share the same strict intermediate lattice point
 with `edgeGcd = 2`. -/
 lemma eq_vertex_of_mem_edgeLatticePoints_of_edgeGcd_eq_two
