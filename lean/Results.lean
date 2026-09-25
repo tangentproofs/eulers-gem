@@ -2243,6 +2243,59 @@ theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe
     P hsc hinj hI
 
+/-! ### Parent PE-free shoelace + fan_ear_IH (not classical Pick) -/
+
+/-- Fan-ear induction step without `PrimitiveEdges` (not classical Pick). -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (q : ℤ × ℤ) (hq : q ∈ S)
+    (hverts : Function.Injective P.vertex)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hIH : ∀ i : Fin P.nVertices,
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+        ((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+          ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+              q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)
+    (hbook :
+      (∑ i : Fin P.nVertices,
+          (((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+            ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+                q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+        (S.card : ℚ) + (P.B : ℚ) / 2 - 1) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH_no_pe
+    P S hS q hq hverts hsc hIH hbook
+
+/-- **Geometric Finset shoelace Pick-form without `PrimitiveEdges`**
+(not classical Pick).
+
+`StrictlyConvexCCW` + injective + `S = interior` ⇒ `shoelace = #S + B/2 − 1`.
+No `PrimitiveEdges`. Empty base + fan-ear / all-I triangle step.
+Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_no_pe
+    P S hS hverts hsc
+
+/-- Alias: StrictlyConvexCCW packaging of PE-free Finset shoelace Pick-form. -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_strictlyConvexCCW
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_strictlyConvexCCW
+    P S hS hverts hsc
+
 
 
 
@@ -3153,6 +3206,19 @@ theorem results_volume_eq_ofReal_cardI_add_B_div_two_sub_one
       ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) :=
   EulersGem.Picks.LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one
     P S hS hverts hedge hsc
+
+/-- Geometric volume Pick-form without `PrimitiveEdges`: Haar =
+`ofReal(#I + B/2 − 1)` under `StrictlyConvexCCW` + injective + combinatorial
+interior Finset. Not classical Pick (finiteness / simple nonconvex still open). -/
+theorem results_volume_eq_ofReal_cardI_add_B_div_two_sub_one_no_pe
+    (P : EulersGem.Picks.LatticePolygon) (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    MeasureTheory.volume P.convexHullRegion =
+      ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) :=
+  EulersGem.Picks.LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one_no_pe
+    P S hS hverts hsc
 
 /-- Triangle volume Pick-form for I ≤ 1: Haar = `ofReal(#I + B/2 − 1)`.
 

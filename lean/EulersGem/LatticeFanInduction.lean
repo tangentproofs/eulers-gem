@@ -7835,6 +7835,46 @@ theorem coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon_no_pe
     refine ⟨hpS, hne, ?_⟩
     exact ⟨by simpa [v, w] using hmem, by simpa [v, w] using hoff⟩
 
+
+/-! ## Fan-ear IH without PrimitiveEdges (not classical Pick)
+
+Same as `shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH`, discharging
+`InteriorFanDetsPos` via `InteriorFanDetsPos_of_mem_interior_no_pe`. Classical
+Pick FAIL.
+-/
+
+/-- **Conditional fan-ear induction step without `PrimitiveEdges`** (not classical Pick).
+
+Hyps: geometric polygon (`StrictlyConvexCCW`, injective), interior Finset `S`
+with apex `q ∈ S`, every fan ear satisfies shoelace Pick-form for its
+`earOffInterior`, and the B/I bookkeeping identity
+`∑ᵢ (Iᵢ + Bᵢ/2 − 1) = #S + B/2 − 1`.
+
+Concludes `P.shoelace = #S + B/2 − 1`. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (q : ℤ × ℤ) (hq : q ∈ S)
+    (hverts : Function.Injective P.vertex)
+    (hsc : StrictlyConvexCCW P)
+    (hIH : ∀ i : Fin P.nVertices,
+      (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+        ((earOffInterior P q i S).card : ℚ) +
+          ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)
+    (hbook :
+      (∑ i : Fin P.nVertices,
+          (((earOffInterior P q i S).card : ℚ) +
+            ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+        (S.card : ℚ) + (P.B : ℚ) / 2 - 1) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hverts hqI
+  have hsum := sum_ear_shoelace_eq_shoelace P hpos
+  exact pick_form_of_sum_ear_pick_forms P S q hsum hIH hbook
+
 end InteriorFan
 end LatticeFan
 end Picks

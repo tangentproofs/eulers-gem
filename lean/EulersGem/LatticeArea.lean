@@ -1406,6 +1406,24 @@ theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one
   · exact LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one
       P S hS hverts hedge hsc
 
+
+/-- Geometric volume Pick-form without `PrimitiveEdges`: Haar =
+`ofReal(#I + B/2 − 1)` under `StrictlyConvexCCW` + injective + combinatorial
+interior Finset. Composes PE-free Haar(=shoelace) with PE-free combinatorial
+Pick-form. Not classical Pick (finiteness / simple nonconvex still open). -/
+theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one_no_pe
+    (P : LatticePolygon) (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hsc : StrictlyConvexCCW P) :
+    volume P.convexHullRegion =
+      ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) := by
+  refine volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace P S ?hvol ?hcomb
+  · exact volume_convexHullRegion_eq_ofReal_shoelace P hsc hverts
+  · exact LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_no_pe
+      P S hS hverts hsc
+
+
 end
 end LatticeArea
 end Picks

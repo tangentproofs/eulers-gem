@@ -25,7 +25,7 @@ I=4 / I≤4 / I=5 / I≤5 / I=6 / I≤6 Finset Pick-form without spokes-empty
 PrimitiveEdges inheritance when `#earOff=#S-1`). Strong induction on
 Finset card via fan_ear_IH + pe_ih triangle ears green. All-I triangle
 Pick without `PrimitiveEdges` via `pe_ih` + PE strong induction.
-Parent `B = ∑ edgeGcd` + PE-free hbook arithmetic substrate landed.
+Parent `B = ∑ edgeGcd` + PE-free hbook / empty / strong induction parent shoelace without `PrimitiveEdges` landed.
 Shoelace ≠ Haar. Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -4432,6 +4432,82 @@ theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe
             (fanTriangle P i.val i.isLt).c).B : ℚ) / 2 - 1) := by
           simp_rw [hear]
     _ = (P.B : ℚ) / 2 - 1 := by simpa [n] using hsumB
+
+
+/-! ## Parent strong induction without PrimitiveEdges (not classical Pick)
+
+Empty base via `shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe`.
+Nonempty step: fan from any apex `q ∈ S`, ear IH via all-I triangle without PE,
+`hbook_of_fan_ear_partition_of_interior_no_pe`, `coe_earOff` without PE.
+Shoelace ≠ Haar. Classical Pick FAIL.
+-/
+
+/-- **Geometric Finset shoelace Pick-form without `PrimitiveEdges`** (not classical Pick).
+
+Hyps: `StrictlyConvexCCW`, injective vertices, `S` exactly the interior lattice
+points. Concludes `P.shoelace = #S + B/2 − 1`. No `PrimitiveEdges`.
+Empty base + fan-ear step with all-I triangle ears. Shoelace ≠ Haar.
+Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hmain :
+      ∀ (n : ℕ) (Q : LatticePolygon) (T : Finset (ℤ × ℤ)),
+        (T : Set (ℤ × ℤ)) = Q.interiorLatticePoints →
+        T.card = n →
+        Function.Injective Q.vertex →
+        StrictlyConvexCCW Q →
+        Q.shoelace = (T.card : ℚ) + (Q.B : ℚ) / 2 - 1 := by
+    intro n
+    refine Nat.strong_induction_on n fun n _ih Q T hT hn hverts' hsc' => ?_
+    rcases Nat.eq_zero_or_pos n with h0 | hpos
+    · -- empty base
+      subst hn
+      have hSempty : T = ∅ := Finset.card_eq_zero.mp h0
+      have hI : EmptyInterior Q := by
+        simpa [EmptyInterior, hSempty] using hT.symm
+      have harea :=
+        shoelace_eq_B_div_two_sub_one_of_empty_interior_no_pe Q hsc' hverts' hI
+      calc
+        Q.shoelace = (Q.B : ℚ) / 2 - 1 := harea
+        _ = (0 : ℚ) + (Q.B : ℚ) / 2 - 1 := by ring
+        _ = (T.card : ℚ) + (Q.B : ℚ) / 2 - 1 := by simp [h0]
+    · -- nonempty step: fan from apex + all-I triangle ears
+      have hne : T.Nonempty := Finset.card_pos.mp (by omega)
+      obtain ⟨q, hq⟩ := hne
+      refine shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH_no_pe
+        Q T hT q hq hverts' hsc' ?hIH
+        (hbook_of_fan_ear_partition_of_interior_no_pe Q T hT hsc' hverts' hq)
+      intro i
+      set Tri := trianglePolygon q (Q.vertex i) (Q.vertex (Q.nextIdx i))
+      set S_ear := earOffInterior Q q i T
+      have hqI : q ∈ Q.interiorLatticePoints := by
+        have : q ∈ (T : Set (ℤ × ℤ)) := hq
+        rwa [hT] at this
+      have hpos := InteriorFanDetsPos_of_mem_interior_no_pe Q hsc' hverts' hqI
+      have hD : 0 < latticeDet q (Q.vertex i) (Q.vertex (Q.nextIdx i)) := by
+        simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+      have hS_ear : (S_ear : Set (ℤ × ℤ)) = Tri.interiorLatticePoints :=
+        coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon_no_pe
+          Q T hT hsc' hverts' hq i
+      -- all-I triangle without PrimitiveEdges
+      simpa [Tri, S_ear] using
+        shoelace_eq_cardI_add_B_div_two_sub_one_triangle
+          q (Q.vertex i) (Q.vertex (Q.nextIdx i)) hD S_ear hS_ear
+  exact hmain S.card P S hS rfl hverts hsc
+
+/-- Alias: StrictlyConvexCCW packaging of PE-free Finset shoelace Pick-form. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_strictlyConvexCCW
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  shoelace_eq_cardI_add_B_div_two_sub_one_no_pe P S hS hverts hsc
 
 end InteriorFan
 end LatticeFan

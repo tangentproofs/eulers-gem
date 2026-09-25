@@ -2558,3 +2558,45 @@ Results: `results_B_fanTriangle_eq_sum_edgeGcd`,
 | Discharge Finset finiteness of `I` | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (PE-free parent strong induction + volume compose; still FAIL)
+
+Landed PE-free parent combinatorial + volume Pick-form on the EP spine:
+
+```lean
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH_no_pe
+    -- fan-ear step; InteriorFanDetsPos via no_pe
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_no_pe
+    -- StrictlyConvexCCW + injective + Finset S = interior
+    -- ⇒ shoelace = #S + B/2 − 1, **no PrimitiveEdges**
+    -- strong induction: empty base (empty_interior_no_pe);
+    --   step fan_ear_IH_no_pe + hbook_no_pe + all-I triangle ears
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_strictlyConvexCCW
+    -- alias of `_no_pe`
+theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one_no_pe
+    -- Haar(=shoelace, already PE-free AEDisjoint fan) ∘ combinatorial `_no_pe`
+```
+
+Results: `results_shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH_no_pe`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_no_pe`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_strictlyConvexCCW`,
+`results_volume_eq_ofReal_cardI_add_B_div_two_sub_one_no_pe`.
+
+**Still open for classical Pick:** Finset finiteness of interior lattice points
+(statement takes `S` as witness); weaken `StrictlyConvexCCW` to simple
+(possibly nonconvex) lattice polygons + triangulation existence / AEDisjoint
+dissection; optional holes / χ form. No classical rename. Classical Pick
+**still FAIL**.
+
+| Item | Status |
+|------|--------|
+| PE-free empty parent shoelace | **Green** |
+| PE-free hbook / hspoke / hpart / coe_earOff | **Green** |
+| All-I triangle w/o PrimitiveEdges | **Green** |
+| PE-free fan_ear_IH | **Green** |
+| PE-free parent combinatorial `#I+B/2−1` (all `#I`) | **Green** |
+| PE-free volume compose Haar ∘ combinatorial | **Green** |
+| Discharge Finset finiteness of `I` | Open |
+| Simple non-convex / filled region ≠ hull | Open |
+| Classical Pick | **Still FAIL** |
+
