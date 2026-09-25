@@ -650,5 +650,215 @@ theorem eq_face_of_isFaceOf {F : Set E} (hF : IsFaceOf (body b) F) (hne : F.None
         exact absurd hs (by simp)
   rw [hFeq, face, hidx]
 
+/-! ## Counting faces by dimension -/
+
+/-- The `d`-faces of the cube are exactly the subcubes with `n − d` fixed coordinates. -/
+theorem facesOfDim_eq_image (d : ℤ) (hd : 0 ≤ d) :
+    Platonic.facesOfDim (body b) d
+      = face b '' {c : Fin n → Option Bool | ((supp c).card : ℤ) = (n : ℤ) - d} := by
+  ext F
+  constructor
+  · rintro ⟨hF, hdim⟩
+    have hne : F.Nonempty := by
+      rw [Set.nonempty_iff_ne_empty]
+      intro hemp
+      rw [hemp, affDim_empty] at hdim
+      omega
+    obtain ⟨c, rfl⟩ := eq_face_of_isFaceOf b hF hne
+    refine ⟨c, ?_, rfl⟩
+    have hfd := affDim_face b c
+    rw [hdim] at hfd
+    simp only [Set.mem_setOf_eq]
+    omega
+  · rintro ⟨c, hc, rfl⟩
+    have hcard : ((supp c).card : ℤ) = (n : ℤ) - d := hc
+    refine ⟨isFaceOf_face b c, ?_⟩
+    rw [affDim_face b c, hcard]
+    ring
+
+theorem ncard_facesOfDim (d : ℤ) (hd : 0 ≤ d) :
+    (Platonic.facesOfDim (body b) d).ncard
+      = {c : Fin n → Option Bool | ((supp c).card : ℤ) = (n : ℤ) - d}.ncard := by
+  rw [facesOfDim_eq_image b d hd, Set.ncard_image_of_injective _ (face_injective b)]
+
+theorem ncard_facesOfDim_subset (d : ℤ) (hd : 0 ≤ d) (c₀ : Fin n → Option Bool) :
+    {e ∈ Platonic.facesOfDim (body b) d | e ⊆ face b c₀}.ncard
+      = {c : Fin n → Option Bool |
+          ((supp c).card : ℤ) = (n : ℤ) - d ∧ cornerIdx c ⊆ cornerIdx c₀}.ncard := by
+  have hset : {e ∈ Platonic.facesOfDim (body b) d | e ⊆ face b c₀}
+      = face b '' {c : Fin n → Option Bool |
+          ((supp c).card : ℤ) = (n : ℤ) - d ∧ cornerIdx c ⊆ cornerIdx c₀} := by
+    ext f
+    rw [Set.mem_sep_iff, facesOfDim_eq_image b d hd]
+    constructor
+    · rintro ⟨⟨c, hc, rfl⟩, hsub⟩
+      exact ⟨c, ⟨hc, (face_subset_iff b).mp hsub⟩, rfl⟩
+    · rintro ⟨c, ⟨hc, hsub⟩, rfl⟩
+      exact ⟨⟨c, hc, rfl⟩, (face_subset_iff b).mpr hsub⟩
+  rw [hset, Set.ncard_image_of_injective _ (face_injective b)]
+
+theorem ncard_facesOfDim_superset (d : ℤ) (hd : 0 ≤ d) (c₀ : Fin n → Option Bool) :
+    {e ∈ Platonic.facesOfDim (body b) d | face b c₀ ⊆ e}.ncard
+      = {c : Fin n → Option Bool |
+          ((supp c).card : ℤ) = (n : ℤ) - d ∧ cornerIdx c₀ ⊆ cornerIdx c}.ncard := by
+  have hset : {e ∈ Platonic.facesOfDim (body b) d | face b c₀ ⊆ e}
+      = face b '' {c : Fin n → Option Bool |
+          ((supp c).card : ℤ) = (n : ℤ) - d ∧ cornerIdx c₀ ⊆ cornerIdx c} := by
+    ext f
+    rw [Set.mem_sep_iff, facesOfDim_eq_image b d hd]
+    constructor
+    · rintro ⟨⟨c, hc, rfl⟩, hsub⟩
+      exact ⟨c, ⟨hc, (face_subset_iff b).mp hsub⟩, rfl⟩
+    · rintro ⟨c, ⟨hc, hsub⟩, rfl⟩
+      exact ⟨⟨c, hc, rfl⟩, (face_subset_iff b).mpr hsub⟩
+  rw [hset, Set.ncard_image_of_injective _ (face_injective b)]
+
+/-! ## The geometric cube (`n = 3`) -/
+
+section Cube3
+
+set_option maxRecDepth 100000
+
+private lemma count_supp_3 :
+    {c : Fin 3 → Option Bool | ((supp c).card : ℤ) = (3 : ℤ) - 0}.ncard = 8 := by
+  rw [ncard_setOf_fintype]; decide
+
+private lemma count_supp_2 :
+    {c : Fin 3 → Option Bool | ((supp c).card : ℤ) = (3 : ℤ) - 1}.ncard = 12 := by
+  rw [ncard_setOf_fintype]; decide
+
+private lemma count_supp_1 :
+    {c : Fin 3 → Option Bool | ((supp c).card : ℤ) = (3 : ℤ) - 2}.ncard = 6 := by
+  rw [ncard_setOf_fintype]; decide
+
+/-- Every square 2-face of the cube has four edges. -/
+private lemma count_edges_of_face (c₀ : Fin 3 → Option Bool)
+    (h : ((supp c₀).card : ℤ) = (3 : ℤ) - 2) :
+    {c : Fin 3 → Option Bool |
+      ((supp c).card : ℤ) = (3 : ℤ) - 1 ∧ cornerIdx c ⊆ cornerIdx c₀}.ncard = 4 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+/-- Every edge of the cube lies in two 2-faces. -/
+private lemma count_faces_of_edge (c₀ : Fin 3 → Option Bool)
+    (h : ((supp c₀).card : ℤ) = (3 : ℤ) - 1) :
+    {c : Fin 3 → Option Bool |
+      ((supp c).card : ℤ) = (3 : ℤ) - 2 ∧ cornerIdx c₀ ⊆ cornerIdx c}.ncard = 2 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+/-- Three edges meet at every vertex of the cube. -/
+private lemma count_edges_of_vertex (c₀ : Fin 3 → Option Bool)
+    (h : ((supp c₀).card : ℤ) = (3 : ℤ) - 0) :
+    {c : Fin 3 → Option Bool |
+      ((supp c).card : ℤ) = (3 : ℤ) - 1 ∧ cornerIdx c₀ ⊆ cornerIdx c}.ncard = 3 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+/-- Every edge of the cube has two vertices. -/
+private lemma count_vertices_of_edge (c₀ : Fin 3 → Option Bool)
+    (h : ((supp c₀).card : ℤ) = (3 : ℤ) - 1) :
+    {c : Fin 3 → Option Bool |
+      ((supp c).card : ℤ) = (3 : ℤ) - 0 ∧ cornerIdx c ⊆ cornerIdx c₀}.ncard = 2 := by
+  rw [ncard_setOf_fintype]
+  revert h
+  revert c₀
+  decide
+
+variable (b : OrthonormalBasis (Fin 3) ℝ E)
+
+/-- **Face counts of a geometric cube: `V = 8`, `E = 12`, `F = 6`.** -/
+theorem cube_face_counts :
+    (Platonic.facesOfDim (body b) 0).ncard = 8 ∧
+      (Platonic.facesOfDim (body b) 1).ncard = 12 ∧
+      (Platonic.facesOfDim (body b) 2).ncard = 6 := by
+  refine ⟨?_, ?_, ?_⟩
+  · rw [ncard_facesOfDim b 0 (by norm_num)]; exact count_supp_3
+  · rw [ncard_facesOfDim b 1 (by norm_num)]; exact count_supp_2
+  · rw [ncard_facesOfDim b 2 (by norm_num)]; exact count_supp_1
+
+lemma affDim_body_cube : affDim (body b) = 3 := by
+  haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
+  rw [affDim_body b, Octahedron.finrank_eq_of_orthonormalBasis b]
+  norm_num
+
+/-- **`V − E + F = 2` for a geometric cube, discharged from Euler–Poincaré.** -/
+theorem cube_euler_relation :
+    ((Platonic.facesOfDim (body b) 0).ncard : ℤ) - (Platonic.facesOfDim (body b) 1).ncard
+      + (Platonic.facesOfDim (body b) 2).ncard = 2 := by
+  haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
+  haveI : Nonempty E := ⟨0⟩
+  exact euler_relation_convex_3polytope (hyperplanes_finite b)
+    (body_eq_iInter_closedHalfspace b) (isPolytope_body b) (affDim_body_cube b)
+    (Octahedron.finrank_eq_of_orthonormalBasis b)
+
+/-- **The four incidence counts of a geometric cube, proved from its face lattice:**
+`4` edges per 2-face (squares), `2` 2-faces per edge, `3` edges per vertex, `2` vertices
+per edge. -/
+theorem cube_incidence :
+    (∀ f ∈ Platonic.facesOfDim (body b) 2,
+        {e ∈ Platonic.facesOfDim (body b) 1 | e ⊆ f}.ncard = 4) ∧
+      (∀ e ∈ Platonic.facesOfDim (body b) 1,
+        {f ∈ Platonic.facesOfDim (body b) 2 | e ⊆ f}.ncard = 2) ∧
+      (∀ v ∈ Platonic.facesOfDim (body b) 0,
+        {e ∈ Platonic.facesOfDim (body b) 1 | v ⊆ e}.ncard = 3) ∧
+      (∀ e ∈ Platonic.facesOfDim (body b) 1,
+        {v ∈ Platonic.facesOfDim (body b) 0 | v ⊆ e}.ncard = 2) := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro f hf
+    rw [facesOfDim_eq_image b 2 (by norm_num)] at hf
+    obtain ⟨c₀, hc₀, rfl⟩ := hf
+    rw [ncard_facesOfDim_subset b 1 (by norm_num) c₀]
+    exact count_edges_of_face c₀ hc₀
+  · intro e he
+    rw [facesOfDim_eq_image b 1 (by norm_num)] at he
+    obtain ⟨c₀, hc₀, rfl⟩ := he
+    rw [ncard_facesOfDim_superset b 2 (by norm_num) c₀]
+    exact count_faces_of_edge c₀ hc₀
+  · intro v hv
+    rw [facesOfDim_eq_image b 0 (by norm_num)] at hv
+    obtain ⟨c₀, hc₀, rfl⟩ := hv
+    rw [ncard_facesOfDim_superset b 1 (by norm_num) c₀]
+    exact count_edges_of_vertex c₀ hc₀
+  · intro e he
+    rw [facesOfDim_eq_image b 1 (by norm_num)] at he
+    obtain ⟨c₀, hc₀, rfl⟩ := he
+    rw [ncard_facesOfDim_subset b 0 (by norm_num) c₀]
+    exact count_vertices_of_edge c₀ hc₀
+
+/-- **A geometric cube is Platonic `{4,3}` on the Euler–Poincaré spine.**
+
+Double counting from face-lattice incidence, Euler from `Euler_Poincare_full`, and `(4,3)`
+one of the five classical Schläfli pairs. Nothing in this chain assumes `V − E + F = 2`. -/
+theorem cube_platonic :
+    4 * (Platonic.facesOfDim (body b) 2).ncard
+        = 2 * (Platonic.facesOfDim (body b) 1).ncard ∧
+      3 * (Platonic.facesOfDim (body b) 0).ncard
+        = 2 * (Platonic.facesOfDim (body b) 1).ncard ∧
+      ((Platonic.facesOfDim (body b) 0).ncard : ℤ) - (Platonic.facesOfDim (body b) 1).ncard
+        + (Platonic.facesOfDim (body b) 2).ncard = 2 ∧
+      ((4 : ℕ), (3 : ℕ)) ∈ Platonic.schlafliPairs := by
+  haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
+  haveI : Nonempty E := ⟨0⟩
+  obtain ⟨h4e, he2, hv3, he0⟩ := cube_incidence b
+  obtain ⟨hFace, hVert, hEuler⟩ :=
+    Platonic.regular_polytope_counts (s := 4) (m := 3) (hyperplanes_finite b)
+      (body_eq_iInter_closedHalfspace b) (isPolytope_body b) (affDim_body_cube b)
+      (Octahedron.finrank_eq_of_orthonormalBasis b) h4e he2 hv3 he0
+  refine ⟨hFace, hVert, hEuler, ?_⟩
+  exact Platonic.schlafli_pair_mem_of_regular_polytope (hyperplanes_finite b)
+    (body_eq_iInter_closedHalfspace b) (isPolytope_body b) (affDim_body_cube b)
+    (Octahedron.finrank_eq_of_orthonormalBasis b) (by norm_num) (by norm_num)
+    h4e he2 hv3 he0
+
+end Cube3
+
+
 end Cube
 end EulersGem
