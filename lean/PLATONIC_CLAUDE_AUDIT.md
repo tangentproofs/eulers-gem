@@ -51,12 +51,14 @@ from EP inside `schlafli_pair_mem_of_regular_polytope`, never assumed at the top
 | cube `V − E + F = 2` | `Cube.cube_euler_relation` | from EP; `8 − 12 + 6 = 2` is a cross-check |
 | cube incidence counts | `Cube.cube_incidence` | all four, from the face lattice |
 | cube is `{4,3}` | `Cube.cube_platonic` | double counting + Euler + Schläfli membership |
+| geometric simplex face counts | `Simplex.geometric_simplex_euler_poincare` | `C(n+1,d+1)` geometric `d`-faces in every dimension, and alternating sum `1` |
 | every edge has two vertices | `EdgeVertices.ncard_vertices_of_edge` | a 1-dimensional face is a segment: a supporting functional along its direction is *injective* on it, so the extreme points are its argmin and argmax, and they differ |
 
-Axiom check: `#print axioms EulersGem.Simplex.tetrahedron_platonic` gives
-`[propext, Classical.choice, Quot.sound]` — no `sorry`, and no `native_decide` axiom
-(two `native_decide`s were removed from the EP root and one from `card_schlafliPairs`
-for exactly this reason).
+Axiom check: run `lean/scripts/audit-axioms.sh`, which `#print axioms`-es every declaration in
+`Results.lean` and fails on a `native_decide` axiom or `sorryAx`. Every Platonic-lane
+declaration passes with `[propext, Classical.choice, Quot.sound]` — no `sorry`, no
+`native_decide` axiom (three `native_decide`s were removed from the EP root,
+`card_schlafliPairs` and two Results Platonic-count theorems for exactly this reason).
 
 ## Still hypothesis (and honestly labelled as such)
 
