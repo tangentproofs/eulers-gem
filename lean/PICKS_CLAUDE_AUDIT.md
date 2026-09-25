@@ -518,3 +518,44 @@ EP→planar open. Claude Cube / Octahedron / Platonic / EdgeVertices untouched.
 | Construct `PrimitiveLatticeTriangulationWitness` from convex polygon | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (InteriorFanDetsPos from UniqueInterior; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem InteriorFanDetsPos_of_uniqueInterior
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (UniqueInterior P q) :
+    InteriorFanDetsPos P q
+
+theorem eq_apex_of_mem_interiorFan_of_uniqueInterior
+    (UniqueInterior P q) … (p ∉ boundary) :
+    p = q
+
+theorem shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior_of_empty
+    (Injective P.vertex) (PrimitiveEdges P) (StrictlyConvexCCW P)
+    (UniqueInterior P q) (InteriorFanTrianglesEmpty P q) :
+    P.shoelace = (1 : ℚ) + (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_InteriorFanDetsPos_of_uniqueInterior`,
+`results_shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior_of_empty`.
+
+**Prize progress:** `InteriorFanDetsPos` discharged from geometric hyps (half-plane
+nonnegativity on the hull + vanishing ⇒ edge segment ⇒ primitive endpoints ⇒
+boundary, contradicting interior). Non-boundary lattice points in fan ears equal
+the unique apex. Still **not** classical Pick: full `InteriorFanTrianglesEmpty`
+needs foreign-vertex extremality renormalization (open); Haar; I>1 triangulation;
+EP→planar open. Claude Cube / Octahedron / Platonic / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Unconditional interior-fan algebraic identity | Green |
+| I=1 shoelace under fan hyps | Green |
+| Discharge `InteriorFanDetsPos` from `UniqueInterior` + CCW | **Green** |
+| Non-boundary ear points = unique apex | **Green** |
+| Full `InteriorFanTrianglesEmpty` (foreign vertices) | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

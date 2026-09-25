@@ -62,6 +62,7 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
   - [x] `FanTrianglesEmpty` from polygon `I=∅` + primitive edges + `VerticesExtreme` (`LatticeFan.lean`; not classical Pick)
   - [x] Discharge `VerticesExtreme` from `StrictlyConvexCCW` (`LatticeFan.lean`; not classical Pick)
   - [x] Discharge `FanDetsPos` from `StrictlyConvexCCW` + injective vertices (`FanDetsPos_of_strictlyConvexCCW`)
+  - [x] `InteriorFanDetsPos` from `UniqueInterior` + `StrictlyConvexCCW` (`LatticeFanInterior.lean`)
   - [x] Interior-fan I=1 shoelace `= 1 + B/2 − 1` under `InteriorFanDetsPos` + `InteriorFanTrianglesEmpty` + primitive edges (`LatticeFanInterior.lean`; not classical Pick)
   - [ ] Triangulation existence without emptiness hyp; I>0 / ear-clipping / Haar
   - [ ] Discharge `hEuler_planar` from `Euler_Poincare_full` for general planar disks
