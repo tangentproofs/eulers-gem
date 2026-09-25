@@ -8,6 +8,7 @@ import Mathlib.Data.Rat.Defs
 import EulersGem.Picks
 import EulersGem.LatticeTriangle
 import EulersGem.LatticePolygon
+import EulersGem.PlanarTriangulation
 
 /-!
 # Primitive lattice triangulation witness (EP-spine Pick substrate)
@@ -151,6 +152,31 @@ theorem shoelace_pick_form_of_primitive_triangulation_witness
     (hshake : 2 * E = 3 * (W.T : ℤ) + W.B) :
     W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1 :=
   W.shoelace_eq_I_add_B_div_two_sub_one V E F hV hF hEuler_planar hshake
+
+/-- **Witness + combinatorial disk triangulation ⇒ shoelace Pick-form**
+(handshaking discharged; Euler still EP-spine hyp).
+
+If a geometric `PrimitiveLatticeTriangulationWitness` is paired with a
+`CombinatorialDiskTriangulation` sharing `T` and `B` (`#boundaryEdges = W.B`),
+handshaking is proved from incidence. `hEuler_planar` remains the open EP
+discharge. **Not classical Pick.** -/
+theorem shoelace_pick_form_of_witness_of_combinatorial_disk
+    (W : PrimitiveLatticeTriangulationWitness)
+    {α : Type*} [DecidableEq α]
+    (G : CombinatorialDiskTriangulation α)
+    (hT : G.T = W.T)
+    (hB : G.B = W.B)
+    (V F : ℤ)
+    (hV : V = (W.I : ℤ) + W.B)
+    (hF : F = (W.T : ℤ) + 1)
+    (hEuler_planar : V - (G.E : ℤ) + F = 2) :
+    W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1 := by
+  have hshake : (2 : ℤ) * G.E = 3 * (W.T : ℤ) + W.B := by
+    have h := G.two_E_eq_three_T_add_B_int
+    -- h : 2 * G.E = 3 * G.T + G.B
+    rw [hT, hB] at h
+    exact h
+  exact W.shoelace_eq_I_add_B_div_two_sub_one V G.E F hV hF hEuler_planar hshake
 
 end Picks
 end EulersGem

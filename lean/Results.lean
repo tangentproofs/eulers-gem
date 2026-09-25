@@ -225,6 +225,23 @@ theorem results_shoelace_pick_form_of_primitive_triangulation_witness
   EulersGem.Picks.shoelace_pick_form_of_primitive_triangulation_witness
     W V E F hV hF hEuler_planar hshake
 
+/-- Witness + combinatorial disk triangulation: handshaking discharged from incidence.
+Euler still EP-spine hyp. **Not classical Pick.** -/
+theorem results_shoelace_pick_form_of_witness_of_combinatorial_disk
+    (W : EulersGem.Picks.PrimitiveLatticeTriangulationWitness)
+    {α : Type*} [DecidableEq α]
+    (G : EulersGem.Picks.CombinatorialDiskTriangulation α)
+    (hT : G.T = W.T)
+    (hB : G.B = W.B)
+    (V F : ℤ)
+    (hV : V = (W.I : ℤ) + W.B)
+    (hF : F = (W.T : ℤ) + 1)
+    (hEuler_planar : V - (G.E : ℤ) + F = 2) :
+    W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.shoelace_pick_form_of_witness_of_combinatorial_disk
+    W G hT hB V F hV hF hEuler_planar
+
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane
