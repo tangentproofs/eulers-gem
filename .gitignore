@@ -3,3 +3,6 @@ lean/build/
 lean/lake-packages/
 **/*.olean
 .DS_Store
+
+# Local Claude/agent scratch (not published)
+.sci/
