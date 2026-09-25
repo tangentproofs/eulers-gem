@@ -1799,6 +1799,94 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
     P S hS hcard hverts hedge hsc
 
+/-! ### General-I fan-ear induction scaffold (not classical Pick) -/
+
+/-- **I ∈ {0,1,2,3} shoelace Pick-form** (not classical Pick). -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 3)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+    P S hS hcard hverts hedge hsc
+
+/-- Ear Off-interior Finset (induction fuel; not classical Pick). -/
+noncomputable def results_earOffInterior :=
+  @EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior
+
+/-- Spoke-interior Finset (induction partition; not classical Pick). -/
+noncomputable def results_spokeInterior :=
+  @EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior
+
+/-- Ear Off-interior card is strictly smaller than `#S` when apex `q ∈ S`. -/
+theorem results_card_earOffInterior_lt
+    (P : EulersGem.Picks.LatticePolygon)
+    (q : ℤ × ℤ) (i : Fin P.nVertices) (S : Finset (ℤ × ℤ)) (hq : q ∈ S) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card < S.card :=
+  EulersGem.Picks.LatticeFan.InteriorFan.card_earOffInterior_lt P q i S hq
+
+/-- Covering ear Off/on-spoke for any non-apex interior point. -/
+theorem results_exists_offBoundary_or_onSpoke_covering_of_mem_interior
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    {q p : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (hp : p ∈ P.interiorLatticePoints)
+    (hne : p ≠ q) :
+    ∃ i : Fin P.nVertices,
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+        q (P.vertex i) (P.vertex (P.nextIdx i)) p ∧
+        (EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary
+          q (P.vertex i) (P.vertex (P.nextIdx i)) p ∨
+          p ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex i) ∨
+            p ∈ EulersGem.Picks.edgeLatticePoints
+              (P.vertex (P.nextIdx i)) q) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.exists_offBoundary_or_onSpoke_covering_of_mem_interior
+    P hsc hinj hedge hq hp hne
+
+/-- Fan ear shoelaces sum to polygon shoelace under positive interior-fan dets. -/
+theorem results_sum_ear_shoelace_eq_shoelace
+    (P : EulersGem.Picks.LatticePolygon) {q : ℤ × ℤ}
+    (hpos : EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos P q) :
+    (∑ i : Fin P.nVertices,
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace) =
+      P.shoelace :=
+  EulersGem.Picks.LatticeFan.InteriorFan.sum_ear_shoelace_eq_shoelace P hpos
+
+/-- **Conditional fan-ear induction step** (not classical Pick).
+
+Assumes every ear satisfies Pick-form for its Off-interior and B/I bookkeeping.
+Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (q : ℤ × ℤ) (hq : q ∈ S)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hIH : ∀ i : Fin P.nVertices,
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+        ((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+          ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)
+    (hbook :
+      (∑ i : Fin P.nVertices,
+          (((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+            ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+              q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+        (S.card : ℚ) + (P.B : ℚ) / 2 - 1) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
+    P S hS q hq hverts hedge hsc hIH hbook
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane

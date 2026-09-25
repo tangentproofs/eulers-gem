@@ -1500,3 +1500,50 @@ untouched.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (general-I fan-ear induction scaffold; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+    -- unify I∈{0,1,2,3} geometric Finset Pick-form
+noncomputable def earOffInterior / spokeInterior
+theorem card_earOffInterior_lt
+    -- induction fuel: #(ear Off-interior) < #S when q ∈ S
+theorem exists_offBoundary_or_onSpoke_covering_of_mem_interior
+theorem exists_offBoundary_or_onSpoke_covering_of_mem_finset
+lemma shoelace_trianglePolygon_eq_half_natAbs_det
+theorem sum_ear_shoelace_eq_shoelace
+    -- ∑ᵢ (trianglePolygon q vᵢ vᵢ₊₁).shoelace = P.shoelace (under InteriorFanDetsPos)
+theorem pick_form_of_sum_ear_pick_forms
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
+    -- conditional: ear IH + B/I bookkeeping ⇒ polygon Pick-form
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three_induction_base
+```
+
+Results exports: `results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three`,
+`results_earOffInterior` / `results_spokeInterior`, `results_card_earOffInterior_lt`,
+`results_exists_offBoundary_or_onSpoke_covering_of_mem_interior`,
+`results_sum_ear_shoelace_eq_shoelace`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH`.
+
+**Prize progress:** General-I induction scaffold green — I≤3 unified as induction
+base; ear/spoke partition defs + card decrease + covering; fan ear area sum;
+conditional induction step assuming ear Pick-forms + bookkeeping identity.
+Still **not** classical Pick: discharge ear IH for general I; prove `hbook` from
+spoke/gcd B arithmetic; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Finset card=3 geometric (Off-free) | Green |
+| I≤3 Finset unify | **Green** |
+| `earOffInterior` / `spokeInterior` + card↓ | **Green** |
+| Covering Off/on-spoke for general interior | **Green** |
+| `sum_ear_shoelace_eq_shoelace` | **Green** |
+| Conditional fan-ear IH Pick-form | **Green** (hyps: ear IH + hbook) |
+| Discharge ear IH / prove hbook | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
