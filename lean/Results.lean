@@ -2135,6 +2135,54 @@ theorem results_EmptyInterior_trianglePolygon_fanTriangle
   EulersGem.Picks.LatticeFan.InteriorFan.EmptyInterior_trianglePolygon_fanTriangle
     P hsc hinj hI i hi
 
+/-- Open lattice point on a non-adjacent fan chord from `v₀` is parent-interior
+(not classical Pick). -/
+theorem results_mem_interiorLatticePoints_of_strict_mem_fan_chord
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (k : Fin P.nVertices)
+    (hk : 2 ≤ k.val ∧ k.val + 1 < P.nVertices)
+    {p : ℤ × ℤ}
+    (hp : p ∈ EulersGem.Picks.edgeLatticePoints
+      (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex k))
+    (hp0 : p ≠ P.vertex ⟨0, P.nVertices_pos⟩)
+    (hpk : p ≠ P.vertex k) :
+    p ∈ P.interiorLatticePoints :=
+  EulersGem.Picks.LatticeFan.InteriorFan.mem_interiorLatticePoints_of_strict_mem_fan_chord
+    P hsc hinj k hk hp hp0 hpk
+
+/-- Fan chord `(v₀, vₖ)` is primitive under EmptyInterior (`2 ≤ k ≤ n-2`)
+(not classical Pick). -/
+theorem results_edgeGcd_eq_one_of_empty_interior_fan_chord
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P)
+    (k : Fin P.nVertices)
+    (hk : 2 ≤ k.val ∧ k.val + 1 < P.nVertices) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd
+      (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex k) = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_one_of_empty_interior_fan_chord
+    P hsc hinj hI k hk
+
+/-- Fan ear empty-interior shoelace Pick-form without PE (not classical Pick). -/
+theorem results_shoelace_fanTriangle_eq_B_div_two_sub_one_of_empty
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    (EulersGem.Picks.LatticeFan.fanTriangle P i hi).shoelace =
+      ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          (EulersGem.Picks.LatticeFan.fanTriangle P i hi).a
+          (EulersGem.Picks.LatticeFan.fanTriangle P i hi).b
+          (EulersGem.Picks.LatticeFan.fanTriangle P i hi).c).B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_fanTriangle_eq_B_div_two_sub_one_of_empty
+    P hsc hinj hI i hi
+
+
+
 
 /-! ### earOffInterior ↔ triangle interior + I = 4 (not classical Pick) -/
 

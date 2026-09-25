@@ -2493,3 +2493,34 @@ volume compose without PE. Classical Pick **still FAIL** (no rename).
 | Discharge Finset finiteness of `I` | Open |
 | Classical Pick | **Still FAIL** |
 
+## Update 2026-09-25 (fan-chord edgeGcd=1 under EmptyInterior; still FAIL)
+
+Landed PE-free chord primitivity on the EP spine (explicit `Fin` indices):
+
+```lean
+theorem mem_interiorLatticePoints_of_strict_mem_fan_chord
+    -- StrictlyConvexCCW + injective; open lattice point on (v₀,vₖ), 2≤k≤n-2
+    -- ⇒ parent-interior (hull + not on any constructive boundary edge;
+    --   else three listed vertices collinear vs VerticesExtreme)
+theorem edgeGcd_eq_one_of_empty_interior_fan_chord
+    -- EmptyInterior ⇒ edgeGcd(v₀,vₖ)=1 for fan chords
+```
+
+Results: `results_mem_interiorLatticePoints_of_strict_mem_fan_chord`,
+`results_edgeGcd_eq_one_of_empty_interior_fan_chord`.
+
+**Still open for PE-free parent Pick:** B-telescoping `∑ B(earᵢ) = B + 2(n−3)`
+under chord gcd=1 (named `sum_B_fan_ears_eq_B_add_two_mul_n_sub_three`, sorry);
+then empty StrictlyConvexCCW shoelace without PE; strong induction parent without PE;
+volume compose without PE. Classical Pick **still FAIL** (no rename).
+
+| Item | Status |
+|------|--------|
+| PE-free empty fan-ear `EmptyInterior` | **Green** |
+| Chord primitivity under empty interior | **Green** |
+| Fan-ear empty shoelace `= B/2−1` (no PE) | **Green** |
+| Empty-interior PE-free parent shoelace | Open (B-telescope `∑ B_ear = B+2(n−3)`) |
+| Drop parent `PrimitiveEdges` (combinatorial + volume) | Open |
+| Discharge Finset finiteness of `I` | Open |
+| Classical Pick | **Still FAIL** |
+

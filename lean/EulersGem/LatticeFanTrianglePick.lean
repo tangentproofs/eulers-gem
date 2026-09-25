@@ -3890,6 +3890,210 @@ theorem EmptyInterior_trianglePolygon_fanTriangle
   have hEmpty : P.interiorLatticePoints = ∅ := hI
   exact (hEmpty ▸ hpI).elim
 
+
+/-! ## Chord primitivity under EmptyInterior (not classical Pick)
+
+Fan chord `(v₀, vₖ)` for `2 ≤ k ≤ nVertices-2`: an open lattice point on the chord
+is in the hull and off the constructive boundary (else three listed vertices are
+collinear under `VerticesExtreme`), hence parent-interior. EmptyInterior forces
+`edgeGcd = 1`. Explicit `Fin` indices. Classical Pick FAIL.
+-/
+
+/-- Open lattice point on a non-adjacent fan chord from `v₀` is parent-interior. -/
+theorem mem_interiorLatticePoints_of_strict_mem_fan_chord
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (k : Fin P.nVertices)
+    (hk : 2 ≤ k.val ∧ k.val + 1 < P.nVertices)
+    {p : ℤ × ℤ}
+    (hp : p ∈ edgeLatticePoints (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex k))
+    (hp0 : p ≠ P.vertex ⟨0, P.nVertices_pos⟩)
+    (hpk : p ≠ P.vertex k) :
+    p ∈ P.interiorLatticePoints := by
+  classical
+  set v0 : ℤ × ℤ := P.vertex ⟨0, P.nVertices_pos⟩
+  set vk : ℤ × ℤ := P.vertex k
+  have hext := VerticesExtreme_of_strictlyConvexCCW P hsc hinj
+  have hseg := mem_segment_of_mem_edgeLatticePoints v0 vk p hp
+  have ⟨t, ht, hp_eq⟩ : ∃ t : ℝ, t ∈ Set.Icc (0 : ℝ) 1 ∧
+      (1 - t) • toReal v0 + t • toReal vk = toReal p := by
+    simpa [segment_eq_image] using hseg
+  have ht0 := ht.1
+  have ht1 := ht.2
+  have ht_pos : 0 < t := by
+    by_contra h
+    have ht' : t = 0 := le_antisymm (le_of_not_gt h) ht0
+    have : toReal p = toReal v0 := by simpa [ht'] using hp_eq.symm
+    exact hp0 (toReal_injective this)
+  have ht_lt : t < 1 := by
+    by_contra h
+    have ht' : t = 1 := le_antisymm ht1 (le_of_not_gt h)
+    have : toReal p = toReal vk := by simpa [ht'] using hp_eq.symm
+    exact hpk (toReal_injective this)
+  have hv0S : toReal v0 ∈ toReal '' (P.vertexFinset : Set (ℤ × ℤ)) := by
+    refine ⟨v0, ?_, rfl⟩
+    rw [vertexFinset_eq_univ_image]
+    exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+  have hvkS : toReal vk ∈ toReal '' (P.vertexFinset : Set (ℤ × ℤ)) := by
+    refine ⟨vk, ?_, rfl⟩
+    rw [vertexFinset_eq_univ_image]
+    exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+  have hseg_sub :
+      segment ℝ (toReal v0) (toReal vk) ⊆
+        convexHull ℝ (toReal '' (P.vertexFinset : Set (ℤ × ℤ))) :=
+    (convex_convexHull ℝ _).segment_subset
+      (subset_convexHull _ _ hv0S) (subset_convexHull _ _ hvkS)
+  have hhull : toReal p ∈ P.convexHullRegion := by
+    simpa [LatticePolygon.convexHullRegion] using hseg_sub hseg
+  have hnb : p ∉ P.boundaryLatticePoints := by
+    intro hb
+    obtain ⟨j, hj⟩ := (mem_boundaryLatticePoints_iff P p).mp hb
+    set A := P.vertex j
+    set B := P.vertex (P.nextIdx j)
+    have hp_edge : p ∈ edgeLatticePoints A B := by
+      simpa [LatticePolygon.edgePair, A, B] using hj
+    have hdet_p : latticeDet A B p = 0 :=
+      latticeDet_eq_zero_of_mem_edge_ab A B p hp_edge
+    have hnn0 : 0 ≤ latticeDet A B v0 := by
+      simpa [A, B, v0] using hsc.1 j ⟨0, P.nVertices_pos⟩
+    have hnnk : 0 ≤ latticeDet A B vk := by
+      simpa [A, B, vk] using hsc.1 j k
+    have hform :
+        (latticeDet A B p : ℝ) =
+          (1 - t) * (latticeDet A B v0 : ℝ) + t * (latticeDet A B vk : ℝ) := by
+      have h0 :
+          detR (toReal A) (toReal B) (toReal p) =
+            (1 - t) * detR (toReal A) (toReal B) (toReal v0) +
+              t * detR (toReal A) (toReal B) (toReal vk) := by
+        have := detR_segment (toReal A) (toReal B) (toReal v0) (toReal vk) t
+        simpa [← hp_eq] using this
+      simpa [detR_toReal] using h0
+    have hsum0 :
+        (1 - t) * (latticeDet A B v0 : ℝ) + t * (latticeDet A B vk : ℝ) = 0 := by
+      have : (latticeDet A B p : ℝ) = 0 := by exact_mod_cast hdet_p
+      linarith [hform]
+    have h0R : (0 : ℝ) ≤ (latticeDet A B v0 : ℝ) := by exact_mod_cast hnn0
+    have hkR : (0 : ℝ) ≤ (latticeDet A B vk : ℝ) := by exact_mod_cast hnnk
+    have ht0' : 0 ≤ 1 - t := by linarith
+    have hm0 : (1 - t) * (latticeDet A B v0 : ℝ) = 0 := by
+      nlinarith [hsum0, mul_nonneg ht0' h0R, mul_nonneg (le_of_lt ht_pos) hkR]
+    have hmk : t * (latticeDet A B vk : ℝ) = 0 := by
+      nlinarith [hsum0, mul_nonneg ht0' h0R, mul_nonneg (le_of_lt ht_pos) hkR]
+    have hdet0 : latticeDet A B v0 = 0 := by
+      have : (latticeDet A B v0 : ℝ) = 0 :=
+        (mul_eq_zero.mp hm0).resolve_left (ne_of_gt (show 0 < 1 - t by linarith))
+      exact_mod_cast this
+    have hdetk : latticeDet A B vk = 0 := by
+      have : (latticeDet A B vk : ℝ) = 0 :=
+        (mul_eq_zero.mp hmk).resolve_left (ne_of_gt ht_pos)
+      exact_mod_cast this
+    have hj_ne_next : j ≠ P.nextIdx j := Ne.symm (nextIdx_ne P j)
+    have h0_ne_k : (⟨0, P.nVertices_pos⟩ : Fin P.nVertices) ≠ k := by
+      intro h; exact (by omega : (0 : ℕ) ≠ k.val) (congrArg Fin.val h)
+    -- Always get three distinct collinear vertices among {j, nextIdx j, 0, k}
+    by_cases h0_eq_j : (⟨0, P.nVertices_pos⟩ : Fin P.nVertices) = j
+    · have hnext0 : P.nextIdx j = ⟨1, by have := P.length_ge; omega⟩ := by
+        have hj0 : j = ⟨0, P.nVertices_pos⟩ := h0_eq_j.symm
+        subst hj0
+        apply Fin.ext
+        simp [LatticePolygon.nextIdx]
+        exact Nat.mod_eq_of_lt (by have := P.length_ge; omega)
+      have h1_ne_k : (⟨1, by have := P.length_ge; omega⟩ : Fin P.nVertices) ≠ k := by
+        intro h; exact (by omega : (1 : ℕ) ≠ k.val) (congrArg Fin.val h)
+      have h01 : (⟨0, P.nVertices_pos⟩ : Fin P.nVertices) ≠
+          ⟨1, by have := P.length_ge; omega⟩ := by
+        intro h; exact (by decide : (0 : ℕ) ≠ 1) (congrArg Fin.val h)
+      refine not_collinear_of_VerticesExtreme P hext hinj
+        ⟨0, P.nVertices_pos⟩ ⟨1, by have := P.length_ge; omega⟩ k h01 h0_ne_k h1_ne_k ?_
+      simpa [A, B, v0, vk, h0_eq_j, hnext0] using hdetk
+    · by_cases h0_eq_n : (⟨0, P.nVertices_pos⟩ : Fin P.nVertices) = P.nextIdx j
+      · have hj_last : j.val = P.nVertices - 1 := by
+          have hnext : (j.val + 1) % P.nVertices = 0 := by
+            simpa [LatticePolygon.nextIdx] using congrArg Fin.val h0_eq_n.symm
+          have hlt : j.val + 1 ≤ P.nVertices := Nat.succ_le_of_lt j.isLt
+          have hne0 : j.val + 1 ≠ 0 := Nat.succ_ne_zero _
+          -- If j.val+1 < n then mod = j.val+1 ≠ 0
+          by_cases hlt' : j.val + 1 < P.nVertices
+          · have : (j.val + 1) % P.nVertices = j.val + 1 := Nat.mod_eq_of_lt hlt'
+            omega
+          · have : j.val + 1 = P.nVertices := le_antisymm hlt (Nat.le_of_not_gt hlt')
+            omega
+        have hj_ne_k : j ≠ k := by
+          intro h
+          have : j.val = k.val := congrArg Fin.val h
+          have : k.val + 1 < P.nVertices := hk.2
+          omega
+        refine not_collinear_of_VerticesExtreme P hext hinj j ⟨0, P.nVertices_pos⟩ k
+          (Ne.symm h0_eq_j) hj_ne_k h0_ne_k ?_
+        · have hB0 : B = v0 := by simp [B, v0, h0_eq_n]
+          simpa [A, hB0, v0, vk] using hdetk
+      · exact not_collinear_of_VerticesExtreme P hext hinj j (P.nextIdx j)
+          ⟨0, P.nVertices_pos⟩ hj_ne_next (Ne.symm h0_eq_j) (Ne.symm h0_eq_n) hdet0
+  exact ⟨hhull, hnb⟩
+
+/-- Fan chord `(v₀, vₖ)` is primitive under EmptyInterior (`2 ≤ k ≤ n-2`). -/
+theorem edgeGcd_eq_one_of_empty_interior_fan_chord
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hI : EmptyInterior P)
+    (k : Fin P.nVertices)
+    (hk : 2 ≤ k.val ∧ k.val + 1 < P.nVertices) :
+    edgeGcd (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex k) = 1 := by
+  classical
+  set v0 := P.vertex ⟨0, P.nVertices_pos⟩
+  set vk := P.vertex k
+  by_contra hne
+  have hne0 : edgeGcd v0 vk ≠ 0 := by
+    intro h0
+    have : v0 = vk := (edgeGcd_eq_zero_iff v0 vk).mp h0
+    exact (by omega : (0 : ℕ) ≠ k.val) (congrArg Fin.val (hinj this))
+  have hge : 2 ≤ edgeGcd v0 vk := by omega
+  obtain ⟨p, hp, hp0, hpk⟩ :=
+    exists_strict_mem_edgeLatticePoints_of_edgeGcd_ge_two v0 vk hge
+  have hint :=
+    mem_interiorLatticePoints_of_strict_mem_fan_chord P hsc hinj k hk hp hp0 hpk
+  have hEmpty : P.interiorLatticePoints = ∅ := hI
+  exact (hEmpty ▸ hint).elim
+
+
+
+
+
+
+/-! ## Empty-interior parent shoelace without PrimitiveEdges (not classical Pick)
+
+**Green toward PE-free empty parent:**
+* chord `edgeGcd = 1` under EmptyInterior (above)
+* empty PE-free fan-ear `EmptyInterior` + empty triangle Pick
+* each fan ear: `shoelace = B/2 − 1` (lemma below)
+
+**Open:** B-telescope `∑ᵢ B(earᵢ) = B + 2(n−3)` under chord gcd=1, then
+`∑(Bᵢ/2−1) = B/2−1` via `shoelace_eq_sum_fan_shoelace`. After that: strong
+induction parent without PE; volume compose without PE. Classical Pick FAIL.
+-/
+
+/-- Fan ear empty-interior Pick-form (feeds PE-free empty parent). -/
+theorem shoelace_fanTriangle_eq_B_div_two_sub_one_of_empty
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hI : EmptyInterior P)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    (fanTriangle P i hi).shoelace =
+      ((trianglePolygon (fanTriangle P i hi).a (fanTriangle P i hi).b
+          (fanTriangle P i hi).c).B : ℚ) / 2 - 1 := by
+  set a := (fanTriangle P i hi).a
+  set b := (fanTriangle P i hi).b
+  set c := (fanTriangle P i hi).c
+  have hpos := FanDetsPos_of_strictlyConvexCCW P hsc hinj
+  have hD : 0 < latticeDet a b c := by
+    simpa [a, b, c, fanDet, fanTriangle, Triangle.det] using hpos i hi
+  have hIe := EmptyInterior_trianglePolygon_fanTriangle P hsc hinj hI i hi
+  have hpick :=
+    shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle a b c hD
+      (by simpa [a, b, c] using hIe)
+  have hT : (fanTriangle P i hi).shoelace = (trianglePolygon a b c).shoelace := by
+    simp [Triangle.shoelace, a, b, c, fanTriangle,
+      shoelace_trianglePolygon_eq_half_natAbs_det, triangleShoelace]
+  simpa [hT, a, b, c] using hpick
+
+
 end InteriorFan
 end LatticeFan
 end Picks
