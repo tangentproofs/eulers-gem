@@ -6875,6 +6875,38 @@ theorem hbook_of_partition_and_spokeGcd_general
     _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by ring
 
 
+/-! ## InteriorFanDetsPos without PrimitiveEdges (not classical Pick)
+
+If an interior apex were on a supporting edge line, it would lie on that edge
+(as a lattice point), hence on the constructive boundary — contradiction.
+No `edgeGcd = 1` needed. Classical Pick FAIL.
+-/
+
+/-- Interior apex ⇒ positively oriented interior-fan dets, without `PrimitiveEdges`. -/
+theorem InteriorFanDetsPos_of_mem_interior_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ} (hq : q ∈ P.interiorLatticePoints) :
+    InteriorFanDetsPos P q := by
+  intro i
+  have hq_hull : toReal q ∈ P.convexHullRegion := hq.1
+  have hq_not_bd : q ∉ P.boundaryLatticePoints := hq.2
+  have hnn := det_edge_nonneg_of_ConvexCCW_of_mem_hull P hsc.1 hq_hull i
+  have hcyc : interiorFanDet P q i =
+      latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) q := by
+    simp only [interiorFanDet, interiorFanTriangle, Triangle.det]
+    exact latticeDet_cycle q _ _
+  refine lt_of_le_of_ne (by simpa [hcyc] using hnn) ?_
+  intro h0
+  have hdet : latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) q = 0 := by
+    simpa [hcyc] using h0.symm
+  have hseg := mem_segment_of_det_eq_zero_of_mem_hull P hsc hinj hq_hull i hdet
+  have hedge_mem :=
+    mem_edgeLatticePoints_of_mem_segment (P.vertex i) (P.vertex (P.nextIdx i)) q hseg
+  have hbound : q ∈ P.boundaryLatticePoints :=
+    (mem_boundaryLatticePoints_iff P q).mpr ⟨i, by simpa [edgePair] using hedge_mem⟩
+  exact hq_not_bd hbound
+
+
 end InteriorFan
 end LatticeFan
 end Picks

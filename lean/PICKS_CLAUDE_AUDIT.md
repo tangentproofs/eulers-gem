@@ -2377,7 +2377,8 @@ Ordered by dependence; each item is necessary for a statement-level PASS against
 | Results volume Pick-form export (honest name) | **Green** |
 | All-I triangle w/o PE | **Green** |
 | `B = ∑ edgeGcd` / PE-free hbook arith | **Green** |
-| Drop parent `PrimitiveEdges` | Open (substrate landed) |
+| `InteriorFanDetsPos` without PE | **Green** |
+| Drop parent `PrimitiveEdges` | Open (substrate landed; empty + hspoke/hpart/coe_earOff remain) |
 | Simple non-convex / filled region ≠ hull | Open |
 | Discharge Finset finiteness of `I` | Open |
 | EP → planar via `Euler_Poincare_full` | Open (architecture) |
@@ -2401,10 +2402,12 @@ theorem hbook_of_partition_and_spokeGcd_general
 
 Results: `results_shoelace_eq_cardI_add_B_div_two_sub_one_triangle`.
 
-**Still open for PE-free parent Pick:** discharge `InteriorFanDetsPos` / hspoke /
-hpart / `coe_earOff` without PE; empty-interior PE-free for general
-`StrictlyConvexCCW` (vertex-fan + empty PE-free triangles); then strong induction
-+ volume compose without PE.
+Also landed: `InteriorFanDetsPos_of_mem_interior_no_pe` (segment→edgeLatticePoints,
+no `edgeGcd=1`).
+
+**Still open for PE-free parent Pick:** hspoke / hpart / `coe_earOff` / classification
+without PE; empty-interior PE-free for general `StrictlyConvexCCW` (vertex-fan +
+empty PE-free triangles); then strong induction + volume compose without PE.
 
 | Item | Status |
 |------|--------|
