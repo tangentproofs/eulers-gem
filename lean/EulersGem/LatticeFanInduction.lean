@@ -6907,6 +6907,934 @@ theorem InteriorFanDetsPos_of_mem_interior_no_pe
   exact hq_not_bd hbound
 
 
+/-! ## PE-free hspoke / hpart / coe_earOff substrate (not classical Pick)
+
+Drop `PrimitiveEdges` from spoke membership, partition, and earOff↔triangle
+interior by using: (1) vertices always lie on the constructive boundary;
+(2) affine half-plane positivity from `InteriorFanDetsPos_of_mem_interior_no_pe`
+(open spoke / OffBoundary points cannot meet a supporting edge);
+(3) foreign vertices on ear bases via `false_of_vertex_mem_nonincident_edge`
+instead of `edgeGcd = 1`. Classical Pick FAIL.
+-/
+
+/-- Vertices always belong to the constructive boundary (no `PrimitiveEdges`). -/
+lemma vertex_mem_boundaryLatticePoints (k : Fin P.nVertices) :
+    P.vertex k ∈ P.boundaryLatticePoints := by
+  have hv : P.vertex k ∈ P.vertices := List.get_mem P.vertices k
+  exact P.vertices_mem_boundary hv
+
+/-- Apex is never a listed vertex (no `PrimitiveEdges`). -/
+lemma ne_vertex_of_mem_interior_no_pe {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (k : Fin P.nVertices) :
+    q ≠ P.vertex k := by
+  intro h
+  exact hq.2 (by simpa [h] using vertex_mem_boundaryLatticePoints P k)
+
+/-- Open spoke from an interior apex lands in the interior (no `PrimitiveEdges`).
+
+Affine half-plane: if `p` met a boundary edge, `det(edge,p)=0`, but
+`p ∈ openSegment(q,vₖ)` and `det(edge,q)>0`, `det(edge,vₖ)≥0` force `det>0`. -/
+theorem mem_interiorLatticePoints_of_mem_open_spoke_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (k : Fin P.nVertices) {p : ℤ × ℤ}
+    (hp : p ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : p ≠ q) (hne_v : p ≠ P.vertex k) :
+    p ∈ P.interiorLatticePoints := by
+  classical
+  have hq_hull : toReal q ∈ P.convexHullRegion := hq.1
+  have hmem :
+      MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) p :=
+    memClosedTriangle_of_mem_edgeLatticePoints_ab q (P.vertex k)
+      (P.vertex (P.nextIdx k)) p hp
+  have hhull : toReal p ∈ P.convexHullRegion := by
+    have hmem' :
+        MemClosedTriangle (interiorFanTriangle P q k).a
+          (interiorFanTriangle P q k).b (interiorFanTriangle P q k).c p := by
+      simpa [interiorFanTriangle] using hmem
+    exact mem_convexHullRegion_of_memClosedTriangle_interiorFan P hq_hull k hmem'
+  refine ⟨hhull, ?_⟩
+  intro hb
+  obtain ⟨i, hi⟩ := (mem_boundaryLatticePoints_iff P p).mp hb
+  have hi' : p ∈ edgeLatticePoints (P.vertex i) (P.vertex (P.nextIdx i)) := by
+    simpa [edgePair] using hi
+  have hdet0 : latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) p = 0 :=
+    latticeDet_eq_zero_of_mem_edge_ab (P.vertex i) (P.vertex (P.nextIdx i)) p hi'
+  have hseg := mem_segment_of_mem_edgeLatticePoints q (P.vertex k) p hp
+  rcases hseg with ⟨a, b, ha, hb', hab, hp_eq⟩
+  have ha_pos : 0 < a := by
+    refine lt_of_le_of_ne ha ?_
+    intro ha0
+    have hb1 : b = 1 := by linarith [hab, ha0]
+    have : toReal p = toReal (P.vertex k) := by
+      simp [hp_eq.symm, ha0, hb1]
+    exact hne_v (toReal_injective this)
+  have hb_pos : 0 < b := by
+    refine lt_of_le_of_ne hb' ?_
+    intro hb0
+    have ha1 : a = 1 := by linarith [hab, hb0]
+    have : toReal p = toReal q := by
+      simp [hp_eq.symm, hb0, ha1]
+    exact hne_q (toReal_injective this)
+  have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hq
+  set A := toReal (P.vertex i)
+  set B := toReal (P.vertex (P.nextIdx i))
+  have hφq : 0 < detR A B (toReal q) := by
+    have hZ : 0 < latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) q := by
+      have := hpos i
+      simpa [interiorFanDet, interiorFanTriangle, Triangle.det, latticeDet_cycle q] using this
+    have hZR : (0 : ℝ) < (latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) q : ℝ) := by
+      exact_mod_cast hZ
+    simpa [A, B, detR_toReal] using hZR
+  have hφv : 0 ≤ detR A B (toReal (P.vertex k)) := by
+    have hZ : (0 : ℤ) ≤ latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex k) :=
+      hsc.1 i k
+    have hZR : (0 : ℝ) ≤ (latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex k) : ℝ) := by
+      exact_mod_cast hZ
+    simpa [A, B, detR_toReal] using hZR
+  have hlin :
+      detR A B (toReal p) = a * detR A B (toReal q) + b * detR A B (toReal (P.vertex k)) := by
+    have hsum := detR_sum_smul A B (fun x : Fin 2 => ![a, b] x)
+      (fun x : Fin 2 => ![toReal q, toReal (P.vertex k)] x)
+      (by simp [Fin.sum_univ_two, hab])
+    have hpts : ∑ x : Fin 2, ![a, b] x • ![toReal q, toReal (P.vertex k)] x =
+        a • toReal q + b • toReal (P.vertex k) := by
+      simp [Fin.sum_univ_two]
+    simpa [A, B, hp_eq.symm, hpts, Fin.sum_univ_two] using hsum
+  have hAp : detR A B (toReal p) = 0 := by
+    simpa [A, B, detR_toReal] using congrArg (fun z : ℤ => (z : ℝ)) hdet0
+  have hpos_comb : 0 < a * detR A B (toReal q) + b * detR A B (toReal (P.vertex k)) := by
+    have h1 : 0 < a * detR A B (toReal q) := mul_pos ha_pos hφq
+    have h2 : 0 ≤ b * detR A B (toReal (P.vertex k)) :=
+      mul_nonneg (le_of_lt hb_pos) hφv
+    linarith
+  exact (ne_of_gt hpos_comb (by simpa [hlin] using hAp)).elim
+
+/-- **hspoke (ℕ) without `PrimitiveEdges`.** -/
+theorem card_spokeInterior_eq_edgeGcd_sub_one_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ S) (k : Fin P.nVertices) :
+    (spokeInterior P q k S).card = edgeGcd q (P.vertex k) - 1 := by
+  classical
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hne_qv := ne_vertex_of_mem_interior_no_pe P hqI k
+  have hopen_sub :
+      (edgeLatticePoints q (P.vertex k)).filter (fun p => p ≠ q ∧ p ≠ P.vertex k) ⊆
+        S := by
+    intro p hp
+    obtain ⟨hpE, hpq, hpv⟩ := Finset.mem_filter.mp hp
+    have hint :=
+      mem_interiorLatticePoints_of_mem_open_spoke_no_pe P hsc hinj hqI k hpE hpq hpv
+    have : p ∈ (S : Set (ℤ × ℤ)) := by simpa [hS] using hint
+    exact this
+  have hspoke_eq :
+      spokeInterior P q k S =
+        (edgeLatticePoints q (P.vertex k)).filter
+          (fun p => p ≠ q ∧ p ≠ P.vertex k) := by
+    ext p
+    constructor
+    · intro hp
+      have hp' : p ∈ S.filter (fun p =>
+          p ≠ q ∧ p ≠ P.vertex k ∧ p ∈ edgeLatticePoints q (P.vertex k)) := by
+        simpa [spokeInterior] using hp
+      obtain ⟨hpS, hpq, hpv, hpE⟩ := Finset.mem_filter.mp hp'
+      exact Finset.mem_filter.mpr ⟨hpE, hpq, hpv⟩
+    · intro hp
+      obtain ⟨hpE, hpq, hpv⟩ := Finset.mem_filter.mp hp
+      exact Finset.mem_filter.mpr ⟨hopen_sub hp, hpq, hpv, hpE⟩
+  have hq_mem := self_mem_edgeLatticePoints q (P.vertex k)
+  have hv_mem := other_mem_edgeLatticePoints q (P.vertex k)
+  have hv_mem' : P.vertex k ∈ (edgeLatticePoints q (P.vertex k)).erase q :=
+    Finset.mem_erase.mpr ⟨hne_qv.symm, hv_mem⟩
+  have herase_v :
+      (((edgeLatticePoints q (P.vertex k)).erase q).erase (P.vertex k)).card =
+        edgeGcd q (P.vertex k) - 1 := by
+    have hcard := card_edgeLatticePoints q (P.vertex k)
+    have herase_q := Finset.card_erase_of_mem hq_mem
+    have herase_vk := Finset.card_erase_of_mem hv_mem'
+    have hge : 1 ≤ edgeGcd q (P.vertex k) := Nat.pos_of_ne_zero (fun h0 =>
+      hne_qv ((edgeGcd_eq_zero_iff q (P.vertex k)).mp h0))
+    omega
+  have herase_filter :
+      (edgeLatticePoints q (P.vertex k)).filter (fun p => p ≠ q ∧ p ≠ P.vertex k) =
+        ((edgeLatticePoints q (P.vertex k)).erase q).erase (P.vertex k) := by
+    ext p
+    simp [Finset.mem_erase, Finset.mem_filter, and_comm, and_assoc, and_left_comm]
+  calc
+    (spokeInterior P q k S).card
+        = ((edgeLatticePoints q (P.vertex k)).filter
+            (fun p => p ≠ q ∧ p ≠ P.vertex k)).card := by rw [hspoke_eq]
+    _ = (((edgeLatticePoints q (P.vertex k)).erase q).erase (P.vertex k)).card := by
+          rw [herase_filter]
+    _ = edgeGcd q (P.vertex k) - 1 := herase_v
+
+/-- **hspoke (ℚ) without `PrimitiveEdges`.** -/
+theorem hspoke_of_interior_finset_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ S) :
+    ∀ k : Fin P.nVertices,
+      ((spokeInterior P q k S).card : ℚ) = (edgeGcd q (P.vertex k) : ℚ) - 1 := by
+  intro k
+  have h := card_spokeInterior_eq_edgeGcd_sub_one_no_pe P S hS hsc hinj hq k
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hne_qv := ne_vertex_of_mem_interior_no_pe P hqI k
+  have hge : 1 ≤ edgeGcd q (P.vertex k) :=
+    Nat.pos_of_ne_zero (fun h0 => hne_qv ((edgeGcd_eq_zero_iff q (P.vertex k)).mp h0))
+  have hcast : ((edgeGcd q (P.vertex k) - 1 : ℕ) : ℚ) =
+      (edgeGcd q (P.vertex k) : ℚ) - 1 := by
+    rw [Nat.cast_sub hge, Nat.cast_one]
+  calc
+    ((spokeInterior P q k S).card : ℚ)
+        = ((edgeGcd q (P.vertex k) - 1 : ℕ) : ℚ) := by
+          exact congrArg (fun n : ℕ => (n : ℚ)) h
+    _ = (edgeGcd q (P.vertex k) : ℚ) - 1 := hcast
+
+/-- Foreign vertex in an interior-fan ear contradicts extremality (no `PrimitiveEdges`). -/
+theorem false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (i j : Fin P.nVertices)
+    (hne_i : P.vertex j ≠ P.vertex i)
+    (hne_n : P.vertex j ≠ P.vertex (P.nextIdx i))
+    (hvj : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j)) :
+    False := by
+  classical
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hvj
+  set A := toReal (P.vertex (P.prevIdx j))
+  set B := toReal (P.vertex j)
+  have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hq
+  have hφq : 0 < detR A B (toReal q) := by
+    simpa [A, B] using detR_prev_apex_pos_of_InteriorFanDetsPos P hpos j
+  have hφvi : 0 ≤ detR A B (toReal (P.vertex i)) := by
+    simpa [A, B] using detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j i
+  have hφvn : 0 ≤ detR A B (toReal (P.vertex (P.nextIdx i))) := by
+    simpa [A, B] using
+      detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j (P.nextIdx i)
+  have hφj : detR A B (toReal (P.vertex j)) = 0 := by
+    simpa [A, B] using detR_prev_vertex_eq_zero P j
+  have hcomb :
+      detR A B (toReal (P.vertex j)) =
+        α * detR A B (toReal q) +
+          β * detR A B (toReal (P.vertex i)) +
+            γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+    have heq' :
+        toReal (P.vertex j) =
+          α • toReal q + β • toReal (P.vertex i) +
+            γ • toReal (P.vertex (P.nextIdx i)) := heq.symm
+    have haff := detR_affine_combination3 A B
+      (toReal q) (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i)))
+      α β γ hsum
+    rw [heq', haff]
+  have hα0 : α = 0 := by
+    have hge :
+        α * detR A B (toReal q) ≤
+          α * detR A B (toReal q) +
+            β * detR A B (toReal (P.vertex i)) +
+              γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+      have h1 : 0 ≤ β * detR A B (toReal (P.vertex i)) :=
+        mul_nonneg hβ hφvi
+      have h2 : 0 ≤ γ * detR A B (toReal (P.vertex (P.nextIdx i))) :=
+        mul_nonneg hγ hφvn
+      linarith
+    have hαφ : α * detR A B (toReal q) ≤ 0 := by
+      have : α * detR A B (toReal q) +
+            β * detR A B (toReal (P.vertex i)) +
+              γ * detR A B (toReal (P.vertex (P.nextIdx i))) = 0 := by
+        simpa [hφj] using hcomb.symm
+      linarith
+    have hαφ' : 0 ≤ α * detR A B (toReal q) :=
+      mul_nonneg hα (le_of_lt hφq)
+    have hαφ0 : α * detR A B (toReal q) = 0 := le_antisymm hαφ hαφ'
+    exact (mul_eq_zero.mp hαφ0).resolve_right (ne_of_gt hφq)
+  have hseg :
+      toReal (P.vertex j) ∈
+        segment ℝ (toReal (P.vertex i))
+          (toReal (P.vertex (P.nextIdx i))) := by
+    refine ⟨β, γ, hβ, hγ, ?_, ?_⟩
+    · linarith [hsum, hα0]
+    · simpa [hα0, zero_smul, zero_add] using heq
+  have hedge_mem :
+      P.vertex j ∈ edgeLatticePoints (P.vertex i) (P.vertex (P.nextIdx i)) :=
+    mem_edgeLatticePoints_of_mem_segment (P.vertex i) (P.vertex (P.nextIdx i))
+      (P.vertex j) hseg
+  have hne_L : j ≠ i := fun h => hne_i (by rw [h])
+  have hne_R : j ≠ P.nextIdx i := fun h => hne_n (by rw [h])
+  exact false_of_vertex_mem_nonincident_edge P hsc hinj i j hne_L hne_R hedge_mem
+
+
+theorem eq_of_mem_edgeLatticePoints_two_spokes_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex) {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (k m : Fin P.nVertices) {p : ℤ × ℤ}
+    (hk : p ∈ edgeLatticePoints q (P.vertex k))
+    (hm : p ∈ edgeLatticePoints q (P.vertex m))
+    (hne_q : p ≠ q) : k = m := by
+  classical
+  by_cases hkm : k = m
+  · exact hkm
+  · by_cases hdet : latticeDet q (P.vertex k) (P.vertex m) = 0
+    · have hsegk := mem_segment_of_mem_edgeLatticePoints q (P.vertex k) p hk
+      have hsegm := mem_segment_of_mem_edgeLatticePoints q (P.vertex m) p hm
+      rcases hsegk with ⟨ak, bk, hak, hbk, hakbk, hpk⟩
+      rcases hsegm with ⟨am, bm, ham, hbm, hambm, hpm⟩
+      have hbkpos : 0 < bk := by
+        refine lt_of_le_of_ne hbk fun hb0 => ?_
+        have hak1 : ak = 1 := by linarith [hakbk]
+        have : toReal p = toReal q := by simp [← hpk, hb0, hak1]
+        exact hne_q (toReal_injective this)
+      have hbmpos : 0 < bm := by
+        refine lt_of_le_of_ne hbm fun hb0 => ?_
+        have ham1 : am = 1 := by linarith [hambm]
+        have : toReal p = toReal q := by simp [← hpm, hb0, ham1]
+        exact hne_q (toReal_injective this)
+      have hpk' :
+          toReal p - toReal q = bk • (toReal (P.vertex k) - toReal q) := by
+        have hak' : ak = 1 - bk := by linarith [hakbk]
+        calc
+          toReal p - toReal q
+              = ak • toReal q + bk • toReal (P.vertex k) - toReal q := by
+                rw [← hpk]
+          _ = (1 - bk) • toReal q + bk • toReal (P.vertex k) - toReal q := by
+                rw [hak']
+          _ = toReal q - bk • toReal q + bk • toReal (P.vertex k) - toReal q := by
+                rw [sub_smul, one_smul]
+          _ = bk • toReal (P.vertex k) - bk • toReal q := by abel
+          _ = bk • (toReal (P.vertex k) - toReal q) := (smul_sub bk _ _).symm
+      have hpm' :
+          toReal p - toReal q = bm • (toReal (P.vertex m) - toReal q) := by
+        have ham' : am = 1 - bm := by linarith [hambm]
+        calc
+          toReal p - toReal q
+              = am • toReal q + bm • toReal (P.vertex m) - toReal q := by
+                rw [← hpm]
+          _ = (1 - bm) • toReal q + bm • toReal (P.vertex m) - toReal q := by
+                rw [ham']
+          _ = toReal q - bm • toReal q + bm • toReal (P.vertex m) - toReal q := by
+                rw [sub_smul, one_smul]
+          _ = bm • toReal (P.vertex m) - bm • toReal q := by abel
+          _ = bm • (toReal (P.vertex m) - toReal q) := (smul_sub bm _ _).symm
+      have hvec :
+          bk • (toReal (P.vertex k) - toReal q) =
+            bm • (toReal (P.vertex m) - toReal q) :=
+        hpk'.symm.trans hpm' 
+      cases le_total bk bm with
+      | inl hle =>
+        have hratio_nonneg : 0 ≤ bk / bm :=
+          div_nonneg (le_of_lt hbkpos) (le_of_lt hbmpos)
+        have hratio_le1 : bk / bm ≤ 1 := (div_le_one hbmpos).mpr hle
+        have hstep :
+            toReal (P.vertex m) - toReal q =
+              (bk / bm) • (toReal (P.vertex k) - toReal q) := by
+          have hbm0 : (bm : ℝ) ≠ 0 := ne_of_gt hbmpos
+          calc
+            toReal (P.vertex m) - toReal q
+                = (bm⁻¹ * bm) • (toReal (P.vertex m) - toReal q) := by
+                  simp [hbm0]
+            _ = bm⁻¹ • (bm • (toReal (P.vertex m) - toReal q)) := by
+                  rw [← smul_smul]
+            _ = bm⁻¹ • (bk • (toReal (P.vertex k) - toReal q)) := by
+                  rw [← hvec]
+            _ = (bk / bm) • (toReal (P.vertex k) - toReal q) := by
+                  rw [smul_smul]; field_simp
+        have hvm_eq :
+            toReal (P.vertex m) =
+              (1 - bk / bm) • toReal q + (bk / bm) • toReal (P.vertex k) := by
+          calc
+            toReal (P.vertex m)
+                = toReal q + (toReal (P.vertex m) - toReal q) := by abel
+            _ = toReal q + (bk / bm) • (toReal (P.vertex k) - toReal q) := by
+                  rw [hstep]
+            _ = (1 - bk / bm) • toReal q + (bk / bm) • toReal (P.vertex k) := by
+                  simp [smul_sub, sub_smul]; abel
+        have hvm_on :
+            toReal (P.vertex m) ∈ segment ℝ (toReal q) (toReal (P.vertex k)) :=
+          ⟨1 - bk / bm, bk / bm, by linarith [hratio_le1], hratio_nonneg, by ring,
+            hvm_eq.symm⟩
+        have hmE : P.vertex m ∈ edgeLatticePoints q (P.vertex k) :=
+          mem_edgeLatticePoints_of_mem_segment q (P.vertex k) (P.vertex m) hvm_on
+        have hne_mv : P.vertex m ≠ P.vertex k := fun h => hkm (hinj h.symm)
+        have hmem :
+            MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) (P.vertex m) :=
+          memClosedTriangle_of_mem_edgeLatticePoints_ab q (P.vertex k)
+            (P.vertex (P.nextIdx k)) (P.vertex m) hmE
+        have hne_n : P.vertex m ≠ P.vertex (P.nextIdx k) := by
+          intro heq
+          have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hq
+          have hD : 0 < interiorFanDet P q k := hpos k
+          have : interiorFanDet P q k = 0 := by
+            simpa [interiorFanDet, interiorFanTriangle, Triangle.det, heq] using hdet
+          exact (ne_of_gt hD this).elim
+        exact (false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior_no_pe P hsc hinj
+          hq k m hne_mv hne_n hmem).elim
+      | inr hle =>
+        have hratio_nonneg : 0 ≤ bm / bk :=
+          div_nonneg (le_of_lt hbmpos) (le_of_lt hbkpos)
+        have hratio_le1 : bm / bk ≤ 1 := (div_le_one hbkpos).mpr hle
+        have hstep :
+            toReal (P.vertex k) - toReal q =
+              (bm / bk) • (toReal (P.vertex m) - toReal q) := by
+          have hbk0 : (bk : ℝ) ≠ 0 := ne_of_gt hbkpos
+          calc
+            toReal (P.vertex k) - toReal q
+                = (bk⁻¹ * bk) • (toReal (P.vertex k) - toReal q) := by
+                  simp [hbk0]
+            _ = bk⁻¹ • (bk • (toReal (P.vertex k) - toReal q)) := by
+                  rw [← smul_smul]
+            _ = bk⁻¹ • (bm • (toReal (P.vertex m) - toReal q)) := by
+                  rw [hvec]
+            _ = (bm / bk) • (toReal (P.vertex m) - toReal q) := by
+                  rw [smul_smul]; field_simp
+        have hvk_eq :
+            toReal (P.vertex k) =
+              (1 - bm / bk) • toReal q + (bm / bk) • toReal (P.vertex m) := by
+          calc
+            toReal (P.vertex k)
+                = toReal q + (toReal (P.vertex k) - toReal q) := by abel
+            _ = toReal q + (bm / bk) • (toReal (P.vertex m) - toReal q) := by
+                  rw [hstep]
+            _ = (1 - bm / bk) • toReal q + (bm / bk) • toReal (P.vertex m) := by
+                  simp [smul_sub, sub_smul]; abel
+        have hvk_on :
+            toReal (P.vertex k) ∈ segment ℝ (toReal q) (toReal (P.vertex m)) :=
+          ⟨1 - bm / bk, bm / bk, by linarith [hratio_le1], hratio_nonneg, by ring,
+            hvk_eq.symm⟩
+        have hkE : P.vertex k ∈ edgeLatticePoints q (P.vertex m) :=
+          mem_edgeLatticePoints_of_mem_segment q (P.vertex m) (P.vertex k) hvk_on
+        have hne_kv : P.vertex k ≠ P.vertex m := fun h => hkm (hinj h)
+        have hmem :
+            MemClosedTriangle q (P.vertex m) (P.vertex (P.nextIdx m)) (P.vertex k) :=
+          memClosedTriangle_of_mem_edgeLatticePoints_ab q (P.vertex m)
+            (P.vertex (P.nextIdx m)) (P.vertex k) hkE
+        have hne_n : P.vertex k ≠ P.vertex (P.nextIdx m) := by
+          intro heq
+          have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hq
+          have hD : 0 < interiorFanDet P q m := hpos m
+          have h0 : latticeDet q (P.vertex m) (P.vertex k) = 0 := by
+            rw [latticeDet_swap_sign, hdet, neg_zero]
+          have : interiorFanDet P q m = 0 := by
+            simpa [interiorFanDet, interiorFanTriangle, Triangle.det, heq] using h0
+          exact (ne_of_gt hD this).elim
+        exact (false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior_no_pe P hsc hinj
+          hq m k hne_kv hne_n hmem).elim
+    · have hinter :
+          edgeLatticePoints (P.vertex m) q ∩ edgeLatticePoints q (P.vertex k) = {q} :=
+        edgeLatticePoints_ca_inter_ab q (P.vertex k) (P.vertex m) hdet
+      have hpq : p ∈ ({q} : Finset (ℤ × ℤ)) := by
+        have : p ∈ edgeLatticePoints (P.vertex m) q ∩
+            edgeLatticePoints q (P.vertex k) :=
+          Finset.mem_inter.mpr ⟨mem_edgeLatticePoints_comm hm, hk⟩
+        simpa [hinter] using this
+      exact (hne_q (Finset.mem_singleton.mp hpq)).elim
+
+theorem eq_of_mem_interiorFan_of_offBoundary_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex) {q r : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (i j : Fin P.nVertices)
+    (hri : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hrj : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r) :
+    j = i := by
+  classical
+  have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hq
+  have hDi : 0 < latticeDet q (P.vertex i) (P.vertex (P.nextIdx i)) := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+  have hDj : 0 < latticeDet q (P.vertex j) (P.vertex (P.nextIdx j)) := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos j
+  obtain ⟨hαi, hβi, hγi⟩ :=
+    latticeDet_pos_of_memClosedTriangle_offBoundary q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r hri hDi hoff
+  obtain ⟨hαj0, hβj0, hγj0⟩ :=
+    latticeDet_nonneg_of_memClosedTriangle q (P.vertex j)
+      (P.vertex (P.nextIdx j)) r hrj hDj
+  -- f(k) := latticeDet q (vertex k) r
+  have hfi : 0 < latticeDet q (P.vertex i) r := hγi
+  have hfinext : latticeDet q (P.vertex (P.nextIdx i)) r < 0 := by
+    have h' : latticeDet q (P.vertex (P.nextIdx i)) r =
+        -latticeDet q r (P.vertex (P.nextIdx i)) :=
+      latticeDet_swap_middle q (P.vertex (P.nextIdx i)) r
+    linarith [h', hβi]
+  have hfj : 0 ≤ latticeDet q (P.vertex j) r := hγj0
+  have hfjnext : latticeDet q (P.vertex (P.nextIdx j)) r ≤ 0 := by
+    have h' : latticeDet q (P.vertex (P.nextIdx j)) r =
+        -latticeDet q r (P.vertex (P.nextIdx j)) :=
+      latticeDet_swap_middle q (P.vertex (P.nextIdx j)) r
+    linarith [h', hβj0]
+  by_cases hji : j = i
+  · exact hji
+  · by_cases hadj1 : j = P.nextIdx i
+    · subst hadj1
+      exact absurd hfj (not_le.mpr hfinext)
+    · by_cases hadj2 : i = P.nextIdx j
+      · have : latticeDet q (P.vertex (P.nextIdx j)) r =
+            latticeDet q (P.vertex i) r := by rw [← hadj2]
+        exact absurd (this ▸ hfjnext) (not_le.mpr hfi)
+      · -- Non-adjacent
+        set vi := P.vertex i
+        set wi := P.vertex (P.nextIdx i)
+        set vj := P.vertex j
+        set wj := P.vertex (P.nextIdx j)
+        set dac : ℤ := latticeDet q vi vj
+        set dbc : ℤ := latticeDet q wi vj
+        have hpluck :
+            latticeDet q vi wi * latticeDet q vj r
+              - latticeDet q vi vj * latticeDet q wi r
+              + latticeDet q vi r * latticeDet q wi vj = 0 :=
+          latticeDet_plucker q vi wi vj r
+        have hConvex_ij : 0 ≤ latticeDet vi wi vj := hsc.1 i j
+        by_cases hdac : 0 < dac
+        · by_cases hdbc : 0 < dbc
+          · have hfwi : latticeDet q wi r < 0 := hfinext
+            have hform :
+                latticeDet q vi wi * latticeDet q vj r
+                  + latticeDet q vi vj * (-latticeDet q wi r)
+                  + latticeDet q vi r * latticeDet q wi vj = 0 := by
+              linarith [hpluck]
+            have ht1 : 0 ≤ latticeDet q vi wi * latticeDet q vj r :=
+              mul_nonneg (le_of_lt hDi) hfj
+            have ht2 : 0 < latticeDet q vi vj * (-latticeDet q wi r) :=
+              mul_pos hdac (neg_pos.mpr hfwi)
+            have ht3 : 0 < latticeDet q vi r * latticeDet q wi vj :=
+              mul_pos hfi hdbc
+            have : (0 : ℤ) < 0 := by nlinarith [hform, ht1, ht2, ht3]
+            exact (lt_irrefl (0 : ℤ) this).elim
+          · -- dac > 0, dbc ≤ 0 ⇒ vj ∈ closed ear i
+            push Not at hdbc
+            have hβvj : 0 ≤ latticeDet q vj wi := by
+              have : latticeDet q vj wi = -dbc := by
+                simpa [dbc] using latticeDet_swap_sign q wi vj
+              linarith
+            have hvj : MemClosedTriangle q vi wi vj :=
+              memClosedTriangle_of_area_weights_nonneg q vi wi vj hDi
+                hConvex_ij hβvj (le_of_lt hdac)
+            have hne_i : vj ≠ vi := by
+              intro heq; exact hji (hinj heq)
+            have hne_n : vj ≠ wi := by
+              intro heq; exact hadj1 (hinj heq)
+            exact (false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior_no_pe P hsc hinj hq i j
+              hne_i hne_n (by simpa [vi, wi, vj] using hvj)).elim
+        · -- dac ≤ 0 ⇒ vi ∈ closed ear j (via Plücker)
+          push Not at hdac
+          have hpluckj :
+              latticeDet q vj wj * latticeDet q vi r
+                - latticeDet q vj vi * latticeDet q wj r
+                + latticeDet q vj r * latticeDet q wj vi = 0 :=
+            latticeDet_plucker q vj wj vi r
+          have hdap : 0 ≤ latticeDet q vj vi := by
+            have : latticeDet q vj vi = -dac := by
+              simpa [dac] using latticeDet_swap_sign q vi vj
+            linarith
+          have hConvex_ji : 0 ≤ latticeDet vj wj vi := hsc.1 j i
+          by_cases hfj0 : latticeDet q vj r = 0
+          · have hL : 0 < latticeDet q vj wj * latticeDet q vi r :=
+              mul_pos hDj hfi
+            have hR : latticeDet q vj vi * latticeDet q wj r ≤ 0 :=
+              mul_nonpos_of_nonneg_of_nonpos hdap hfjnext
+            have hdiff :
+                latticeDet q vj wj * latticeDet q vi r
+                  - latticeDet q vj vi * latticeDet q wj r = 0 := by
+              have h := hpluckj
+              simp [hfj0] at h
+              exact h
+            have hposdiff :
+                0 < latticeDet q vj wj * latticeDet q vi r
+                  - latticeDet q vj vi * latticeDet q wj r := by
+              linarith [hL, hR]
+            exact absurd hdiff (ne_of_gt hposdiff)
+          · have hfjpos : 0 < latticeDet q vj r :=
+              lt_of_le_of_ne hfj (Ne.symm hfj0)
+            have hmid : 0 < latticeDet q vi wj := by
+              have hswap : latticeDet q vi wj = -latticeDet q wj vi :=
+                latticeDet_swap_sign q wj vi
+              have hL : 0 < latticeDet q vj wj * latticeDet q vi r :=
+                mul_pos hDj hfi
+              have hR : latticeDet q vj vi * latticeDet q wj r ≤ 0 :=
+                mul_nonpos_of_nonneg_of_nonpos hdap hfjnext
+              -- Plücker: L - R + f(j)*det(q,wj,vi) = 0
+              -- ⇒ f(j)*det(q,wj,vi) = R - L < 0
+              have hprod :
+                  latticeDet q vj r * latticeDet q wj vi =
+                    latticeDet q vj vi * latticeDet q wj r
+                      - latticeDet q vj wj * latticeDet q vi r := by
+                linarith [hpluckj]
+              have hprod_neg : latticeDet q vj r * latticeDet q wj vi < 0 := by
+                linarith [hprod, hL, hR]
+              have hneg : latticeDet q wj vi < 0 := by
+                nlinarith [hprod_neg, hfjpos]
+              linarith [hswap]
+            have hvi : MemClosedTriangle q vj wj vi :=
+              memClosedTriangle_of_area_weights_nonneg q vj wj vi hDj
+                hConvex_ji (le_of_lt hmid) hdap
+            have hne_j : vi ≠ vj := by
+              intro heq; exact hji (hinj heq.symm)
+            have hne_jn : vi ≠ wj := by
+              intro heq; exact hadj2 (hinj heq)
+            exact (false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior_no_pe P hsc hinj hq j i
+              hne_j hne_jn (by simpa [vj, wj, vi] using hvi)).elim
+
+/-- At most one closed interior-fan ear contains `r` under `TwoInterior` +
+`OffTriangleBoundary` (specializes `eq_of_mem_interiorFan_of_offBoundary`). -/
+
+lemma eq_of_mem_earOffInterior_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (S : Finset (ℤ × ℤ))
+    {i j : Fin P.nVertices} {p : ℤ × ℤ}
+    (hi : p ∈ earOffInterior P q i S) (hj : p ∈ earOffInterior P q j S) :
+    i = j := by
+  have hi' := mem_filter_earOffInterior (P := P) hi
+  have hj' := mem_filter_earOffInterior (P := P) hj
+  exact (eq_of_mem_interiorFan_of_offBoundary_no_pe P hsc hinj hq i j
+    hi'.2.2.1 hi'.2.2.2 hj'.2.2.1).symm
+
+lemma eq_of_mem_spokeInterior_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (S : Finset (ℤ × ℤ))
+    {k m : Fin P.nVertices} {p : ℤ × ℤ}
+    (hk : p ∈ spokeInterior P q k S) (hm : p ∈ spokeInterior P q m S) :
+    k = m := by
+  have hk' := mem_filter_spokeInterior (P := P) hk
+  have hm' := mem_filter_spokeInterior (P := P) hm
+  exact eq_of_mem_edgeLatticePoints_two_spokes_no_pe P hsc hinj hq k m
+    hk'.2.2.2 hm'.2.2.2 hk'.2.1
+
+lemma false_of_mem_earOffInterior_of_mem_spokeInterior_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (S : Finset (ℤ × ℤ))
+    {i k : Fin P.nVertices} {p : ℤ × ℤ}
+    (hi : p ∈ earOffInterior P q i S) (hk : p ∈ spokeInterior P q k S) :
+    False := by
+  have hi' := mem_filter_earOffInterior (P := P) hi
+  have hk' := mem_filter_spokeInterior (P := P) hk
+  have hmem_k :
+      MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) p :=
+    memClosedTriangle_of_mem_edgeLatticePoints_ab q (P.vertex k)
+      (P.vertex (P.nextIdx k)) p hk'.2.2.2
+  have hki :=
+    eq_of_mem_interiorFan_of_offBoundary_no_pe P hsc hinj hq i k
+      hi'.2.2.1 hi'.2.2.2 hmem_k
+  subst hki
+  exact hi'.2.2.2.1 hk'.2.2.2
+
+
+
+/-! ## PE-free covering (not classical Pick) -/
+
+theorem exists_offBoundary_or_onSpoke_covering_of_mem_interior_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q p : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (hp : p ∈ P.interiorLatticePoints)
+    (_hne : p ≠ q) :
+    ∃ i : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p ∧
+        (OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) p ∨
+          p ∈ edgeLatticePoints q (P.vertex i) ∨
+            p ∈ edgeLatticePoints (P.vertex (P.nextIdx i)) q) := by
+  classical
+  have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hq
+  obtain ⟨i, hmem⟩ :=
+    exists_mem_interiorFanTriangle_of_mem_hull P hsc hpos hp.1
+  refine ⟨i, hmem, ?_⟩
+  exact offBoundary_or_onSpoke_of_mem_interiorFan P hp i hmem
+
+theorem exists_offBoundary_or_onSpoke_covering_of_mem_finset_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q p : ℤ × ℤ}
+    (hq : q ∈ S) (hp : p ∈ S) (hne : p ≠ q) :
+    ∃ i : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p ∧
+        (OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) p ∨
+          p ∈ edgeLatticePoints q (P.vertex i) ∨
+            p ∈ edgeLatticePoints (P.vertex (P.nextIdx i)) q) := by
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq; rwa [hS] at this
+  have hpI : p ∈ P.interiorLatticePoints := by
+    have : p ∈ (S : Set (ℤ × ℤ)) := hp; rwa [hS] at this
+  exact exists_offBoundary_or_onSpoke_covering_of_mem_interior_no_pe
+    P hsc hinj hqI hpI hne
+
+lemma ne_vertex_of_mem_interior_finset_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    {p : ℤ × ℤ} (hp : p ∈ S)
+    (k : Fin P.nVertices) : p ≠ P.vertex k := by
+  intro h
+  have hvB := vertex_mem_boundaryLatticePoints P k
+  exact not_mem_boundary_of_mem_interior_finset P S hS hp (by simpa [h] using hvB)
+
+
+theorem card_eq_one_add_earOff_add_spoke_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex) {q : ℤ × ℤ}
+    (hq : q ∈ S) :
+    S.card =
+      1 + (∑ i : Fin P.nVertices, (earOffInterior P q i S).card) +
+        (∑ k : Fin P.nVertices, (spokeInterior P q k S).card) := by
+  classical
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  set E : Finset (ℤ × ℤ) :=
+    Finset.univ.biUnion fun i : Fin P.nVertices => earOffInterior P q i S
+  set Sp : Finset (ℤ × ℤ) :=
+    Finset.univ.biUnion fun k : Fin P.nVertices => spokeInterior P q k S
+  have hE_card :
+      E.card = ∑ i : Fin P.nVertices, (earOffInterior P q i S).card := by
+    refine Finset.card_biUnion ?_
+    intro i _ j _ hij
+    exact Finset.disjoint_left.mpr fun p hi hj =>
+      hij (eq_of_mem_earOffInterior_no_pe P hsc hinj hqI S hi hj)
+  have hSp_card :
+      Sp.card = ∑ k : Fin P.nVertices, (spokeInterior P q k S).card := by
+    refine Finset.card_biUnion ?_
+    intro k _ m _ hkm
+    exact Finset.disjoint_left.mpr fun p hk hm =>
+      hkm (eq_of_mem_spokeInterior_no_pe P hsc hinj hqI S hk hm)
+  have hEq : Disjoint ({q} : Finset (ℤ × ℤ)) E :=
+    Finset.disjoint_left.mpr fun p hpq hpE => by
+      have hpq' : p = q := Finset.mem_singleton.mp hpq
+      obtain ⟨i, _, hi⟩ := Finset.mem_biUnion.mp hpE
+      exact (mem_filter_earOffInterior (P := P) hi).2.1 (by simp [hpq'])
+  have hSpq : Disjoint ({q} : Finset (ℤ × ℤ)) Sp :=
+    Finset.disjoint_left.mpr fun p hpq hpSp => by
+      have hpq' : p = q := Finset.mem_singleton.mp hpq
+      obtain ⟨k, _, hk⟩ := Finset.mem_biUnion.mp hpSp
+      exact (mem_filter_spokeInterior (P := P) hk).2.1 (by simp [hpq'])
+  have hESp : Disjoint E Sp :=
+    Finset.disjoint_left.mpr fun p hpE hpSp => by
+      obtain ⟨i, _, hi⟩ := Finset.mem_biUnion.mp hpE
+      obtain ⟨k, _, hk⟩ := Finset.mem_biUnion.mp hpSp
+      exact false_of_mem_earOffInterior_of_mem_spokeInterior_no_pe P hsc hinj hqI S
+        hi hk
+  have hcover : S ⊆ insert q (E ∪ Sp) := by
+    intro p hp
+    by_cases hpq : p = q
+    · simp [hpq]
+    · obtain ⟨i, hmem, hclass⟩ :=
+        exists_offBoundary_or_onSpoke_covering_of_mem_finset_no_pe P S hS hsc hinj
+          hq hp hpq
+      refine Finset.mem_insert_of_mem (Finset.mem_union.mpr ?_)
+      rcases hclass with hoff | hspokeL | hspokeR
+      · exact Or.inl (Finset.mem_biUnion.mpr ⟨i, Finset.mem_univ _,
+          Finset.mem_filter.mpr ⟨hp, hpq, hmem, hoff⟩⟩)
+      · exact Or.inr (Finset.mem_biUnion.mpr ⟨i, Finset.mem_univ _,
+          Finset.mem_filter.mpr ⟨hp, hpq,
+            ne_vertex_of_mem_interior_finset_no_pe P S hS hp i, hspokeL⟩⟩)
+      · exact Or.inr (Finset.mem_biUnion.mpr ⟨P.nextIdx i, Finset.mem_univ _,
+          Finset.mem_filter.mpr ⟨hp, hpq,
+            ne_vertex_of_mem_interior_finset_no_pe P S hS hp (P.nextIdx i),
+            mem_edgeLatticePoints_comm hspokeR⟩⟩)
+  have hsub : insert q (E ∪ Sp) ⊆ S := by
+    intro p hp
+    rcases Finset.mem_insert.mp hp with hpq | hp'
+    · simpa [hpq] using hq
+    · rcases Finset.mem_union.mp hp' with hpE | hpSp
+      · obtain ⟨i, _, hi⟩ := Finset.mem_biUnion.mp hpE
+        exact (mem_filter_earOffInterior (P := P) hi).1
+      · obtain ⟨k, _, hk⟩ := Finset.mem_biUnion.mp hpSp
+        exact (mem_filter_spokeInterior (P := P) hk).1
+  have hS_eq : S = insert q (E ∪ Sp) := Finset.Subset.antisymm hcover hsub
+  have hq_not : q ∉ E ∪ Sp := by
+    intro hq'
+    rcases Finset.mem_union.mp hq' with hqE | hqSp
+    · exact Finset.disjoint_left.mp hEq (Finset.mem_singleton_self _) hqE
+    · exact Finset.disjoint_left.mp hSpq (Finset.mem_singleton_self _) hqSp
+  calc
+    S.card = (insert q (E ∪ Sp)).card := by rw [hS_eq]
+    _ = (E ∪ Sp).card + 1 := Finset.card_insert_of_notMem hq_not
+    _ = E.card + Sp.card + 1 := by rw [Finset.card_union_of_disjoint hESp]
+    _ = (∑ i : Fin P.nVertices, (earOffInterior P q i S).card) +
+          (∑ k : Fin P.nVertices, (spokeInterior P q k S).card) + 1 := by
+          rw [hE_card, hSp_card]
+    _ = 1 + (∑ i : Fin P.nVertices, (earOffInterior P q i S).card) +
+          (∑ k : Fin P.nVertices, (spokeInterior P q k S).card) := by
+          omega
+
+
+theorem hpart_of_interior_finset_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ S) :
+    (S.card : ℚ) =
+      1 + (∑ i : Fin P.nVertices, ((earOffInterior P q i S).card : ℚ)) +
+        (∑ k : Fin P.nVertices, ((spokeInterior P q k S).card : ℚ)) := by
+  have h := card_eq_one_add_earOff_add_spoke_no_pe P S hS hsc hinj hq
+  exact_mod_cast h
+
+theorem hbook_of_fan_ear_partition_of_interior_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ S) :
+    (∑ i : Fin P.nVertices,
+        (((earOffInterior P q i S).card : ℚ) +
+          ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 -
+            1)) =
+      (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq; rwa [hS] at this
+  have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hqI
+  refine hbook_of_partition_and_spokeGcd_general P S q hsc hinj
+    (hpart_of_interior_finset_no_pe P S hS hsc hinj hq)
+    (hspoke_of_interior_finset_no_pe P S hS hsc hinj hq) ?_
+  intro i
+  have hB := B_trianglePolygon_ear P q i hpos
+  calc
+    ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ)
+        = ((edgeGcd q (P.vertex i) +
+            edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) +
+              edgeGcd (P.vertex (P.nextIdx i)) q : ℕ) : ℚ) := by
+          exact_mod_cast hB
+    _ = (edgeGcd q (P.vertex i) : ℚ) +
+          (edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) : ℚ) +
+            (edgeGcd q (P.vertex (P.nextIdx i)) : ℚ) := by
+          push_cast; rw [edgeGcd_comm (P.vertex (P.nextIdx i)) q]
+
+
+
+/-- Off-boundary lattice point in an interior-fan ear lies in `P.interiorLatticePoints`,
+without `PrimitiveEdges`. Affine half-planes: positive barycentric weights + apex left of
+every edge ⇒ positive edge dets at `p` ⇒ not on constructive boundary. -/
+theorem mem_interiorLatticePoints_of_memClosedTriangle_off_ear_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ} (hq : q ∈ P.interiorLatticePoints) (i : Fin P.nVertices)
+    {p : ℤ × ℤ}
+    (hmem : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p)
+    (hoff : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) p) :
+    p ∈ P.interiorLatticePoints := by
+  classical
+  set v := P.vertex i
+  set w := P.vertex (P.nextIdx i)
+  have hpos := InteriorFanDetsPos_of_mem_interior_no_pe P hsc hinj hq
+  have hD : 0 < latticeDet q v w := by
+    simpa [v, w, interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+  have hmemFan :
+      MemClosedTriangle (interiorFanTriangle P q i).a
+        (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c p := by
+    simpa [interiorFanTriangle, v, w] using hmem
+  obtain ⟨hd_vw, hd_qw, hd_qv⟩ :=
+    latticeDet_pos_of_memClosedTriangle_offBoundary q v w p hmem hD hoff
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hmem
+  obtain ⟨e1, e2, e3⟩ := latticeDet_eq_bary_mul_of_affine q v w p α β γ hsum heq
+  have hD0 : (0 : ℝ) < (latticeDet q v w : ℝ) := by exact_mod_cast hD
+  have hαpos : 0 < α := by
+    have hposR : (0 : ℝ) < (latticeDet v w p : ℝ) := by exact_mod_cast hd_vw
+    nlinarith [e1, hposR, hD0]
+  have hβpos : 0 < β := by
+    have hposR : (0 : ℝ) < (latticeDet q p w : ℝ) := by exact_mod_cast hd_qw
+    nlinarith [e2, hposR, hD0]
+  have hγpos : 0 < γ := by
+    have hposR : (0 : ℝ) < (latticeDet q v p : ℝ) := by exact_mod_cast hd_qv
+    nlinarith [e3, hposR, hD0]
+  have hedge_det_pos : ∀ j : Fin P.nVertices,
+      0 < latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) p := by
+    intro j
+    set A := toReal (P.vertex j)
+    set B := toReal (P.vertex (P.nextIdx j))
+    have haff :=
+      detR_affine_combination3 A B (toReal q) (toReal v) (toReal w) α β γ hsum
+    have hdetR :
+        detR A B (toReal p) =
+          α * detR A B (toReal q) + β * detR A B (toReal v) +
+            γ * detR A B (toReal w) := by
+      have hp_eq : toReal p = α • toReal q + β • toReal v + γ • toReal w := heq.symm
+      rw [hp_eq, haff]
+    have hq_edge : 0 < latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) q := by
+      have h : 0 < latticeDet q (P.vertex j) (P.vertex (P.nextIdx j)) := by
+        simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos j
+      rw [← latticeDet_cycle]
+      exact h
+    have hqR : (0 : ℝ) < detR A B (toReal q) := by
+      have : (0 : ℝ) < (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) q : ℝ) :=
+        by exact_mod_cast hq_edge
+      simpa [A, B, detR_toReal] using this
+    have hvnn : 0 ≤ latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) v :=
+      hsc.1 j i
+    have hwnn : 0 ≤ latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) w :=
+      hsc.1 j (P.nextIdx i)
+    have hvR : (0 : ℝ) ≤ detR A B (toReal v) := by
+      have : (0 : ℝ) ≤ (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) v : ℝ) :=
+        Int.cast_nonneg hvnn
+      simpa [A, B, detR_toReal] using this
+    have hwR : (0 : ℝ) ≤ detR A B (toReal w) := by
+      have : (0 : ℝ) ≤ (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) w : ℝ) :=
+        Int.cast_nonneg hwnn
+      simpa [A, B, detR_toReal] using this
+    have hposR : (0 : ℝ) < detR A B (toReal p) := by
+      have h1 : 0 < α * detR A B (toReal q) := mul_pos hαpos hqR
+      have h2 : 0 ≤ β * detR A B (toReal v) := mul_nonneg (le_of_lt hβpos) hvR
+      have h3 : 0 ≤ γ * detR A B (toReal w) := mul_nonneg (le_of_lt hγpos) hwR
+      linarith [hdetR]
+    have : (0 : ℝ) < (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) p : ℝ) := by
+      simpa [A, B, detR_toReal] using hposR
+    exact_mod_cast this
+  have hnb : p ∉ P.boundaryLatticePoints := by
+    intro hb
+    obtain ⟨j, hj⟩ := (mem_boundaryLatticePoints_iff P p).mp hb
+    have hz : latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) p = 0 :=
+      latticeDet_eq_zero_of_mem_edge_ab (P.vertex j) (P.vertex (P.nextIdx j)) p
+        (by simpa [LatticePolygon.edgePair] using hj)
+    exact (ne_of_gt (hedge_det_pos j)) hz
+  have hq_hull : toReal q ∈ P.convexHullRegion := hq.1
+  have hhull :=
+    mem_convexHullRegion_of_memClosedTriangle_interiorFan P hq_hull i hmemFan
+  refine ⟨?_, hnb⟩
+  simpa [LatticePolygon.convexHullRegion,
+    show (toReal : ℤ × ℤ → ℝ × ℝ) = Picks.toReal from rfl] using hhull
+
+/-- **`earOffInterior` equals the ear triangle interior**, without `PrimitiveEdges`. -/
+theorem coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon_no_pe
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ}
+    (hq : q ∈ S) (i : Fin P.nVertices) :
+    (earOffInterior P q i S : Set (ℤ × ℤ)) =
+      (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).interiorLatticePoints := by
+  classical
+  set v := P.vertex i
+  set w := P.vertex (P.nextIdx i)
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  ext p
+  constructor
+  · intro hp
+    have hp' : p ∈ S ∧ p ≠ q ∧ MemClosedTriangle q v w p ∧ OffTriangleBoundary q v w p := by
+      simpa [earOffInterior, Finset.mem_filter, v, w] using hp
+    exact (mem_interiorLatticePoints_trianglePolygon_iff q v w p).mpr ⟨hp'.2.2.1, hp'.2.2.2⟩
+  · intro hp
+    have hp' := (mem_interiorLatticePoints_trianglePolygon_iff q v w p).mp hp
+    have hmem : MemClosedTriangle q v w p := hp'.1
+    have hoff : OffTriangleBoundary q v w p := hp'.2
+    have hpI :=
+      mem_interiorLatticePoints_of_memClosedTriangle_off_ear_no_pe P hsc hinj hqI i hmem hoff
+    have hpS : p ∈ S := by
+      have : p ∈ (S : Set (ℤ × ℤ)) := by simpa [hS] using hpI
+      exact this
+    have hne : p ≠ q := by
+      intro hpq
+      exact hoff.1 (by simpa [hpq] using self_mem_edgeLatticePoints q v)
+    refine Finset.mem_filter.mpr ?_
+    refine ⟨hpS, hne, ?_⟩
+    exact ⟨by simpa [v, w] using hmem, by simpa [v, w] using hoff⟩
+
 end InteriorFan
 end LatticeFan
 end Picks

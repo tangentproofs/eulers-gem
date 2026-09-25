@@ -2027,6 +2027,78 @@ theorem results_hbook_of_fan_ear_partition_of_interior
     P S hS hsc hinj hedge hq
 
 
+/-- **hspoke without `PrimitiveEdges`** (not classical Pick). -/
+theorem results_hspoke_of_interior_finset_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ} (hq : q ∈ S) :
+    ∀ k : Fin P.nVertices,
+      ((EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S).card : ℚ) =
+        (EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) : ℚ) - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.hspoke_of_interior_finset_no_pe
+    P S hS hsc hinj hq
+
+/-- **hpart without `PrimitiveEdges`** (not classical Pick). -/
+theorem results_hpart_of_interior_finset_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ} (hq : q ∈ S) :
+    (S.card : ℚ) =
+      1 + (∑ i : Fin P.nVertices,
+            ((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ)) +
+        (∑ k : Fin P.nVertices,
+            ((EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S).card : ℚ)) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.hpart_of_interior_finset_no_pe
+    P S hS hsc hinj hq
+
+/-- **Discharged geometric hbook without `PrimitiveEdges`** (not classical Pick). -/
+theorem results_hbook_of_fan_ear_partition_of_interior_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ} (hq : q ∈ S) :
+    (∑ i : Fin P.nVertices,
+        (((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+          ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+      (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.hbook_of_fan_ear_partition_of_interior_no_pe
+    P S hS hsc hinj hq
+
+/-- **`earOffInterior` = ear triangle interior without `PrimitiveEdges`**
+(not classical Pick). -/
+theorem results_coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ} (hq : q ∈ S) (i : Fin P.nVertices) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S : Set (ℤ × ℤ)) =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        q (P.vertex i) (P.vertex (P.nextIdx i))).interiorLatticePoints :=
+  EulersGem.Picks.LatticeFan.InteriorFan.coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon_no_pe
+    P S hS hsc hinj hq i
+
+/-- **`InteriorFanDetsPos` without `PrimitiveEdges`** (not classical Pick). -/
+theorem results_InteriorFanDetsPos_of_mem_interior_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    {q : ℤ × ℤ} (hq : q ∈ P.interiorLatticePoints) :
+    EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos P q :=
+  EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos_of_mem_interior_no_pe
+    P hsc hinj hq
+
+
 /-! ### earOffInterior ↔ triangle interior + I = 4 (not classical Pick) -/
 
 /-- Closed-triangle Off points = `trianglePolygon` interior lattice points. -/

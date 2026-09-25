@@ -2417,3 +2417,40 @@ empty PE-free triangles); then strong induction + volume compose without PE.
 | Drop parent `PrimitiveEdges` (combinatorial + volume) | Open |
 | Discharge Finset finiteness of `I` | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (PE-free hspoke/hpart/hbook + coe_earOff; still FAIL)
+
+Landed PE-free substrate (no `PrimitiveEdges`) on the EP spine:
+
+```lean
+theorem InteriorFanDetsPos_of_mem_interior_no_pe
+theorem hspoke_of_interior_finset_no_pe
+theorem hpart_of_interior_finset_no_pe
+theorem hbook_of_fan_ear_partition_of_interior_no_pe
+theorem mem_interiorLatticePoints_of_memClosedTriangle_off_ear_no_pe
+theorem coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon_no_pe
+```
+
+`coe_earOff` PE-free via OffBoundary ⇒ positive barycentric weights ⇒ affine
+edge dets > 0 for every parent edge ⇒ not on constructive boundary (no
+`boundary = vertices` / PE).
+
+Results: `results_*_no_pe` for hspoke/hpart/hbook/coe_earOff/InteriorFanDetsPos.
+
+**Still open for PE-free parent Pick:** empty-interior PE-free for general
+`StrictlyConvexCCW` (vertex-fan + chord primitivity + empty PE-free triangles +
+`B=∑edgeGcd` telescoping); then strong induction parent without PE; volume
+compose without PE. Classical Pick **still FAIL** (no rename).
+
+| Item | Status |
+|------|--------|
+| All-I triangle w/o PrimitiveEdges | **Green** |
+| `B = ∑ edgeGcd` under StrictlyConvexCCW | **Green** |
+| PE-free hbook arithmetic identity | **Green** |
+| PE-free hspoke / hpart | **Green** |
+| PE-free `coe_earOff` | **Green** |
+| Empty-interior PE-free (StrictlyConvexCCW) | Open |
+| Drop parent `PrimitiveEdges` (combinatorial + volume) | Open |
+| Discharge Finset finiteness of `I` | Open |
+| Classical Pick | **Still FAIL** |
