@@ -1300,3 +1300,44 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+
+## Update 2026-09-25 (I=3 Off-adjacent-left det=4 + Pick-form; still FAIL for classical Pick)
+
+Landed in `EulersGem/OnSpoke.lean` + `EulersGem/LatticeFanInterior.lean` +
+`EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma latticeDet_add_of_mem_edgeLatticePoints
+lemma latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem_bc
+lemma memClosedTriangle_split_of_edgeGcd_eq_two_mem
+theorem latticeDet_eq_three_of_subset_four_off
+theorem mem_diagonal_of_threeInterior_onSpoke_off_adjacent_left
+theorem edgeGcd_eq_two_of_diagonal_threeInterior_onSpoke_off_adjacent_left
+theorem interiorFanDet_eq_four_of_threeInterior_onSpoke_off_adjacent_left
+    -- double-doubling: spoke mid + diagonal mid ⇒ det = 4
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off_adjacent_left
+    -- fan sum n+4 (det 4+2+1…)
+-- ThreeInteriorCovered extended with Off-adjacent-left disjunct
+```
+
+Results exports: `results_interiorFanDet_eq_four_of_threeInterior_onSpoke_off_adjacent_left`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off_adjacent_left`,
+updated `results_ThreeInteriorCovered` / covered Finset card=3.
+
+**Prize progress:** Off-adjacent-left closed via diagonal midpoint + double-doubling.
+Still **not** classical Pick: Off-adjacent-right (`s` in ear `prevIdx k`); two-spoke;
+Off-free Finset card=3; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Off-adjacent-left `det=4` + Pick-form | **Green** |
+| Finset card=3 under covered (+ Off-adj-left) | **Green** |
+| Off-adjacent-right | Open |
+| Two different spokes | Open |
+| Finset card=3 without covered hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+
