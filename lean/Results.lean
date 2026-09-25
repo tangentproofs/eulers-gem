@@ -10,6 +10,7 @@ import EulersGem.ConeSlice
 import EulersGem.Embed
 import EulersGem.Platonic
 import EulersGem.Picks
+import EulersGem.PicksTriangulation
 
 /-!
 # Paper-facing results
@@ -29,9 +30,10 @@ Pick; geometric regularity for Platonic; etc.).
   See `MATHLIB_SURVEY.md`.
 
 Phase B (#1535): combinatorial Platonic classification + five Schläfli
-constructions, and Funkenbusch / triangulation *count identities* (not Pick).
+constructions, Funkenbusch / triangulation *count identities* (not Pick), and a
+**witness-conditional** shoelace Pick-form on the EP spine (not classical Pick).
 **Classical geometric Pick's theorem is not claimed** — see `Picks.lean`,
-`PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`.
+`PicksTriangulation.lean`, `PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 open scoped RealInnerProductSpace
@@ -153,6 +155,33 @@ theorem results_triangulation_count_identity
     (harea : A = (T : ℚ) / 2) :
     A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
   EulersGem.Picks.triangulation_count_identity I B V E T F A hV hF heuler hshake harea
+
+/-! ## Witness-conditional shoelace Pick-form (not classical Pick)
+
+Geometric primitive triangulation witness + EP-spine planar Euler hyp.
+**Not** classical Pick — triangulation existence and EP→planar discharge open.
+See `PICKS_CLAUDE_AUDIT.md`. Identifiers avoid claiming Pick proved.
+-/
+
+/-- **Shoelace Pick-form of a primitive triangulation witness** (not classical Pick).
+
+Given a geometric `PrimitiveLatticeTriangulationWitness` and planar Euler /
+handshaking hypotheses (`hEuler_planar` must eventually come from
+`Euler_Poincare_full` / a planar EP instance — not a free bare-ℤ Euler claim),
+conclude `shoelace = I + B/2 − 1`.
+
+Existence of such a witness for arbitrary simple lattice polygons is open.
+Claude audit: do **not** promote to a Pick-named theorem until PASS. -/
+theorem results_shoelace_pick_form_of_primitive_triangulation_witness
+    (W : EulersGem.Picks.PrimitiveLatticeTriangulationWitness)
+    (V E F : ℤ)
+    (hV : V = (W.I : ℤ) + W.B)
+    (hF : F = (W.T : ℤ) + 1)
+    (hEuler_planar : V - E + F = 2)
+    (hshake : 2 * E = 3 * (W.T : ℤ) + W.B) :
+    W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.shoelace_pick_form_of_primitive_triangulation_witness
+    W V E F hV hF hEuler_planar hshake
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 

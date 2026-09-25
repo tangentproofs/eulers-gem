@@ -9,9 +9,13 @@ README/site row, ROADMAP checkbox, and theorem-naming docstring — not only Pic
 |--------|-----------------|---------------|
 | `results_funkenbusch_identity` | No | Count identity only |
 | `results_triangulation_count_identity` | No | Count identity only; handshaking **assumed** |
-| (none) | Pick | **Not claimed** |
+| `results_shoelace_pick_form_of_primitive_triangulation_witness` | No (name avoids classical Pick) | Witness + `hEuler_planar` (EP-spine hyp, discharge open) + handshaking |
+| (none) | classical Pick | **Not claimed** |
 
-`LatticeTriangle.lean`: shoelace/`|det|=1` arithmetic + Cramer; **not** Haar volume; not in Results as Pick.
+EP-spine constraint: `hEuler_planar` must eventually come from `Euler_Poincare_full` / planar EP — not free bare-ℤ Euler; no Ehrhart bypass.
+
+`LatticeTriangle.lean`: shoelace/`|det|=1` + Cramer + closed-triangle emptiness; **not** Haar.
+`LatticePolygon.lean` / `PicksTriangulation.lean`: geometric I/B + witness; not classical Pick.
 
 ## Platonic / Schläfli
 

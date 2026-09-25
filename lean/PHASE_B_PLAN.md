@@ -34,13 +34,19 @@ From Poly100 notes + Funkenbusch Monthly 1974:
 3. Primitive triangles have area `1/2` ⇒ `A = T/2 = (F−1)/2`.
 4. Plug into Euler ⇒ `A = I + B/2 − 1`.
 
-**Lean plan:** `EulersGem/Picks.lean` + `EulersGem/LatticeTriangle.lean`
+**Architecture (Michal, hard):** Pick and Platonic are corollaries of the
+Euler–Poincaré root (`Euler_Poincare_full` / `euler_relation_convex_3polytope`).
+Planar/spherical Euler for Pick must be **discharged from that root** — not a free
+`V−E+F=2` on bare `ℤ`, and not via Ehrhart bypasses.
 
-- Prove Funkenbusch / triangulation **count identities** (not named Pick):
-  `funkenbusch_identity`, `triangulation_count_identity`.
-- Shoelace/`|det|=1` helpers in `LatticeTriangle.lean` (explicitly not Haar volume).
-- **Claude audit (2026-09-24): FAIL** for presenting count identities as Pick — see `PICKS_CLAUDE_AUDIT.md`.
-- Classical geometric Pick remains open (lattice polygon + measure area + triangulation existence + planar Euler/handshaking proved).
+**Lean plan:** `Picks.lean` + `LatticeTriangle.lean` + `LatticePolygon.lean` + `PicksTriangulation.lean`
+
+- Funkenbusch / triangulation **count identities** (not named Pick).
+- Lattice polygon with geometric I/B; `|det|=1` closed-triangle emptiness.
+- `PrimitiveLatticeTriangulationWitness` + shoelace Pick-form **conditional on
+  witness + `hEuler_planar`** (EP-spine hyp; discharge open).
+- **Claude audit: FAIL** for classical Pick — see `PICKS_CLAUDE_AUDIT.md`.
+- Still open: triangulation existence, EP→planar Euler, handshaking, shoelace=measure.
 
 ## Deliverables
 

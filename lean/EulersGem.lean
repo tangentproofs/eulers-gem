@@ -16,3 +16,4 @@ import EulersGem.Platonic
 import EulersGem.Picks
 import EulersGem.LatticeTriangle
 import EulersGem.LatticePolygon
+import EulersGem.PicksTriangulation

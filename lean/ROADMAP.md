@@ -11,10 +11,11 @@
    H+V-rep polytopes; geometric 3D `V−E+F=2`.
 5. **Specialize:** done for full-dim convex 3-polytopes with H+V-rep (Results).
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
-7. **Done (Phase B, #1535):** combinatorial Platonic classification + five Schläfli
-   constructions; Funkenbusch / triangulation count identities (not Pick)
-   (`Platonic.lean`, `Picks.lean`, `PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`). Geometric lattice
-   triangulation + primitive-triangle area `½` still open.
+7. **Phase B (#1535) in progress:** combinatorial Platonic classification + five Schläfli
+   constructions done; Pick on **EP spine** — count identities + lattice polygon I/B +
+   `|det|=1` emptiness + witness-conditional shoelace Pick-form landed (not classical Pick).
+   Still open: triangulation existence, EP→planar Euler discharge, handshaking, Haar.
+   See `PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`. Platonic geometric regularity: separate lane.
 
 Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 
@@ -44,4 +45,12 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] ConeSliceFaceBijection (face-lift + affDim+1 + homogenized equality + height-1 EP)
 - [x] Euler_Poincare_full via E×ℝ embedding + geometric 3D V−E+F=2
 - [x] Combinatorial Schläfli classification + five `(V,E,F)` witnesses (#1535; geometric regular embeddings open)
-- [ ] Classical geometric Pick's theorem (open; only Funkenbusch/triangulation *count identities* landed — not Pick; see `PICKS_CLAUDE_AUDIT.md`)
+- [ ] Classical geometric Pick's theorem (open; EP-spine route)
+  - [x] Funkenbusch / triangulation *count identities* (not Pick)
+  - [x] Lattice polygon structure + geometric I/B defs (`LatticePolygon.lean`)
+  - [x] `|det|=1` ⇒ closed triangle has only vertex lattice points
+  - [x] `PrimitiveLatticeTriangulationWitness` + shoelace Pick-form **conditional on witness + `hEuler_planar`** (EP discharge still open; not classical Pick)
+  - [ ] Triangulation existence for simple lattice polygons
+  - [ ] Discharge `hEuler_planar` from `Euler_Poincare_full` / planar-disk EP instance
+  - [ ] Discharge handshaking `2E=3T+B` from planar graph API
+  - [ ] Shoelace = Haar/Lebesgue; Claude audit PASS before any Pick-named Results claim

@@ -84,3 +84,34 @@ theorem sum_shoelace_eq_card_div_two
 ```
 File: `lean/EulersGem/LatticeTriangle.lean`. Not exported in Results as Pick.
 
+
+
+## Update 2026-09-24 (EP-spine substrate; still FAIL for classical Pick)
+
+**Architecture:** Pick must discharge Euler from `Euler_Poincare_full` / planar EP —
+not free `ℤ` Euler. Ehrhart bypasses disallowed.
+
+Landed (honest names; **not** classical Pick in Results):
+
+| Item | Status |
+|------|--------|
+| `LatticePolygon` + geometric I/B/shoelace | Green |
+| `memClosedTriangle_eq_vertices_of_natAbs_det_eq_one` | Green (emptiness) |
+| `PrimitiveLatticeTriangulationWitness` | Green |
+| `results_shoelace_pick_form_of_primitive_triangulation_witness` | Green; **conditional** on witness + `hEuler_planar` + handshaking |
+| Classical Pick | **Still FAIL** — existence, EP→planar, handshaking, measure open |
+
+### Candidate statement (do NOT rename to Pick until re-audit PASS)
+
+```lean
+theorem results_shoelace_pick_form_of_primitive_triangulation_witness
+    (W : EulersGem.Picks.PrimitiveLatticeTriangulationWitness)
+    (V E F : ℤ)
+    (hV : V = (W.I : ℤ) + W.B)
+    (hF : F = (W.T : ℤ) + 1)
+    (hEuler_planar : V - E + F = 2)   -- EP-spine discharge pending
+    (hshake : 2 * E = 3 * (W.T : ℤ) + W.B) :
+    W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1
+```
+
+File: `lean/EulersGem/PicksTriangulation.lean` / `lean/Results.lean`.
