@@ -23,6 +23,7 @@ import EulersGem.PlanarTriangulation
 import EulersGem.FanDisk
 import EulersGem.LatticeFan
 import EulersGem.LatticeFanInterior
+import EulersGem.EarUniqueness
 import EulersGem.LatticeTriangleEmpty
 
 /-!
@@ -856,7 +857,7 @@ theorem results_interiorFanDet_eq_three_of_twoInterior_occupied
     P hsc hinj hedge h i hr hoff
 
 /-- **I = 2 shoelace Pick-form** under unique off-boundary occupied ear
-(not classical Pick). Ear-uniqueness discharge still open. -/
+(not classical Pick). Prefer the discharged form without `huniq`. -/
 theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied
     (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
     (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
@@ -874,6 +875,43 @@ theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied
     P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied
     P hsc hinj hedge h i hr hoff huniq
+
+/-- Ear-uniqueness: at most one closed interior-fan ear contains `r` under
+`OffTriangleBoundary` on an occupied ear (cone/half-plane disjointness; not classical Pick). -/
+theorem results_eq_of_mem_interiorFan_of_twoInterior_offBoundary
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i j : Fin P.nVertices)
+    (hri : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hrj : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex j)
+      (P.vertex (P.nextIdx j)) r) :
+    j = i :=
+  EulersGem.Picks.LatticeFan.InteriorFan.eq_of_mem_interiorFan_of_twoInterior_offBoundary
+    P hsc hinj hedge h i j hri hoff hrj
+
+/-- **I = 2 shoelace Pick-form** with ear-uniqueness discharged from
+`OffTriangleBoundary` (not classical Pick). On-spoke I=2 still open. -/
+theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
+    P hsc hinj hedge h i hr hoff
+
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 

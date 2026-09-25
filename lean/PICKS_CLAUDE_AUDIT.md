@@ -831,3 +831,43 @@ EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | On-spoke I=2 configurations | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (ear-uniqueness discharged under OffTriangleBoundary; still FAIL for classical Pick)
+
+Landed in `EulersGem/EarUniqueness.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem latticeDet_pos_of_memClosedTriangle_offBoundary
+    … (OffTriangleBoundary …) :
+    0 < latticeDet v w r ∧ 0 < latticeDet q r w ∧ 0 < latticeDet q v r
+
+theorem eq_of_mem_interiorFan_of_twoInterior_offBoundary
+    … (OffTriangleBoundary on ear i) (MemClosedTriangle ear j r) :
+    j = i
+
+theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
+    … (OffTriangleBoundary …) :  -- no uniqueness hyp
+    P.shoelace = 2 + B/2 − 1
+```
+
+Results exports: `results_eq_of_mem_interiorFan_of_twoInterior_offBoundary`,
+`results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary`
+(plus prior uniqueness-hyp form retained).
+
+**Prize progress:** cone/half-plane disjointness of distinct ears from apex `q`
+under `OffTriangleBoundary` + Plücker + `ConvexCCW` + foreign-vertex via
+`eq_vertices_or_r_of_mem_interiorFan_of_twoInterior`. I=2 Pick-form without
+`huniq`. Still **not** classical Pick: on-spoke I=2; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Occupied-ear UniqueInterior (off boundary) | Green |
+| Ear StrictlyConvexCCW / PrimitiveEdges / det=3 | Green |
+| I=2 Pick-form under uniqueness hyp | Green |
+| Discharge ear-uniqueness from OffTriangleBoundary | **Green** |
+| I=2 Pick-form without uniqueness hyp (needs Off) | **Green** |
+| On-spoke I=2 configurations | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

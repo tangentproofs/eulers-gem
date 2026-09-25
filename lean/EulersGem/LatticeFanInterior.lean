@@ -1854,7 +1854,9 @@ Still open on this spine (classical Pick FAIL):
 3. ~~Ear StrictlyConvexCCW / PrimitiveEdges / `det=3`~~: **green**.
 4. ~~I=2 Pick-form under uniqueness hyp~~: **green**
    (`shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied`).
-5. Discharge ear-uniqueness from `OffTriangleBoundary` (cone disjointness): open.
+5. ~~Discharge ear-uniqueness from `OffTriangleBoundary`~~: **green**
+   (`EulersGem.EarUniqueness`: `eq_of_mem_interiorFan_of_twoInterior_offBoundary`,
+   `shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary`).
 6. On-spoke second-interior configurations: open.
 7. Shoelace = Haar/Lebesgue; EP → planar Euler.
 -/
