@@ -36,8 +36,9 @@ Foreign vertices in an ear contradict the supporting half-plane at that vertex
 `shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one` packages empty + unique
 interior into one Finset statement (`card ≤ 1`).
 
-**I = 2 scaffold:** `TwoInterior`, fan positivity from either apex. Fan covering /
-ear inheritance / B-bookkeeping still open.
+**I = 2 scaffold:** `TwoInterior`, fan positivity from either apex.
+Fan covering of the second interior point + `InteriorFanTrianglesEmpty` failure
+for I=2 are green. Ear inheritance / B-bookkeeping still open.
 
 **Honesty / not classical Pick:**
 Shoelace ≠ Haar/Lebesgue. General I > 1 triangulation existence open. EP→planar open.
@@ -890,12 +891,299 @@ theorem twoInterior_of_finset_card_two
   -- Finset `{q,r}` coe equals the set `{q,r}` used by `TwoInterior`.
   simpa [Finset.coe_insert, Finset.coe_singleton] using hS.symm
 
+/-! ### Fan covering (I = 2 substrate; not classical Pick)
+
+Any hull lattice point lies in some closed interior-fan ear from an apex with
+positive fan dets: sector sign-change around the apex + edge half-plane from
+`ConvexCCW`. Specializes to the second point of `TwoInterior`. Consequently
+`InteriorFanTrianglesEmpty` fails for `I = 2` (expected — the other interior
+point sits in an ear). Ear inheritance / B-bookkeeping still open.
+-/
+
+lemma latticeDet_area_sum (q v w p : ℤ × ℤ) :
+    latticeDet q v w =
+      latticeDet v w p + latticeDet q p w + latticeDet q v p := by
+  unfold latticeDet; ring
+
+lemma latticeDet_area_barycentric_x (q v w p : ℤ × ℤ) :
+    latticeDet q v w * p.1 =
+      latticeDet v w p * q.1 + latticeDet q p w * v.1 + latticeDet q v p * w.1 := by
+  simp only [latticeDet]; ring
+
+lemma latticeDet_area_barycentric_y (q v w p : ℤ × ℤ) :
+    latticeDet q v w * p.2 =
+      latticeDet v w p * q.2 + latticeDet q p w * v.2 + latticeDet q v p * w.2 := by
+  simp only [latticeDet]; ring
+
+theorem memClosedTriangle_of_area_weights_nonneg
+    (q v w p : ℤ × ℤ)
+    (hD : 0 < latticeDet q v w)
+    (hα : 0 ≤ latticeDet v w p)
+    (hβ : 0 ≤ latticeDet q p w)
+    (hγ : 0 ≤ latticeDet q v p) :
+    MemClosedTriangle q v w p := by
+  set α : ℝ := (latticeDet v w p : ℝ) / (latticeDet q v w : ℝ)
+  set β : ℝ := (latticeDet q p w : ℝ) / (latticeDet q v w : ℝ)
+  set γ : ℝ := (latticeDet q v p : ℝ) / (latticeDet q v w : ℝ)
+  have hD0 : (latticeDet q v w : ℝ) ≠ 0 := by exact_mod_cast (ne_of_gt hD)
+  have hα0 : 0 ≤ α :=
+    div_nonneg (by exact_mod_cast hα) (by exact_mod_cast (le_of_lt hD))
+  have hβ0 : 0 ≤ β :=
+    div_nonneg (by exact_mod_cast hβ) (by exact_mod_cast (le_of_lt hD))
+  have hγ0 : 0 ≤ γ :=
+    div_nonneg (by exact_mod_cast hγ) (by exact_mod_cast (le_of_lt hD))
+  have hsum : α + β + γ = 1 := by
+    dsimp [α, β, γ]
+    have hsumℤ := latticeDet_area_sum q v w p
+    have : ((latticeDet v w p : ℝ) + (latticeDet q p w : ℝ) + (latticeDet q v p : ℝ)) /
+        (latticeDet q v w : ℝ) = 1 := by
+      have rhs : ((latticeDet v w p : ℝ) + (latticeDet q p w : ℝ) + (latticeDet q v p : ℝ)) =
+          (latticeDet q v w : ℝ) := by exact_mod_cast hsumℤ.symm
+      rw [rhs, div_self hD0]
+    convert this using 1; ring
+  refine ⟨α, β, γ, hα0, hβ0, hγ0, hsum, ?_⟩
+  apply Prod.ext
+  · change α * (q.1 : ℝ) + β * (v.1 : ℝ) + γ * (w.1 : ℝ) = (p.1 : ℝ)
+    dsimp [α, β, γ]
+    have hid := congrArg (fun z : ℤ => (z : ℝ)) (latticeDet_area_barycentric_x q v w p)
+    push_cast at hid
+    have :
+        ((latticeDet v w p : ℝ) * (q.1 : ℝ) + (latticeDet q p w : ℝ) * (v.1 : ℝ) +
+          (latticeDet q v p : ℝ) * (w.1 : ℝ)) / (latticeDet q v w : ℝ) = (p.1 : ℝ) := by
+      calc
+        _ = ((latticeDet q v w : ℝ) * (p.1 : ℝ)) / (latticeDet q v w : ℝ) := by
+              congr 1; linarith
+        _ = (p.1 : ℝ) := by field_simp [hD0]
+    convert this using 1; ring
+  · change α * (q.2 : ℝ) + β * (v.2 : ℝ) + γ * (w.2 : ℝ) = (p.2 : ℝ)
+    dsimp [α, β, γ]
+    have hid := congrArg (fun z : ℤ => (z : ℝ)) (latticeDet_area_barycentric_y q v w p)
+    push_cast at hid
+    have :
+        ((latticeDet v w p : ℝ) * (q.2 : ℝ) + (latticeDet q p w : ℝ) * (v.2 : ℝ) +
+          (latticeDet q v p : ℝ) * (w.2 : ℝ)) / (latticeDet q v w : ℝ) = (p.2 : ℝ) := by
+      calc
+        _ = ((latticeDet q v w : ℝ) * (p.2 : ℝ)) / (latticeDet q v w : ℝ) := by
+              congr 1; linarith
+        _ = (p.2 : ℝ) := by field_simp [hD0]
+    convert this using 1; ring
+
+lemma detR_swap_right (a b c : ℝ × ℝ) : detR a b c = -detR a c b := by
+  dsimp [detR]; ring
+
+lemma detR_sum_smul_middle {ι : Type*} [Fintype ι]
+    (q p : ℝ × ℝ) (w : ι → ℝ) (z : ι → ℝ × ℝ) (hw1 : ∑ i, w i = 1) :
+    detR q (∑ i, w i • z i) p = ∑ i, w i * detR q (z i) p := by
+  have h := detR_sum_smul q p w z hw1
+  calc
+    detR q (∑ i, w i • z i) p
+        = -detR q p (∑ i, w i • z i) := by rw [detR_swap_right]
+    _ = -∑ i, w i * detR q p (z i) := by rw [h]
+    _ = ∑ i, -(w i * detR q p (z i)) := by rw [Finset.sum_neg_distrib]
+    _ = ∑ i, w i * (-detR q p (z i)) := by simp only [mul_neg]
+    _ = ∑ i, w i * detR q (z i) p := by
+          refine Finset.sum_congr rfl fun i _ => ?_
+          rw [← detR_swap_right]
+
+lemma nextIdx_iterate_val (i : Fin P.nVertices) (k : ℕ) :
+    ((fun j => P.nextIdx j)^[k] i).val = (i.val + k) % P.nVertices := by
+  induction k with
+  | zero => simp [Nat.mod_eq_of_lt i.isLt]
+  | succ k ih =>
+      have hnext :
+          (P.nextIdx ((fun j => P.nextIdx j)^[k] i)).val =
+            (((fun j => P.nextIdx j)^[k] i).val + 1) % P.nVertices := rfl
+      rw [Function.iterate_succ_apply', hnext, ih, Nat.mod_add_mod, Nat.add_assoc]
+
+lemma nextIdx_iterate_nVertices (i : Fin P.nVertices) :
+    ((fun j => P.nextIdx j)^[P.nVertices] i) = i := by
+  apply Fin.ext
+  rw [nextIdx_iterate_val, Nat.add_mod_right, Nat.mod_eq_of_lt i.isLt]
+
+lemma nextIdx_iterate_hits (i0 j : Fin P.nVertices) :
+    ∃ k < P.nVertices, ((fun t => P.nextIdx t)^[k] i0) = j := by
+  refine ⟨(j.val + P.nVertices - i0.val) % P.nVertices,
+    Nat.mod_lt _ P.nVertices_pos, Fin.ext ?_⟩
+  rw [nextIdx_iterate_val]
+  have hj : j.val < P.nVertices := j.isLt
+  have hi : i0.val < P.nVertices := i0.isLt
+  have hmod := Nat.add_mod_mod i0.val (j.val + P.nVertices - i0.val) P.nVertices
+  have hsum : i0.val + (j.val + P.nVertices - i0.val) = j.val + P.nVertices := by omega
+  rw [hmod, hsum, Nat.add_mod_right, Nat.mod_eq_of_lt hj]
+
+lemma exists_cyclic_nonneg_nonpos_transition (f : Fin P.nVertices → ℝ)
+    (hge : ∃ i, 0 ≤ f i) (hle : ∃ i, f i ≤ 0) :
+    ∃ i, 0 ≤ f i ∧ f (P.nextIdx i) ≤ 0 := by
+  classical
+  by_contra h
+  push Not at h
+  obtain ⟨i0, hi0⟩ := hge
+  have step : ∀ i, 0 ≤ f i → 0 < f (P.nextIdx i) := fun i hi => h i hi
+  have grow_pos : ∀ k, 1 ≤ k → 0 < f ((fun j => P.nextIdx j)^[k] i0) := by
+    intro k hk
+    induction k with
+    | zero =>
+        exact (Nat.not_succ_le_zero 0 hk).elim
+    | succ k ih =>
+        cases k with
+        | zero =>
+            simpa [Function.iterate_succ_apply'] using step i0 hi0
+        | succ k' =>
+            have hpos := ih (Nat.succ_le_succ (Nat.zero_le _))
+            have hnn : 0 ≤ f ((fun j => P.nextIdx j)^[k' + 1] i0) := le_of_lt hpos
+            simpa [Function.iterate_succ_apply'] using step _ hnn
+  have hi0_pos : 0 < f i0 := by
+    have hn : 1 ≤ P.nVertices := Nat.succ_le_of_lt P.nVertices_pos
+    simpa [nextIdx_iterate_nVertices] using grow_pos P.nVertices hn
+  have all_pos : ∀ j, 0 < f j := by
+    intro j
+    obtain ⟨k, _, hk⟩ := nextIdx_iterate_hits P i0 j
+    by_cases hk0 : k = 0
+    · subst hk0
+      -- iterate 0 i0 = i0 = j
+      have : j = i0 := by simpa using hk.symm
+      simpa [this] using hi0_pos
+    · have hpos := grow_pos k (Nat.succ_le_of_lt (Nat.pos_of_ne_zero hk0))
+      exact hk ▸ hpos
+  obtain ⟨ineg, hineg⟩ := hle
+  exact (not_lt.mpr hineg) (all_pos ineg)
+
+theorem exists_mem_interiorFanTriangle_of_mem_hull
+    (hsc : StrictlyConvexCCW P)
+    {q : ℤ × ℤ} (hpos : InteriorFanDetsPos P q)
+    {p : ℤ × ℤ} (hp : toReal p ∈ P.convexHullRegion) :
+    ∃ i : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p := by
+  classical
+  set fℤ : Fin P.nVertices → ℤ := fun i => latticeDet q (P.vertex i) p
+  set f : Fin P.nVertices → ℝ := fun i => (fℤ i : ℝ)
+  obtain ⟨ι, _, w, z, hw0, hw1, hz, hsum⟩ :=
+    (mem_convexHull_iff_exists_fintype (R := ℝ) (E := ℝ × ℝ)).1 hp
+  have hz' : ∀ k, ∃ j : Fin P.nVertices, z k = toReal (P.vertex j) := by
+    intro k
+    obtain ⟨pt, hpt, heq⟩ := (Set.mem_image _ _ _).1 (hz k)
+    have hpV : pt ∈ (Finset.univ : Finset (Fin P.nVertices)).image P.vertex := by
+      rw [← vertexFinset_eq_univ_image P]; exact hpt
+    obtain ⟨j, _, hj⟩ := Finset.mem_image.mp hpV
+    exact ⟨j, by rw [← heq, ← hj]⟩
+  have hsumf : ∑ k, w k * detR (toReal q) (z k) (toReal p) = 0 := by
+    have hlin := detR_sum_smul_middle (toReal q) (toReal p) w z hw1
+    have hqp : detR (toReal q) (toReal p) (toReal p) = 0 := by dsimp [detR]; ring
+    calc
+      ∑ k, w k * detR (toReal q) (z k) (toReal p)
+          = detR (toReal q) (∑ k, w k • z k) (toReal p) := hlin.symm
+      _ = detR (toReal q) (toReal p) (toReal p) := by rw [hsum]
+      _ = 0 := hqp
+  have hfz : ∀ k, ∃ j, z k = toReal (P.vertex j) ∧
+      detR (toReal q) (z k) (toReal p) = f j := by
+    intro k
+    obtain ⟨j, hj⟩ := hz' k
+    refine ⟨j, hj, ?_⟩
+    simp [f, fℤ, hj, detR_toReal]
+  have exists_pos_weight : ∃ k, 0 < w k := by
+    by_contra hnone
+    push Not at hnone
+    have : ∑ k, w k = 0 :=
+      Finset.sum_eq_zero fun k _ => le_antisymm (hnone k) (hw0 k)
+    linarith [hw1]
+  have not_all_pos : ¬ ∀ i, 0 < f i := by
+    intro hall
+    obtain ⟨k0, hk0⟩ := exists_pos_weight
+    obtain ⟨j0, _, hjeq⟩ := hfz k0
+    set g : ι → ℝ := fun k => w k * detR (toReal q) (z k) (toReal p)
+    have hterm : ∀ k, 0 ≤ g k := by
+      intro k
+      obtain ⟨j, _, heq⟩ := hfz k
+      exact mul_nonneg (hw0 k) (le_of_lt (by simpa [heq] using hall j))
+    have hg0 : 0 < g k0 :=
+      mul_pos hk0 (by simpa [hjeq] using hall j0)
+    have hdecomp : ∑ k, g k = ∑ k ∈ Finset.univ.erase k0, g k + g k0 :=
+      (Finset.sum_erase_add (s := Finset.univ) g (Finset.mem_univ k0)).symm
+    have hrest : 0 ≤ ∑ k ∈ Finset.univ.erase k0, g k :=
+      Finset.sum_nonneg fun k _ => hterm k
+    have hsumpos : 0 < ∑ k, g k := by linarith [hdecomp, hg0, hrest]
+    change 0 < ∑ k, w k * detR (toReal q) (z k) (toReal p) at hsumpos
+    linarith [hsumf]
+  have not_all_neg : ¬ ∀ i, f i < 0 := by
+    intro hall
+    obtain ⟨k0, hk0⟩ := exists_pos_weight
+    obtain ⟨j0, _, hjeq⟩ := hfz k0
+    set g : ι → ℝ := fun k => w k * detR (toReal q) (z k) (toReal p)
+    have hterm : ∀ k, g k ≤ 0 := by
+      intro k
+      obtain ⟨j, _, heq⟩ := hfz k
+      exact mul_nonpos_of_nonneg_of_nonpos (hw0 k)
+        (le_of_lt (by simpa [heq] using hall j))
+    have hg0 : g k0 < 0 :=
+      mul_neg_of_pos_of_neg hk0 (by simpa [hjeq] using hall j0)
+    have hdecomp : ∑ k, g k = ∑ k ∈ Finset.univ.erase k0, g k + g k0 :=
+      (Finset.sum_erase_add (s := Finset.univ) g (Finset.mem_univ k0)).symm
+    have hrest : ∑ k ∈ Finset.univ.erase k0, g k ≤ 0 :=
+      Finset.sum_nonpos fun k _ => hterm k
+    have hsumneg : ∑ k, g k < 0 := by linarith [hdecomp, hg0, hrest]
+    change ∑ k, w k * detR (toReal q) (z k) (toReal p) < 0 at hsumneg
+    linarith [hsumf]
+  have hge : ∃ i, 0 ≤ f i := by
+    by_contra hnone; push Not at hnone; exact not_all_neg hnone
+  have hle : ∃ i, f i ≤ 0 := by
+    by_contra hnone; push Not at hnone; exact not_all_pos hnone
+  obtain ⟨i, hi_ge, hi_le⟩ := exists_cyclic_nonneg_nonpos_transition P f hge hle
+  have hγ : 0 ≤ latticeDet q (P.vertex i) p := by
+    have : 0 ≤ (fℤ i : ℝ) := by simpa [f, fℤ] using hi_ge
+    exact_mod_cast this
+  have hβ : 0 ≤ latticeDet q p (P.vertex (P.nextIdx i)) := by
+    have hfn : (fℤ (P.nextIdx i) : ℝ) ≤ 0 := by simpa [f, fℤ] using hi_le
+    have hfnZ : latticeDet q (P.vertex (P.nextIdx i)) p ≤ 0 := by exact_mod_cast hfn
+    have hswap : latticeDet q p (P.vertex (P.nextIdx i)) =
+        -latticeDet q (P.vertex (P.nextIdx i)) p := by unfold latticeDet; ring
+    linarith
+  have hα : 0 ≤ latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) p :=
+    det_edge_nonneg_of_ConvexCCW_of_mem_hull P hsc.1 hp i
+  have hD : 0 < latticeDet q (P.vertex i) (P.vertex (P.nextIdx i)) := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+  exact ⟨i, memClosedTriangle_of_area_weights_nonneg q (P.vertex i)
+    (P.vertex (P.nextIdx i)) p hD hα hβ hγ⟩
+
+theorem exists_mem_interiorFanTriangle_of_twoInterior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) :
+    ∃ i : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r :=
+  exists_mem_interiorFanTriangle_of_mem_hull P hsc
+    (InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h)
+    (mem_interior_of_twoInterior_right P h).1
+
+theorem not_InteriorFanTrianglesEmpty_of_twoInterior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) :
+    ¬ InteriorFanTrianglesEmpty P q := by
+  classical
+  intro hempty
+  obtain ⟨i, hi⟩ := exists_mem_interiorFanTriangle_of_twoInterior P hsc hinj hedge h
+  have hmem := hempty i r (by simpa [interiorFanTriangle] using hi)
+  have hr_int := mem_interior_of_twoInterior_right P h
+  have hr_not_bd : r ∉ P.boundaryLatticePoints := hr_int.2
+  have hq_ne : q ≠ r := h.1
+  have hv_bd : ∀ j : Fin P.nVertices, P.vertex j ∈ P.boundaryLatticePoints := by
+    intro j
+    have : P.vertex j ∈ P.vertexFinset := by
+      rw [vertexFinset_eq_univ_image]
+      exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+    exact P.vertices_mem_boundary (List.mem_toFinset.mp this)
+  rcases hmem with h1 | h2 | h3
+  · exact hq_ne h1.symm
+  · exact hr_not_bd (by simpa [interiorFanTriangle, h2] using hv_bd i)
+  · exact hr_not_bd (by simpa [interiorFanTriangle, h3] using hv_bd (P.nextIdx i))
+
 /-! ### Remaining I > 1 checklist (honest)
 
 Still open on this spine (classical Pick FAIL):
 
-1. Fan covering: every other interior point lies in some closed fan ear from a
-   chosen apex (convex CCW + positive fan dets).
+1. ~~Fan covering~~: **green** — `exists_mem_interiorFanTriangle_of_mem_hull` /
+   `exists_mem_interiorFanTriangle_of_twoInterior`; also
+   `not_InteriorFanTrianglesEmpty_of_twoInterior`.
 2. Ear inheritance: an ear triangle `(q, vᵢ, vᵢ₊₁)` carrying exactly one leftover
    interior point is a `LatticePolygon` with `UniqueInterior` / `StrictlyConvexCCW`
    / primitive ear edges, so I=1 applies; empty ears are det-primitive.

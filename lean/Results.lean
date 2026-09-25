@@ -572,8 +572,10 @@ theorem results_shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior
 
 Single combined statement covering empty-interior and unique-interior under a
 `Finset` of interior points with `card ≤ 1`. Crystal-clear: **not** classical
-Pick. I=2 scaffolding (`TwoInterior`, fan positivity from either apex) is
-exported for the inductive climb; covering / ear-inheritance still open.
+Pick. I=2 scaffolding (`TwoInterior`, fan positivity from either apex) plus
+fan covering of the second interior point and the expected failure of
+`InteriorFanTrianglesEmpty` are exported; ear-inheritance / B-bookkeeping still
+open.
 -/
 
 /-- **I ∈ {0,1} shoelace Pick-form** via Finset of interior points (not classical Pick).
@@ -618,6 +620,44 @@ theorem results_twoInterior_of_finset_card_two
     ∃ q r, EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r ∧ S = {q, r} :=
   EulersGem.Picks.LatticeFan.InteriorFan.twoInterior_of_finset_card_two P S hS hcard
 
+/-- **Fan covering:** every hull lattice point lies in some closed interior-fan
+ear from a positively oriented apex (not classical Pick). -/
+theorem results_exists_mem_interiorFanTriangle_of_mem_hull
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (q : ℤ × ℤ)
+    (hpos : EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos P q)
+    (p : ℤ × ℤ)
+    (hp : EulersGem.Picks.LatticeTriangle.toReal p ∈ P.convexHullRegion) :
+    ∃ i : Fin P.nVertices,
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+        (P.vertex (P.nextIdx i)) p :=
+  EulersGem.Picks.LatticeFan.InteriorFan.exists_mem_interiorFanTriangle_of_mem_hull
+    P hsc hpos hp
+
+/-- Second interior point of `TwoInterior` lies in some closed fan ear from `q`. -/
+theorem results_exists_mem_interiorFanTriangle_of_twoInterior
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r) :
+    ∃ i : Fin P.nVertices,
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+        (P.vertex (P.nextIdx i)) r :=
+  EulersGem.Picks.LatticeFan.InteriorFan.exists_mem_interiorFanTriangle_of_twoInterior
+    P hsc hinj hedge h
+
+/-- Under `TwoInterior`, fanning from `q` cannot have empty ears (not classical Pick). -/
+theorem results_not_InteriorFanTrianglesEmpty_of_twoInterior
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r) :
+    ¬ EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanTrianglesEmpty P q :=
+  EulersGem.Picks.LatticeFan.InteriorFan.not_InteriorFanTrianglesEmpty_of_twoInterior
+    P hsc hinj hedge h
 
 /-- Barycentric closed triangle ⇒ Euclidean convex hull of the three vertices. -/
 theorem results_mem_convexHull_of_memClosedTriangle

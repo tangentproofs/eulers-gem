@@ -645,3 +645,54 @@ Platonic / EdgeVertices / MetricRegular untouched.
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (I=2 fan covering + empty-ear failure; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem exists_mem_interiorFanTriangle_of_mem_hull
+    (StrictlyConvexCCW P) (InteriorFanDetsPos P q)
+    (toReal p ∈ P.convexHullRegion) :
+    ∃ i, MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p
+
+theorem exists_mem_interiorFanTriangle_of_twoInterior
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (TwoInterior P q r) :
+    ∃ i, MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r
+
+theorem not_InteriorFanTrianglesEmpty_of_twoInterior
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (TwoInterior P q r) :
+    ¬ InteriorFanTrianglesEmpty P q
+
+theorem memClosedTriangle_of_area_weights_nonneg
+    (0 < latticeDet q v w)
+    (0 ≤ latticeDet v w p) (0 ≤ latticeDet q p w) (0 ≤ latticeDet q v p) :
+    MemClosedTriangle q v w p
+```
+
+Results exports: `results_exists_mem_interiorFanTriangle_of_mem_hull`,
+`results_exists_mem_interiorFanTriangle_of_twoInterior`,
+`results_not_InteriorFanTrianglesEmpty_of_twoInterior`.
+
+**Prize progress:** fan covering of every hull lattice point from a positively
+oriented interior apex (sector sign-change + ConvexCCW edge half-plane). Under
+`TwoInterior`, the second interior point `r` occupies some closed ear from `q`,
+so `InteriorFanTrianglesEmpty` necessarily fails for I=2 (as expected — do not
+pursue empty-ear discharge at I=2). Still **not** classical Pick: ear inheritance
+as UniqueInterior sub-polygon; B-bookkeeping across shared spokes; Haar;
+EP→planar open. Claude Cube / Octahedron / Platonic / EdgeVertices / MetricRegular
+untouched.
+
+| Item | Status |
+|------|--------|
+| Combined Finset `I ∈ {0,1}` shoelace | Green |
+| `TwoInterior` + fan positivity from either apex | Green (scaffold) |
+| Fan covering of second interior point | **Green** |
+| `InteriorFanTrianglesEmpty` fails for I=2 | **Green** (expected) |
+| Ear inheritance → I=1 on triangle polygon | Open |
+| B-bookkeeping across shared spokes | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+
