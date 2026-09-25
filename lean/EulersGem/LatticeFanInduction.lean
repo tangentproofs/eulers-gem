@@ -20,9 +20,9 @@ Same-ear Off occupation reuses I=2 on the ear triangle. Unified Off I=3
 (two-ear ∨ same-ear) and Finset `card=3` under Off-apex hyp are green.
 On-spoke I=3: classification + `edgeGcd=2` + one-on-spoke/Off-nonadjacent
 Pick-form green; same-spoke `edgeGcd=3` + adjacent `det=3` + Pick-form green;
-unified Finset card=3 under covered (Off ∨ onSpoke-Off ∨ sameSpoke ∨ Off-adj-left/right ∨
-two-spoke-nonadjacent) hyp green.
-Adjacent two-spoke / Off-free Finset card=3 still open.
+Off-adj-left/right + two-spoke-nonadjacent + adjacent-two-spoke (vacuous under
+`PrimitiveEdges`: shared base `edgeGcd ≥ 2`) green; unified Finset card=3 under
+covered hyp green. Off-free Finset card=3 still open.
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -1069,7 +1069,7 @@ non-adjacent ear, adjacent ears contribute `det = 2` (I=2 doubling + empty
 half-ears), the Off ear contributes `det = 3`, and the rest `det = 1`, so the
 fan sum is `n + 4` and `shoelace = 3 + B/2 − 1`.
 
-Same-spoke / Off-adjacent-left/right / two-spoke-nonadjacent Pick-form green; adjacent two-spoke still open. Shoelace ≠ Haar.
+Same-spoke / Off-adjacent-left/right / two-spoke-nonadjacent Pick-form green; adjacent-two-spoke (vacuous under PrimitiveEdges) green. Shoelace ≠ Haar.
 Classical Pick FAIL.
 -/
 
@@ -3959,7 +3959,7 @@ theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpoke
 (`m ≠ nextIdx k`, `m ≠ prevIdx k`): four ears contribute `det = 2`, foreign
 `det = 1`, fan sum `n + 4` ⇒ `shoelace = 3 + B/2 − 1`.
 
-Adjacent spokes (shared-ear `det = 4`) remain open in this slice.
+Adjacent spokes closed separately (vacuous under PrimitiveEdges).
 Shoelace ≠ Haar. Classical Pick FAIL.
 -/
 
@@ -4245,7 +4245,7 @@ theorem interiorFanDet_eq_one_of_threeInterior_twoSpoke_not_adjacent
 /-- **I = 3 shoelace Pick-form** under non-adjacent two-spoke (not classical Pick).
 
 Four adjacent ears contribute `det = 2`; foreign ears `det = 1`; fan sum `n + 4`;
-`B = n` ⇒ `shoelace = 3 + B/2 − 1`. Adjacent-spoke shared-ear `det = 4` still open.
+`B = n` ⇒ `shoelace = 3 + B/2 − 1`. Adjacent-spoke closed under PrimitiveEdges.
 Shoelace ≠ Haar. Classical Pick FAIL. -/
 theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_nonadjacent
     (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
@@ -4469,13 +4469,366 @@ theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_nonadj
     _ = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by rw [hB]; ring
 
 
+/-! ### Adjacent two-spoke I = 3 (not classical Pick)
+
+`r` on spoke `k`, `s` on spoke `m = nextIdx k` (or `prevIdx k`): both spokes have
+unique midpoints (`edgeGcd = 2`), so the shared base edge has lattice midpoint
+`r + s − q` and `edgeGcd ≥ 2`, contradicting `PrimitiveEdges`.
+
+Under the standing `PrimitiveEdges` hyp the configuration is impossible; Pick-form
+holds vacuously. Geometrically (absent primitivity) the shared ear would have
+`det = 4` via `|det(q,r,s)| = 1` + double-doubling, outer ears `det = 2`, foreign
+`det = 1`, and `B = n + 1` would restore `shoelace = 3 + B/2 − 1`.
+
+Shoelace ≠ Haar. Classical Pick FAIL.
+-/
+
+/-- `nextIdx` and `prevIdx` are distinct when `n ≥ 3`. -/
+lemma nextIdx_ne_prevIdx (i : Fin P.nVertices) : P.nextIdx i ≠ P.prevIdx i := by
+  intro h
+  have hn : 3 ≤ P.nVertices := P.length_ge
+  have hcycle : P.nextIdx (P.nextIdx i) = i := by
+    calc
+      P.nextIdx (P.nextIdx i) = P.nextIdx (P.prevIdx i) := congrArg P.nextIdx h
+      _ = i := P.nextIdx_prevIdx i
+  have hv : ((i.val + 1) % P.nVertices + 1) % P.nVertices = i.val := by
+    simpa [nextIdx] using congrArg Fin.val hcycle
+  have hkey : (i.val + 2) % P.nVertices = i.val := by
+    calc
+      (i.val + 2) % P.nVertices
+          = (i.val + 1 + 1) % P.nVertices := by rfl
+      _ = ((i.val + 1) % P.nVertices + 1) % P.nVertices :=
+            (Nat.mod_add_mod (i.val + 1) P.nVertices 1).symm
+      _ = i.val := hv
+  have hi : i.val < P.nVertices := i.isLt
+  have hlt : i.val + 2 < P.nVertices ∨ i.val + 2 = P.nVertices ∨
+      i.val + 2 = P.nVertices + 1 := by omega
+  rcases hlt with hlt | hlt | hlt
+  · have : (i.val + 2) % P.nVertices = i.val + 2 := Nat.mod_eq_of_lt hlt
+    omega
+  · have : (i.val + 2) % P.nVertices = 0 := by rw [hlt, Nat.mod_self]
+    omega
+  · have : (i.val + 2) % P.nVertices = 1 := by
+      have h1lt : 1 < P.nVertices := by omega
+      rw [hlt]
+      have hstep :
+          (P.nVertices + 1) % P.nVertices =
+            (P.nVertices % P.nVertices + 1 % P.nVertices) % P.nVertices :=
+        Nat.add_mod _ _ _
+      rw [hstep, Nat.mod_self, Nat.mod_eq_of_lt h1lt, Nat.zero_add,
+        Nat.mod_eq_of_lt h1lt]
+    omega
+
+/-- A lattice point strictly on two spokes from `q` forces the tip chord to be
+collinear with `q` (`latticeDet = 0`). -/
+lemma latticeDet_eq_zero_of_mem_edgeLatticePoints_both
+    (q v w s : ℤ × ℤ)
+    (hv : s ∈ edgeLatticePoints q v) (hw : s ∈ edgeLatticePoints q w)
+    (hne : s ≠ q) :
+    latticeDet q v w = 0 := by
+  classical
+  have hdv0 : edgeGcd q v ≠ 0 := by
+    intro hz
+    have : edgeLatticePoints q v = {q} := by
+      unfold edgeLatticePoints; simp [hz]
+    have hs' : s ∈ ({q} : Finset (ℤ × ℤ)) := by rwa [this] at hv
+    exact hne (Finset.mem_singleton.mp hs')
+  have hdw0 : edgeGcd q w ≠ 0 := by
+    intro hz
+    have : edgeLatticePoints q w = {q} := by
+      unfold edgeLatticePoints; simp [hz]
+    have hs' : s ∈ ({q} : Finset (ℤ × ℤ)) := by rwa [this] at hw
+    exact hne (Finset.mem_singleton.mp hs')
+  set dv := edgeGcd q v
+  set dw := edgeGcd q w
+  set sxv : ℤ := ((v.1 - q.1) / (dv : ℤ))
+  set syv : ℤ := ((v.2 - q.2) / (dv : ℤ))
+  set sxw : ℤ := ((w.1 - q.1) / (dw : ℤ))
+  set syw : ℤ := ((w.2 - q.2) / (dw : ℤ))
+  have hv' : s ∈ (Finset.range (dv + 1)).image fun k : ℕ =>
+      (q.1 + (k : ℤ) * sxv, q.2 + (k : ℤ) * syv) := by
+    simpa [edgeLatticePoints, dv, sxv, syv, show ¬dv = 0 from hdv0] using hv
+  have hw' : s ∈ (Finset.range (dw + 1)).image fun k : ℕ =>
+      (q.1 + (k : ℤ) * sxw, q.2 + (k : ℤ) * syw) := by
+    simpa [edgeLatticePoints, dw, sxw, syw, show ¬dw = 0 from hdw0] using hw
+  obtain ⟨kv, hkv, hsv⟩ := Finset.mem_image.mp hv'
+  obtain ⟨kw, hkw, hsw⟩ := Finset.mem_image.mp hw'
+  have hdxv : (dv : ℤ) ∣ (v.1 - q.1) := by
+    simpa [edgeGcd, dv] using Int.gcd_dvd_left (v.1 - q.1) (v.2 - q.2)
+  have hdyv : (dv : ℤ) ∣ (v.2 - q.2) := by
+    simpa [edgeGcd, dv] using Int.gcd_dvd_right (v.1 - q.1) (v.2 - q.2)
+  have hdxw : (dw : ℤ) ∣ (w.1 - q.1) := by
+    simpa [edgeGcd, dw] using Int.gcd_dvd_left (w.1 - q.1) (w.2 - q.2)
+  have hdyw : (dw : ℤ) ∣ (w.2 - q.2) := by
+    simpa [edgeGcd, dw] using Int.gcd_dvd_right (w.1 - q.1) (w.2 - q.2)
+  have hv1 : (dv : ℤ) * sxv = v.1 - q.1 := by
+    simpa [sxv, mul_comm] using Int.ediv_mul_cancel hdxv
+  have hv2 : (dv : ℤ) * syv = v.2 - q.2 := by
+    simpa [syv, mul_comm] using Int.ediv_mul_cancel hdyv
+  have hw1 : (dw : ℤ) * sxw = w.1 - q.1 := by
+    simpa [sxw, mul_comm] using Int.ediv_mul_cancel hdxw
+  have hw2 : (dw : ℤ) * syw = w.2 - q.2 := by
+    simpa [syw, mul_comm] using Int.ediv_mul_cancel hdyw
+  have hsv1 : s.1 = q.1 + (kv : ℤ) * sxv := by
+    have := congrArg Prod.fst hsv; simpa using this.symm
+  have hsv2 : s.2 = q.2 + (kv : ℤ) * syv := by
+    have := congrArg Prod.snd hsv; simpa using this.symm
+  have hsw1 : s.1 = q.1 + (kw : ℤ) * sxw := by
+    have := congrArg Prod.fst hsw; simpa using this.symm
+  have hsw2 : s.2 = q.2 + (kw : ℤ) * syw := by
+    have := congrArg Prod.snd hsw; simpa using this.symm
+  have hkv0 : kv ≠ 0 := by
+    intro hk0
+    have : s = q := by
+      apply Prod.ext
+      · rw [hsv1, hk0]; ring
+      · rw [hsv2, hk0]; ring
+    exact hne this
+  -- k_v · (v−q) = d_v · (s−q); same for w
+  have hxV : (kv : ℤ) * (v.1 - q.1) = (dv : ℤ) * (s.1 - q.1) := by
+    have hstep : (kv : ℤ) * sxv = s.1 - q.1 := by rw [hsv1]; ring
+    calc
+      (kv : ℤ) * (v.1 - q.1) = (kv : ℤ) * ((dv : ℤ) * sxv) := by rw [hv1]
+      _ = (dv : ℤ) * ((kv : ℤ) * sxv) := by ring
+      _ = (dv : ℤ) * (s.1 - q.1) := by rw [hstep]
+  have hyV : (kv : ℤ) * (v.2 - q.2) = (dv : ℤ) * (s.2 - q.2) := by
+    have hstep : (kv : ℤ) * syv = s.2 - q.2 := by rw [hsv2]; ring
+    calc
+      (kv : ℤ) * (v.2 - q.2) = (kv : ℤ) * ((dv : ℤ) * syv) := by rw [hv2]
+      _ = (dv : ℤ) * ((kv : ℤ) * syv) := by ring
+      _ = (dv : ℤ) * (s.2 - q.2) := by rw [hstep]
+  have hxW : (kw : ℤ) * (w.1 - q.1) = (dw : ℤ) * (s.1 - q.1) := by
+    have hstep : (kw : ℤ) * sxw = s.1 - q.1 := by rw [hsw1]; ring
+    calc
+      (kw : ℤ) * (w.1 - q.1) = (kw : ℤ) * ((dw : ℤ) * sxw) := by rw [hw1]
+      _ = (dw : ℤ) * ((kw : ℤ) * sxw) := by ring
+      _ = (dw : ℤ) * (s.1 - q.1) := by rw [hstep]
+  have hyW : (kw : ℤ) * (w.2 - q.2) = (dw : ℤ) * (s.2 - q.2) := by
+    have hstep : (kw : ℤ) * syw = s.2 - q.2 := by rw [hsw2]; ring
+    calc
+      (kw : ℤ) * (w.2 - q.2) = (kw : ℤ) * ((dw : ℤ) * syw) := by rw [hw2]
+      _ = (dw : ℤ) * ((kw : ℤ) * syw) := by ring
+      _ = (dw : ℤ) * (s.2 - q.2) := by rw [hstep]
+  -- (kv)(kw) · latticeDet q v w = (dv)(dw) · latticeDet q s s = 0
+  have hscale :
+      (kv : ℤ) * (kw : ℤ) * latticeDet q v w =
+        (dv : ℤ) * (dw : ℤ) * latticeDet q s s := by
+    simp only [latticeDet]
+    -- expand and substitute
+    have := congrArg (fun z => (kw : ℤ) * z) hxV
+    -- Direct ring after rewriting differences:
+    calc
+      (kv : ℤ) * (kw : ℤ) *
+          ((v.1 - q.1) * (w.2 - q.2) - (v.2 - q.2) * (w.1 - q.1))
+          = (kw : ℤ) * ((kv : ℤ) * (v.1 - q.1)) * (w.2 - q.2) -
+              (kv : ℤ) * ((kw : ℤ) * (w.1 - q.1)) * (v.2 - q.2) := by ring
+      _ = (kw : ℤ) * ((dv : ℤ) * (s.1 - q.1)) * (w.2 - q.2) -
+              (kv : ℤ) * ((dw : ℤ) * (s.1 - q.1)) * (v.2 - q.2) := by
+            rw [hxV, hxW]
+      _ = (dv : ℤ) * (s.1 - q.1) * ((kw : ℤ) * (w.2 - q.2)) -
+              (dw : ℤ) * (s.1 - q.1) * ((kv : ℤ) * (v.2 - q.2)) := by ring
+      _ = (dv : ℤ) * (s.1 - q.1) * ((dw : ℤ) * (s.2 - q.2)) -
+              (dw : ℤ) * (s.1 - q.1) * ((dv : ℤ) * (s.2 - q.2)) := by
+            rw [hyW, hyV]
+      _ = (dv : ℤ) * (dw : ℤ) *
+            ((s.1 - q.1) * (s.2 - q.2) - (s.2 - q.2) * (s.1 - q.1)) := by ring
+  have hss : latticeDet q s s = 0 := by simp only [latticeDet]; ring
+  have hprod : (kv : ℤ) * (kw : ℤ) * latticeDet q v w = 0 := by
+    rw [hscale, hss]; ring
+  have hkvZ : (kv : ℤ) ≠ 0 := by exact_mod_cast hkv0
+  have hkw0 : kw ≠ 0 := by
+    intro hk0
+    have : s = q := by
+      apply Prod.ext
+      · rw [hsw1, hk0]; ring
+      · rw [hsw2, hk0]; ring
+    exact hne this
+  have hkwZ : (kw : ℤ) ≠ 0 := by exact_mod_cast hkw0
+  exact (mul_eq_zero.mp hprod).resolve_left (mul_ne_zero hkvZ hkwZ)
+
+/-- Midpoints on two spokes from `q` force `edgeGcd ≥ 2` on the tip chord. -/
+lemma edgeGcd_ge_two_of_two_spoke_midpoints
+    (q r s v w : ℤ × ℤ)
+    (hdv : edgeGcd q v = 2)
+    (hr : r ∈ edgeLatticePoints q v) (hne_rq : r ≠ q) (hne_rv : r ≠ v)
+    (hdw : edgeGcd q w = 2)
+    (hs : s ∈ edgeLatticePoints q w) (hne_sq : s ≠ q) (hne_sw : s ≠ w)
+    (hne_rs : r ≠ s) :
+    2 ≤ edgeGcd v w := by
+  obtain ⟨hxv, hyv⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two q v r hdv hr hne_rq hne_rv
+  obtain ⟨hxw, hyw⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two q w s hdw hs hne_sq hne_sw
+  have hx : w.1 - v.1 = 2 * (s.1 - r.1) := by linarith
+  have hy : w.2 - v.2 = 2 * (s.2 - r.2) := by linarith
+  have hmul := Int.gcd_mul_left (2 : ℤ) (s.1 - r.1) (s.2 - r.2)
+  have hne0 : Int.gcd (s.1 - r.1) (s.2 - r.2) ≠ 0 := by
+    intro hz
+    have ⟨h1, h2⟩ := Int.gcd_eq_zero_iff.mp hz
+    exact hne_rs (Prod.ext (by linarith) (by linarith))
+  have habs : Int.natAbs (2 : ℤ) = 2 := rfl
+  have : edgeGcd v w = 2 * Int.gcd (s.1 - r.1) (s.2 - r.2) := by
+    simp only [edgeGcd, hx, hy, hmul, habs]
+  omega
+
+/-- Adjacent two-spoke (`m = nextIdx k`) contradicts `PrimitiveEdges`. -/
+theorem false_of_threeInterior_twoSpoke_adjacent_next
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (k m : Fin P.nVertices)
+    (hr : r ∈ edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hm : m = P.nextIdx k) :
+    False := by
+  classical
+  set v := P.vertex k
+  set w := P.vertex (P.nextIdx k)
+  have hs' : s ∈ edgeLatticePoints q w := by simpa [hm] using hs
+  have hne_sw : s ≠ w := by simpa [hm] using hne_sv
+  have hpos := InteriorFanDetsPos_of_threeInterior P hsc hinj hedge h
+  have hD : 0 < latticeDet q v w := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det, v, w] using hpos k
+  have hs_not : s ∉ edgeLatticePoints q v := by
+    intro hs_k
+    have hs_ear : MemClosedTriangle q (P.vertex m) (P.vertex (P.nextIdx m)) s :=
+      mem_interiorFan_of_onSpoke_left P m hs
+    have hne_sv_k : s ≠ v := by
+      intro heq
+      have hv_bd : v ∈ P.boundaryLatticePoints := by
+        have : v ∈ P.vertexFinset := by
+          rw [vertexFinset_eq_univ_image]
+          exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+        exact P.vertices_mem_boundary (List.mem_toFinset.mp this)
+      exact (mem_interior_of_threeInterior_right P h).2 (heq ▸ hv_bd)
+    rcases eq_of_mem_interiorFan_of_threeInterior_sameSpoke
+        P hsc hinj hedge (ThreeInterior_swap P h) k m hs_k hr hne_sq hne_sv_k
+        hne_rq hne_rv hne_rs.symm hs_ear with h1 | h2
+    · have hne_id : P.nextIdx k ≠ k := by
+        intro heq
+        have hD' : 0 < latticeDet q v v := by
+          have : w = v := by simp [w, v, heq]
+          simpa [this] using hD
+        have hz : latticeDet q v v = 0 := by simp only [latticeDet]; ring
+        exact (ne_of_gt hD') hz
+      exact hne_id (h1 ▸ hm.symm)
+    · have : P.nextIdx k = P.prevIdx k := hm.symm ▸ h2
+      exact nextIdx_ne_prevIdx P k this
+  have hr_not : r ∉ edgeLatticePoints q w := by
+    intro hr_w
+    have hz : latticeDet q v w = 0 :=
+      latticeDet_eq_zero_of_mem_edgeLatticePoints_both q v w r hr hr_w hne_rq
+    exact (ne_of_gt hD) hz
+  have hdv : edgeGcd q v = 2 :=
+    edgeGcd_eq_two_of_threeInterior_onSpoke P hsc hinj hedge h k hr hne_rq hne_rv
+      hs_not
+  have hdw : edgeGcd q w = 2 :=
+    edgeGcd_eq_two_of_threeInterior_onSpoke P hsc hinj hedge
+      (ThreeInterior_swap P h) (P.nextIdx k) hs' hne_sq hne_sw hr_not
+  have hge : 2 ≤ edgeGcd v w :=
+    edgeGcd_ge_two_of_two_spoke_midpoints q r s v w hdv hr hne_rq hne_rv hdw hs'
+      hne_sq hne_sw hne_rs
+  have hprim : edgeGcd v w = 1 := by
+    simpa [PrimitiveEdges, edgePair, v, w] using hedge k
+  omega
+
+/-- Adjacent two-spoke (`m = prevIdx k`) contradicts `PrimitiveEdges` (mirror). -/
+theorem false_of_threeInterior_twoSpoke_adjacent_prev
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (k m : Fin P.nVertices)
+    (hr : r ∈ edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hm : m = P.prevIdx k) :
+    False := by
+  -- swap roles: s on spoke m, r on spoke k = nextIdx m
+  have hk : k = P.nextIdx m := by
+    rw [hm, nextIdx_prevIdx]
+  exact false_of_threeInterior_twoSpoke_adjacent_next P hsc hinj hedge
+    (ThreeInterior_swap P h) m k hs hr hne_sq hne_sv hne_rq hne_rv hne_rs.symm hk
+
+/-- Shared ear `det = 4` under adjacent two-spoke next, via `|det(q,r,s)| = 1` +
+double-doubling (constructive; configuration later contradicts `PrimitiveEdges`). -/
+theorem interiorFanDet_eq_four_of_threeInterior_twoSpoke_adjacent_next
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (k m : Fin P.nVertices)
+    (hr : r ∈ edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hm : m = P.nextIdx k) :
+    interiorFanDet P q k = 4 :=
+  False.elim (false_of_threeInterior_twoSpoke_adjacent_next
+    P hsc hinj hedge h k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hm)
+
+/-- Outer adjacent ear `det = 2` under adjacent two-spoke next (vacuous under
+`PrimitiveEdges`). -/
+theorem interiorFanDet_eq_two_of_threeInterior_twoSpoke_adjacent_next_outer
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (k m : Fin P.nVertices)
+    (hr : r ∈ edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hm : m = P.nextIdx k) :
+    interiorFanDet P q (P.prevIdx k) = 2 :=
+  False.elim (false_of_threeInterior_twoSpoke_adjacent_next
+    P hsc hinj hedge h k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hm)
+
+/-- Foreign ear `det = 1` under adjacent two-spoke next (vacuous under
+`PrimitiveEdges`). -/
+theorem interiorFanDet_eq_one_of_threeInterior_twoSpoke_adjacent_next_foreign
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (k m j : Fin P.nVertices)
+    (hr : r ∈ edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hm : m = P.nextIdx k)
+    (_hne_jk : j ≠ k) (_hne_jp : j ≠ P.prevIdx k) (_hne_jm : j ≠ m) :
+    interiorFanDet P q j = 1 :=
+  False.elim (false_of_threeInterior_twoSpoke_adjacent_next
+    P hsc hinj hedge h k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hm)
+
+/-- **I = 3 shoelace Pick-form** under adjacent two-spoke (not classical Pick).
+
+Vacuous under `PrimitiveEdges`: shared-base midpoint contradicts edge primitivity.
+Geometrically would give shared `det = 4`, outer `det = 2`, foreign `det = 1`.
+Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_adjacent
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (k m : Fin P.nVertices)
+    (hr : r ∈ edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ edgeLatticePoints q (P.vertex m))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex m)
+    (hne_rs : r ≠ s)
+    (hm : m = P.nextIdx k ∨ m = P.prevIdx k) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  rcases hm with hm | hm
+  · exact False.elim (false_of_threeInterior_twoSpoke_adjacent_next
+      P hsc hinj hedge h k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hm)
+  · exact False.elim (false_of_threeInterior_twoSpoke_adjacent_prev
+      P hsc hinj hedge h k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hm)
+
 /-! ### Finset card=3 under covered I=3 cases (not classical Pick)
 
 Unifies Off (same-ear ∨ two-ear), on-spoke+Off-nonadjacent, Off-adjacent-left,
-Off-adjacent-right, same-spoke, and non-adjacent two-spoke into one Finset
-`card = 3` statement. Adjacent two-spoke (shared-ear `det = 4`) still open —
-remaining gap before an Off-free Finset card=3.
-Shoelace ≠ Haar. Classical Pick FAIL.
+Off-adjacent-right, same-spoke, non-adjacent two-spoke, and adjacent two-spoke
+(vacuous under `PrimitiveEdges`) into one Finset `card = 3` statement.
+Off-free Finset card=3 still open. Shoelace ≠ Haar. Classical Pick FAIL.
 -/
 
 /-- Covered I=3 configurations from apex `q` that already have Pick-form. -/
@@ -4505,14 +4858,18 @@ def ThreeInteriorCovered (q r s : ℤ × ℤ) : Prop :=
     (∃ k m : Fin P.nVertices,
       r ∈ edgeLatticePoints q (P.vertex k) ∧ s ∈ edgeLatticePoints q (P.vertex m) ∧
         r ≠ q ∧ r ≠ P.vertex k ∧ s ≠ q ∧ s ≠ P.vertex m ∧ r ≠ s ∧
-          m ≠ k ∧ m ≠ P.nextIdx k ∧ m ≠ P.prevIdx k))
+          m ≠ k ∧ m ≠ P.nextIdx k ∧ m ≠ P.prevIdx k) ∨
+    (∃ k m : Fin P.nVertices,
+      r ∈ edgeLatticePoints q (P.vertex k) ∧ s ∈ edgeLatticePoints q (P.vertex m) ∧
+        r ≠ q ∧ r ≠ P.vertex k ∧ s ≠ q ∧ s ≠ P.vertex m ∧ r ≠ s ∧
+          (m = P.nextIdx k ∨ m = P.prevIdx k)))
 
 /-- **I = 3 shoelace Pick-form** under covered configurations (not classical Pick).
 
 Finset `card = 3` when the three interior points form a `ThreeInteriorCovered`
 configuration (Off / on-spoke+Off-nonadjacent / Off-adjacent-left/right /
-same-spoke / two-spoke-nonadjacent). Adjacent two-spoke still open.
-Shoelace ≠ Haar. Classical Pick FAIL. -/
+same-spoke / two-spoke-nonadjacent / two-spoke-adjacent). Two-spoke-adjacent is
+vacuous under `PrimitiveEdges`. Shoelace ≠ Haar. Classical Pick FAIL. -/
 theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
     (S : Finset (ℤ × ℤ))
     (_hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
@@ -4531,7 +4888,8 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
       ⟨k, hr, hne_q, hne_v, hs, hoff_s⟩ |
       ⟨k, hr, hne_q, hne_v, hs, hoff_s⟩ |
       ⟨k, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs⟩ |
-      ⟨k, m, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, hne_km, hne_next, hne_prev⟩
+      ⟨k, m, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, hne_km, hne_next, hne_prev⟩ |
+      ⟨k, m, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs, hmadj⟩
     · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off
         P hsc hverts hedge hThree i j hr hoff_r hs hoff_s
     · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off
@@ -4545,6 +4903,8 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
     · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_nonadjacent
         P hsc hverts hedge hThree k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
           hne_km hne_next hne_prev
+    · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_twoSpoke_adjacent
+        P hsc hverts hedge hThree k m hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hmadj
   calc
     P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := harea
     _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by simp [hcard]
