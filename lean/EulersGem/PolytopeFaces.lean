@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michal Wallace, Grok Bot
 -/
 import EulersGem.Polytope
+import EulersGem.AffDim
 import Mathlib.Analysis.Convex.Combination
 import Mathlib.Data.Set.Finite.Powerset
 
@@ -35,6 +36,23 @@ open scoped RealInnerProductSpace
 namespace EulersGem
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+
+/-! ## `affDim` via the direction of the affine span -/
+
+/-- For a nonempty set, `affDim` is the `finrank` of the direction of its affine span. -/
+lemma affDim_eq_finrank_direction {s : Set E} (hs : s.Nonempty) :
+    affDim s = (Module.finrank ℝ (affineSpan ℝ s).direction : ℤ) := by
+  have hspanNe : (affineSpan ℝ s : Set E).Nonempty :=
+    (affineSpan_nonempty (k := ℝ) (V := E) (P := E)).mpr hs
+  have hneBot : affineSpan ℝ s ≠ ⊥ := (AffineSubspace.nonempty_iff_ne_bot _).mp hspanNe
+  have hfd := AffineSubspace.finDim_eq_finrank hneBot
+  simp only [affDim]
+  cases hmatch : (affineSpan ℝ s).finDim with
+  | bot => exact absurd (AffineSubspace.finDim_eq_bot_iff.mp hmatch) hneBot
+  | coe n =>
+    rw [hmatch] at hfd
+    have hn : n = Module.finrank ℝ (affineSpan ℝ s).direction := WithBot.coe_inj.mp hfd
+    simp [hn]
 
 /-! ## Positive weights in a convex combination land in an extreme set -/
 

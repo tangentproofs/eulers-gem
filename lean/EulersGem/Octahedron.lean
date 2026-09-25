@@ -55,6 +55,9 @@ lemma sgn_mul_sgn_le_one (s t : Bool) : sgn s * sgn t ≤ 1 := by
 lemma sgn_mul_sgn_eq_one_iff (s t : Bool) : sgn s * sgn t = 1 ↔ s = t := by
   cases s <;> cases t <;> norm_num [sgn]
 
+lemma sgn_mul_sgn_of_ne {s t : Bool} (h : s ≠ t) : sgn s * sgn t = -1 := by
+  cases s <;> cases t <;> simp_all [sgn]
+
 lemma abs_eq_sgn_mul (x : ℝ) : |x| = sgn (decide (0 ≤ x)) * x := by
   rcases le_or_gt 0 x with h | h
   · simp [sgn, h, abs_of_nonneg h]
@@ -248,6 +251,201 @@ theorem body_eq_iInter_closedHalfspace (hn : 0 < n) :
   · intro hx
     refine mem_body_of_forall_inner_le b hn fun σ => ?_
     exact hx _ ⟨σ, rfl⟩
+
+/-! ## Symmetry and full dimension -/
+
+lemma sgn_not (s : Bool) : sgn (!s) = -sgn s := by cases s <;> norm_num [sgn]
+
+lemma neg_vtx (p : Fin n × Bool) : -vtx b p = vtx b (p.1, !p.2) := by
+  simp [vtx, sgn_not, neg_smul]
+
+lemma neg_range_vtx : -Set.range (vtx b) = Set.range (vtx b) := by
+  ext y
+  constructor
+  · rintro hy
+    obtain ⟨p, hp⟩ : ∃ p, vtx b p = -y := by
+      simpa [Set.mem_neg] using hy
+    exact ⟨(p.1, !p.2), by rw [← neg_vtx, hp, neg_neg]⟩
+  · rintro ⟨p, rfl⟩
+    exact Set.mem_neg.mpr ⟨(p.1, !p.2), by rw [neg_vtx]⟩
+
+/-- The cross-polytope is symmetric about the origin. -/
+lemma neg_mem_body {x : E} (hx : x ∈ body b) : -x ∈ body b := by
+  have h : -body b = body b := by
+    rw [body, ← convexHull_neg, neg_range_vtx]
+  rw [← h]
+  exact Set.mem_neg.mpr (by simpa using hx)
+
+lemma zero_mem_body (hn : 0 < n) : (0 : E) ∈ body b := by
+  have h1 : vtx b (⟨0, hn⟩, true) ∈ body b := vtx_mem_body b _
+  have h2 : vtx b (⟨0, hn⟩, false) ∈ body b := vtx_mem_body b _
+  have := (convex_body b) h1 h2 (by norm_num : (0:ℝ) ≤ 1/2) (by norm_num : (0:ℝ) ≤ 1/2)
+    (by norm_num)
+  simpa [vtx, sgn, smul_smul] using this
+
+/-- The cross-polytope is full-dimensional. -/
+lemma affDim_body [FiniteDimensional ℝ E] (hn : 0 < n) :
+    affDim (body b) = (Module.finrank ℝ E : ℤ) := by
+  have hne : (body b).Nonempty := ⟨0, zero_mem_body b hn⟩
+  rw [affDim_eq_finrank_direction hne, direction_affineSpan]
+  have hspan : Submodule.span ℝ (Set.range (b : Fin n → E)) ≤ vectorSpan ℝ (body b) := by
+    refine Submodule.span_le.mpr ?_
+    rintro y ⟨i, rfl⟩
+    have h1 : b i ∈ body b := by
+      have : vtx b (i, true) = b i := by simp [vtx]
+      rw [← this]; exact vtx_mem_body b _
+    have h2 : (0 : E) ∈ body b := zero_mem_body b hn
+    have := vsub_mem_vectorSpan ℝ h1 h2
+    simpa using this
+  have htop : vectorSpan ℝ (body b) = ⊤ := by
+    refine top_le_iff.mp ?_
+    calc (⊤ : Submodule ℝ E) = Submodule.span ℝ (Set.range (b : Fin n → E)) := by
+          rw [← OrthonormalBasis.coe_toBasis b, b.toBasis.span_eq]
+      _ ≤ vectorSpan ℝ (body b) := hspan
+  rw [htop, finrank_top]
+
+/-! ## The face lattice, indexed by partial sign assignments -/
+
+/-- Vertices selected by a partial sign assignment. -/
+def vtxIdx (c : Fin n → Option Bool) : Finset (Fin n × Bool) :=
+  Finset.univ.filter fun p => c p.1 = some p.2
+
+@[simp] lemma mem_vtxIdx {c : Fin n → Option Bool} {p : Fin n × Bool} :
+    p ∈ vtxIdx c ↔ c p.1 = some p.2 := by simp [vtxIdx]
+
+/-- The subface spanned by a partial sign assignment. -/
+noncomputable def face (c : Fin n → Option Bool) : Set E :=
+  convexHull ℝ (vtx b '' ↑(vtxIdx c))
+
+lemma convex_face (c : Fin n → Option Bool) : Convex ℝ (face b c) := convex_convexHull ℝ _
+
+lemma face_subset_body (c : Fin n → Option Bool) : face b c ⊆ body b :=
+  convexHull_mono (by rintro y ⟨p, -, rfl⟩; exact ⟨p, rfl⟩)
+
+/-- The supporting functional of `c` is bounded by `1` on the vertices. -/
+lemma inner_normal_vtx_le_one' (c : Fin n → Option Bool) (q : Fin n × Bool) :
+    ⟪normal b c, vtx b q⟫ ≤ 1 := by
+  rw [inner_normal_vtx]
+  cases hq : c q.1 with
+  | none => simp [coeff_none hq]
+  | some s =>
+    rw [coeff_some hq]
+    exact sgn_mul_sgn_le_one _ _
+
+/-- The vertices on the supporting hyperplane of `c` are exactly those selected by `c`. -/
+lemma argmax_eq_image_vtxIdx (c : Fin n → Option Bool) :
+    {v ∈ Set.range (vtx b) | ⟪normal b c, v⟫ = 1} = vtx b '' ↑(vtxIdx c) := by
+  ext y
+  constructor
+  · rintro ⟨⟨q, rfl⟩, hq⟩
+    rw [inner_normal_vtx] at hq
+    refine ⟨q, ?_, rfl⟩
+    cases hc : c q.1 with
+    | none => rw [coeff_none hc] at hq; norm_num at hq
+    | some s =>
+      rw [coeff_some hc] at hq
+      have : q.2 = s := (sgn_mul_sgn_eq_one_iff _ _).mp hq
+      simp [mem_vtxIdx, hc, this]
+  · rintro ⟨q, hq, rfl⟩
+    refine ⟨⟨q, rfl⟩, ?_⟩
+    have hc : c q.1 = some q.2 := mem_vtxIdx.mp (Finset.mem_coe.mp hq)
+    rw [inner_normal_vtx, coeff_some hc]
+    exact (sgn_mul_sgn_eq_one_iff _ _).mpr rfl
+
+/-- **Every subface is a face**, cut out by the supporting hyperplane of `c`. -/
+theorem isFaceOf_face (c : Fin n → Option Bool) : IsFaceOf (body b) (face b c) := by
+  have h := isFaceOf_convexHull_argmax (V := Set.range (vtx b)) (a := normal b c) (c := 1)
+    (fun v hv => by obtain ⟨q, rfl⟩ := hv; exact inner_normal_vtx_le_one' b c q)
+  rw [argmax_eq_image_vtxIdx b c] at h
+  exact h
+
+/-- A vertex lies in a subface exactly when `c` selects it. -/
+lemma vtx_mem_face_iff {c : Fin n → Option Bool} {q : Fin n × Bool} :
+    vtx b q ∈ face b c ↔ q ∈ vtxIdx c := by
+  refine ⟨fun h => ?_, fun h => subset_convexHull ℝ _ ⟨q, Finset.mem_coe.mpr h, rfl⟩⟩
+  by_contra hq
+  -- `⟪vtx q, ·⟫ ≤ 0` on the subface, yet `⟪vtx q, vtx q⟫ = 1`
+  have hle : ∀ v ∈ vtx b '' ↑(vtxIdx c), ⟪vtx b q, v⟫ ≤ 0 := by
+    rintro v ⟨p, hp, rfl⟩
+    have hcp : c p.1 = some p.2 := mem_vtxIdx.mp (Finset.mem_coe.mp hp)
+    rw [inner_vtx_vtx]
+    by_cases hpq : q.1 = p.1
+    · have hne : q.2 ≠ p.2 := by
+        intro hsign
+        exact hq (mem_vtxIdx.mpr (by rw [hpq, hsign]; exact hcp))
+      rw [if_pos hpq, sgn_mul_sgn_of_ne hne]
+      norm_num
+    · rw [if_neg hpq]
+      norm_num
+  have h0 : ⟪vtx b q, vtx b q⟫ ≤ 0 := inner_le_of_mem_convexHull hle _ h
+  rw [inner_vtx_self] at h0
+  norm_num at h0
+
+lemma face_subset_iff {c c' : Fin n → Option Bool} :
+    face b c ⊆ face b c' ↔ vtxIdx c ⊆ vtxIdx c' := by
+  refine ⟨fun h p hp => ?_, fun h => convexHull_mono (Set.image_mono (by exact_mod_cast h))⟩
+  exact (vtx_mem_face_iff b).mp (h ((vtx_mem_face_iff b).mpr hp))
+
+lemma vtxIdx_injective : Function.Injective (vtxIdx (n := n)) := by
+  intro c c' h
+  funext i
+  refine Option.ext fun s => ?_
+  constructor
+  · intro hs
+    have hmem : (i, s) ∈ vtxIdx c := mem_vtxIdx.mpr hs
+    rw [h] at hmem
+    exact mem_vtxIdx.mp hmem
+  · intro hs
+    have hmem : (i, s) ∈ vtxIdx c' := mem_vtxIdx.mpr hs
+    rw [← h] at hmem
+    exact mem_vtxIdx.mp hmem
+
+lemma face_injective : Function.Injective (face b) := fun c c' h =>
+  vtxIdx_injective (Finset.Subset.antisymm ((face_subset_iff b).mp h.subset)
+    ((face_subset_iff b).mp h.symm.subset))
+
+/-! ## Dimension of a subface -/
+
+/-- The selected vertices form an orthonormal family. -/
+lemma orthonormal_vtx_vtxIdx (c : Fin n → Option Bool) :
+    Orthonormal ℝ fun p : (↑(vtxIdx c) : Set (Fin n × Bool)) => vtx b p := by
+  rw [orthonormal_iff_ite]
+  intro p q
+  rw [inner_vtx_vtx]
+  by_cases hpq : p = q
+  · subst hpq; simp [sgn_mul_self]
+  · have hcoord : (p : Fin n × Bool).1 ≠ (q : Fin n × Bool).1 := by
+      intro h
+      have hp : c (p : Fin n × Bool).1 = some (p : Fin n × Bool).2 :=
+        mem_vtxIdx.mp (Finset.mem_coe.mp p.2)
+      have hq : c (q : Fin n × Bool).1 = some (q : Fin n × Bool).2 :=
+        mem_vtxIdx.mp (Finset.mem_coe.mp q.2)
+      rw [h, hq] at hp
+      exact hpq (Subtype.ext (Prod.ext h (Option.some_injective _ hp).symm))
+    simp [hpq, hcoord]
+
+/-- `affDim (face b c) = |vtxIdx c| - 1`: a subface on `k` selected vertices has
+dimension `k − 1` (and the empty subface has dimension `-1`). -/
+theorem affDim_face (c : Fin n → Option Bool) :
+    affDim (face b c) = ((vtxIdx c).card : ℤ) - 1 := by
+  rcases Finset.eq_empty_or_nonempty (vtxIdx c) with hempty | hne
+  · rw [face, hempty]
+    simp
+  · obtain ⟨p, hp⟩ := hne
+    have hfne : (face b c).Nonempty := ⟨vtx b p, (vtx_mem_face_iff b).mpr hp⟩
+    rw [affDim_eq_finrank_direction hfne, face, affineSpan_convexHull, direction_affineSpan]
+    have hlin : LinearIndepOn ℝ (vtx b) (↑(vtxIdx c) : Set (Fin n × Bool)) :=
+      (orthonormal_vtx_vtxIdx b c).linearIndependent
+    have haff : AffineIndepOn ℝ (vtx b) (↑(vtxIdx c) : Set (Fin n × Bool)) :=
+      hlin.affineIndepOn
+    have hfin : (↑(vtxIdx c) : Set (Fin n × Bool)).Finite := (vtxIdx c).finite_toSet
+    have hnes : (↑(vtxIdx c) : Set (Fin n × Bool)).Nonempty := ⟨p, Finset.mem_coe.mpr hp⟩
+    have hrank := haff.finrank_vectorSpan_image hfin hnes
+    rw [Set.ncard_coe_finset] at hrank
+    rw [hrank]
+    have hpos : 1 ≤ (vtxIdx c).card := Finset.card_pos.mpr ⟨p, hp⟩
+    omega
+
 
 end Octahedron
 end EulersGem
