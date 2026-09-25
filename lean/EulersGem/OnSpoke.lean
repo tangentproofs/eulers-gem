@@ -599,6 +599,22 @@ lemma memClosedTriangle_split_of_edgeGcd_eq_two_mem
               rw [this]
         _ = p.2 := h2
 
+/-- A point in both midpoint half-triangles lies on the shared diagonal. -/
+lemma mem_edgeLatticePoints_of_memClosedTriangle_both_halves
+    (a b c r p : ℤ × ℤ) (_hd : edgeGcd a b = 2)
+    (_hr : r ∈ edgeLatticePoints a b) (_hne_a : r ≠ a) (_hne_b : r ≠ b)
+    (hDL : 0 < latticeDet a r c) (hDR : 0 < latticeDet r b c)
+    (hpL : MemClosedTriangle a r c p) (hpR : MemClosedTriangle r b c p) :
+    p ∈ edgeLatticePoints r c := by
+  have ⟨hle, _, _⟩ := latticeDet_nonneg_of_memClosedTriangle a r c p hpL hDL
+  have ⟨_, hmid, _⟩ := latticeDet_nonneg_of_memClosedTriangle r b c p hpR hDR
+  -- hle: 0 ≤ latticeDet r c p; hmid: 0 ≤ latticeDet r p c = -latticeDet r c p
+  have hswap : latticeDet r p c = -latticeDet r c p := by
+    unfold latticeDet; ring
+  have hge : latticeDet r c p ≤ 0 := by linarith [hmid, hswap]
+  have hz : latticeDet r c p = 0 := le_antisymm hge hle
+  exact mem_edgeLatticePoints_of_weight_zero_bc a r c p hpL hDL hz
+
 /-- Spoke endpoints agree when they share the same strict intermediate lattice point
 with `edgeGcd = 2`. -/
 lemma eq_vertex_of_mem_edgeLatticePoints_of_edgeGcd_eq_two
