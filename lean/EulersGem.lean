@@ -18,4 +18,5 @@ import EulersGem.LatticeTriangle
 import EulersGem.LatticePolygon
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
+import EulersGem.PolytopeFaces
 import EulersGem.PlatonicOfEuler
