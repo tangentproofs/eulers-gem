@@ -1805,3 +1805,43 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (UniqueInterior triangle Pick w/o PrimitiveEdges; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem mem_interior_left_or_right_of_uniqueInterior_edgeGcd_eq_one
+    -- g=1 ⇒ unique interior lies in exactly one open half
+
+theorem shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle
+    (0 < latticeDet a b c) (UniqueInterior (trianglePolygon a b c) q) :
+    shoelace = 1 + B/2 - 1
+    -- no PrimitiveEdges hyp; |det| induction via edgeStep
+```
+
+Results exports: `results_mem_interior_left_or_right_of_uniqueInterior_edgeGcd_eq_one`,
+`results_shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle`
+(prior UniqueInterior substrate retained).
+
+**Prize progress:** UniqueInterior triangle Pick-form drops `PrimitiveEdges`. Base
+reuses existing UniqueInterior convex Pick when all edges are primitive; step
+splits a non-primitive edge at `edgeStep`, uses chord `edgeGcd ≤ 2`, locates the
+unique interior in one half when `g=1` (other empty) or empties both halves when
+`g=2`, applies empty Pick / UniqueInterior IH on strictly smaller `|det|`, and
+reassembles via shoelace/B additivity. Still **not** classical Pick: I ≤ 2
+without PrimitiveEdges; I = 4 without spokes-empty apex; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Empty-interior triangle Pick w/o PrimitiveEdges | Green |
+| UniqueInterior edge-split substrate | Green |
+| UniqueInterior triangle Pick w/o PrimitiveEdges | **Green** |
+| I≤1 triangle Pick w/o PrimitiveEdges | **Green** |
+| I=2 / I≤2 triangle Pick w/o PrimitiveEdges | Open |
+| I=4 without spokes-empty hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

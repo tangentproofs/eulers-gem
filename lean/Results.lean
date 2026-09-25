@@ -2264,8 +2264,7 @@ theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle
 
 Generalized B-add, chord-interior, `edgeGcd ≤ 2` under UniqueInterior, half
 inheritance, and both-halves-empty when chord gcd = 2. Full UniqueInterior Pick
-(locate half when gcd = 1) / I ≤ 2 / I = 4 without spokes-empty still open.
-Classical Pick FAIL.
+landed below. I ≤ 2 / I = 4 without spokes-empty still open. Classical Pick FAIL.
 -/
 
 theorem results_B_add_of_edgeStep_of_gcd
@@ -2353,6 +2352,57 @@ theorem results_EmptyInterior_edgeStep_both_of_uniqueInterior_edgeGcd_eq_two
           (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b c) :=
   EulersGem.Picks.LatticeFan.InteriorFan.EmptyInterior_edgeStep_both_of_uniqueInterior_edgeGcd_eq_two
     a b c hD hd hU hg
+
+
+/-! ### UniqueInterior triangle Pick without PrimitiveEdges (not classical Pick)
+
+`|det|` induction via `edgeStep`: base reuses UniqueInterior Pick under all-primitive
+edges; step uses chord `edgeGcd ≤ 2`, locate-half when `=1`, both-empty when `=2`,
+and shoelace/B reassembly to `1 + B/2 − 1`. Still not classical Pick (Haar / EP
+planar / I≤2 / I=4 without spokes-empty open).
+-/
+
+theorem results_mem_interior_left_or_right_of_uniqueInterior_edgeGcd_eq_one
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    (q : ℤ × ℤ)
+    (hU : EulersGem.Picks.LatticeFan.InteriorFan.UniqueInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c) q)
+    (hg : EulersGem.Picks.LatticeTriangle.edgeGcd
+      (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c = 1) :
+    q ∈ (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a
+          (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c).interiorLatticePoints ∨
+      q ∈ (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b c).interiorLatticePoints :=
+  EulersGem.Picks.LatticeFan.InteriorFan.mem_interior_left_or_right_of_uniqueInterior_edgeGcd_eq_one
+    a b c hD hd q hU hg
+
+theorem results_shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    {q : ℤ × ℤ}
+    (hU : EulersGem.Picks.LatticeFan.InteriorFan.UniqueInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c) q) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace =
+      (1 : ℚ) + ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B : ℚ) / 2
+        - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle
+    a b c hD hU
+
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).interiorLatticePoints)
+    (hcard : S.card ≤ 1) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace =
+      (S.card : ℚ) +
+        ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one_triangle
+    a b c hD S hS hcard
+
 
 
 

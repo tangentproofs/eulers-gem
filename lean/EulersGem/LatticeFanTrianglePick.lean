@@ -13,11 +13,11 @@ import EulersGem.LatticeFanInduction
 `shoelace = B/2 − 1`. EmptyInterior inherits across edge-steps; new chord is
 primitive under parent-empty.
 
-UniqueInterior substrate without `PrimitiveEdges`: generalized B-add,
-chord-interior, `edgeGcd ≤ 2`, half-inheritance, and both-halves-empty when
-`edgeGcd(chord)=2`. Full UniqueInterior Pick (g=1 locate-half) / I≤2 / I=4
-without spokes-empty still open. Shoelace ≠ Haar. Classical Pick FAIL. See
-`PICKS_CLAUDE_AUDIT.md`.
+UniqueInterior triangle Pick without `PrimitiveEdges`: generalized B-add,
+chord-interior, `edgeGcd ≤ 2`, half-inheritance, both-halves-empty when
+`edgeGcd(chord)=2`, g=1 locate-half, and `|det|` induction reassembly to
+`shoelace = 1 + B/2 − 1`. I≤2 / I=4 without spokes-empty still open.
+Shoelace ≠ Haar. Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 namespace EulersGem
@@ -1236,6 +1236,328 @@ theorem EmptyInterior_edgeStep_both_of_uniqueInterior_edgeGcd_eq_two
   exact ⟨
     EmptyInterior_edgeStep_left_of_uniqueInterior_on_chord a b c hD hd hU hrq hpq hcq,
     EmptyInterior_edgeStep_right_of_uniqueInterior_on_chord a b c hD hd hU hrq hpq hcq⟩
+
+
+
+/-! ### UniqueInterior locate-half + Pick without `PrimitiveEdges` -/
+
+lemma UniqueInterior_trianglePolygon_cyclic (a b c q : ℤ × ℤ) :
+    UniqueInterior (trianglePolygon a b c) q ↔
+      UniqueInterior (trianglePolygon b c a) q := by
+  constructor
+  · intro ⟨hq, huniq⟩
+    refine ⟨?_, fun p hp => huniq p ?_⟩
+    · rw [← interiorLatticePoints_trianglePolygon_cyclic a b c]; exact hq
+    · rwa [interiorLatticePoints_trianglePolygon_cyclic a b c]
+  · intro ⟨hq, huniq⟩
+    refine ⟨?_, fun p hp => huniq p ?_⟩
+    · rw [interiorLatticePoints_trianglePolygon_cyclic a b c]; exact hq
+    · rwa [← interiorLatticePoints_trianglePolygon_cyclic a b c]
+
+private lemma edgeLatticePoints_eq_endpoints_of_edgeGcd_eq_one
+    (p q : ℤ × ℤ) (h : edgeGcd p q = 1) :
+    edgeLatticePoints p q = {p, q} := by
+  classical
+  have hcard := card_edgeLatticePoints p q
+  simp only [h] at hcard
+  have hp := self_mem_edgeLatticePoints p q
+  have hq := other_mem_edgeLatticePoints p q
+  have hsub : ({p, q} : Finset (ℤ × ℤ)) ⊆ edgeLatticePoints p q := by
+    intro x hx
+    simp only [Finset.mem_insert, Finset.mem_singleton] at hx
+    rcases hx with rfl | rfl <;> assumption
+  have hne : p ≠ q := by
+    intro hpq
+    have : edgeGcd p q = 0 := (edgeGcd_eq_zero_iff p q).mpr hpq
+    omega
+  have hcard2 : ({p, q} : Finset (ℤ × ℤ)).card = 2 := by
+    rw [Finset.card_insert_of_notMem (by simp [hne]), Finset.card_singleton]
+  exact (Finset.eq_of_subset_of_card_le hsub (by simp [hcard, hcard2])).symm
+
+/-- Under UniqueInterior + chord `edgeGcd = 1`, the unique interior point lies in
+one open half after `edgeStep` (not classical Pick). -/
+theorem mem_interior_left_or_right_of_uniqueInterior_edgeGcd_eq_one
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    (q : ℤ × ℤ) (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hg : edgeGcd (edgeStep a b) c = 1) :
+    q ∈ (trianglePolygon a (edgeStep a b) c).interiorLatticePoints ∨
+      q ∈ (trianglePolygon (edgeStep a b) b c).interiorLatticePoints := by
+  classical
+  set p := edgeStep a b
+  have hq := (mem_interiorLatticePoints_trianglePolygon_iff a b c q).mp hU.1
+  obtain ⟨hmem, hoff⟩ := hq
+  obtain ⟨hbc, hac, hab⟩ :=
+    latticeDet_pos_of_memClosedTriangle_offBoundary a b c q hmem hD hoff
+  have hmul := latticeDet_edgeStep_mul a b q (by omega : 1 ≤ edgeGcd a b)
+  have hdpos : (0 : ℤ) < (edgeGcd a b : ℤ) := by exact_mod_cast (by omega : 0 < edgeGcd a b)
+  have hap : 0 < latticeDet a p q := by
+    have : latticeDet a p q * (edgeGcd a b : ℤ) = latticeDet a b q := by simpa [p] using hmul
+    nlinarith
+  have hp_mem := edgeStep_mem_edgeLatticePoints a b (by omega)
+  have hadd := latticeDet_add_of_mem_edgeLatticePoints a b q p hp_mem
+  have hpb : 0 < latticeDet p b q := by
+    have : latticeDet a b q = latticeDet a p q + latticeDet p b q := by simpa [p] using hadd
+    nlinarith
+  have hD1 : 0 < latticeDet a p c := latticeDet_edgeStep_pos a b c hD (by omega)
+  have hD2 : 0 < latticeDet p b c := latticeDet_edgeStep_right_pos a b c hD hd
+  rcases lt_trichotomy (latticeDet p c q) 0 with hlt | heq | hgt
+  · -- right half
+    have hprc : 0 ≤ latticeDet p q c := by
+      have : latticeDet p q c = -latticeDet p c q := latticeDet_swap_sign p c q
+      nlinarith
+    have hmemR : MemClosedTriangle p b c q :=
+      memClosedTriangle_of_area_weights_nonneg p b c q hD2 (le_of_lt hbc) hprc (le_of_lt hpb)
+    have hoffR : OffTriangleBoundary p b c q := by
+      refine ⟨?_, ?_, ?_⟩
+      · intro hpb_edge
+        have : latticeDet p b q = 0 := latticeDet_eq_zero_of_mem_edge_ab p b q hpb_edge
+        omega
+      · intro hbc_edge
+        exact hoff.2.1 hbc_edge
+      · intro hcp_edge
+        have hpc_edge : q ∈ edgeLatticePoints p c := mem_edgeLatticePoints_comm hcp_edge
+        have : latticeDet p c q = 0 := latticeDet_eq_zero_of_mem_edge_ab p c q hpc_edge
+        omega
+    exact Or.inr ((mem_interiorLatticePoints_trianglePolygon_iff p b c q).mpr ⟨hmemR, hoffR⟩)
+  · -- on the chord
+    have hmemL : MemClosedTriangle a p c q :=
+      memClosedTriangle_of_area_weights_nonneg a p c q hD1 (le_of_eq heq.symm)
+        (le_of_lt hac) (le_of_lt hap)
+    have hpc_edge : q ∈ edgeLatticePoints p c :=
+      mem_edgeLatticePoints_of_weight_zero_bc a p c q hmemL hD1 heq
+    have heq_end : edgeLatticePoints p c = {p, c} :=
+      edgeLatticePoints_eq_endpoints_of_edgeGcd_eq_one p c hg
+    have hq_end : q = p ∨ q = c := by
+      have : q ∈ ({p, c} : Finset (ℤ × ℤ)) := by simpa [heq_end] using hpc_edge
+      simpa [Finset.mem_insert, Finset.mem_singleton] using this
+    rcases hq_end with hqp | hqc
+    · exact (hoff.1 (by simpa [hqp, p] using hp_mem)).elim
+    · exact (hoff.2.2 (by simpa [hqc] using self_mem_edgeLatticePoints c a)).elim
+  · -- left half
+    have hmemL : MemClosedTriangle a p c q :=
+      memClosedTriangle_of_area_weights_nonneg a p c q hD1 (le_of_lt hgt)
+        (le_of_lt hac) (le_of_lt hap)
+    have hoffL : OffTriangleBoundary a p c q := by
+      refine ⟨?_, ?_, ?_⟩
+      · intro hap_edge
+        have : latticeDet a p q = 0 := latticeDet_eq_zero_of_mem_edge_ab a p q hap_edge
+        omega
+      · intro hpc_edge
+        have : latticeDet p c q = 0 := latticeDet_eq_zero_of_mem_edge_ab p c q hpc_edge
+        omega
+      · intro hca_edge
+        exact hoff.2.2 hca_edge
+    exact Or.inl ((mem_interiorLatticePoints_trianglePolygon_iff a p c q).mpr ⟨hmemL, hoffL⟩)
+
+/-- Helper: UniqueInterior Pick when a designated edge has `edgeGcd ≥ 2`. -/
+theorem shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle_of_edgeStep_ab
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (ih : ∀ a' b' c' : ℤ × ℤ,
+      0 < latticeDet a' b' c' →
+      UniqueInterior (trianglePolygon a' b' c') q →
+      Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) →
+      (trianglePolygon a' b' c').shoelace =
+        (1 : ℚ) + ((trianglePolygon a' b' c').B : ℚ) / 2 - 1) :
+    (trianglePolygon a b c).shoelace =
+      (1 : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by
+  classical
+  set p := edgeStep a b
+  have hlt := natAbs_latticeDet_edgeStep_lt a b c hD hd
+  have hD1 : 0 < latticeDet a p c := latticeDet_edgeStep_pos a b c hD (by omega)
+  have hD2 : 0 < latticeDet p b c := latticeDet_edgeStep_right_pos a b c hD hd
+  have hg_le : edgeGcd p c ≤ 2 := by
+    simpa [p] using edgeGcd_le_two_of_uniqueInterior_edgeStep a b c hD hd hU
+  have hsa := shoelace_add_of_edgeStep a b c hD hd
+  have hBa := B_add_of_edgeStep_of_gcd a b c hD hd
+  have hpne : p ≠ c := by
+    intro hpc
+    have hp := edgeStep_mem_edgeLatticePoints a b (by omega)
+    have : latticeDet a b c = 0 := by
+      simpa [hpc] using latticeDet_eq_zero_of_mem_edge_ab a b p hp
+    omega
+  have hg_pos : 1 ≤ edgeGcd p c :=
+    Nat.pos_of_ne_zero fun hz => hpne ((edgeGcd_eq_zero_iff p c).mp hz)
+  have hg_cases : edgeGcd p c = 1 ∨ edgeGcd p c = 2 := by omega
+  rcases hg_cases with hg1 | hg2
+  · have hloc :=
+      mem_interior_left_or_right_of_uniqueInterior_edgeGcd_eq_one a b c hD hd q hU
+        (by simpa [p] using hg1)
+    rcases hloc with hqL | hqR
+    · have hUL := UniqueInterior_trianglePolygon_of_edgeStep_left a b c hD hd hU hqL
+      have hER := EmptyInterior_edgeStep_right_of_uniqueInterior_left a b c hD hd hU hqL
+      have ihL := ih a p c hD1 hUL hlt.1
+      have heR := shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle p b c hD2 hER
+      have hBsum : (trianglePolygon a p c).B + (trianglePolygon p b c).B =
+          (trianglePolygon a b c).B + 2 := by simpa [p, hg1] using hBa
+      calc
+        (trianglePolygon a b c).shoelace
+            = (trianglePolygon a p c).shoelace + (trianglePolygon p b c).shoelace := hsa
+        _ = ((1 : ℚ) + ((trianglePolygon a p c).B : ℚ) / 2 - 1) +
+              (((trianglePolygon p b c).B : ℚ) / 2 - 1) := by rw [ihL, heR]
+        _ = (((trianglePolygon a p c).B : ℚ) + (trianglePolygon p b c).B) / 2 - 1 := by ring
+        _ = (((trianglePolygon a p c).B + (trianglePolygon p b c).B : ℕ) : ℚ) / 2 - 1 := by
+              push_cast; rfl
+        _ = (((trianglePolygon a b c).B + 2 : ℕ) : ℚ) / 2 - 1 := by rw [hBsum]
+        _ = ((trianglePolygon a b c).B : ℚ) / 2 + 1 - 1 := by push_cast; ring
+        _ = (1 : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by ring
+    · have hUR := UniqueInterior_trianglePolygon_of_edgeStep_right a b c hD hd hU hqR
+      have hEL := EmptyInterior_edgeStep_left_of_uniqueInterior_right a b c hD hd hU hqR
+      have ihR := ih p b c hD2 hUR hlt.2
+      have heL := shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle a p c hD1 hEL
+      have hBsum : (trianglePolygon a p c).B + (trianglePolygon p b c).B =
+          (trianglePolygon a b c).B + 2 := by simpa [p, hg1] using hBa
+      calc
+        (trianglePolygon a b c).shoelace
+            = (trianglePolygon a p c).shoelace + (trianglePolygon p b c).shoelace := hsa
+        _ = ((((trianglePolygon a p c).B : ℚ) / 2 - 1) +
+              ((1 : ℚ) + ((trianglePolygon p b c).B : ℚ) / 2 - 1)) := by rw [heL, ihR]
+        _ = (((trianglePolygon a p c).B : ℚ) + (trianglePolygon p b c).B) / 2 - 1 := by ring
+        _ = (((trianglePolygon a p c).B + (trianglePolygon p b c).B : ℕ) : ℚ) / 2 - 1 := by
+              push_cast; rfl
+        _ = (((trianglePolygon a b c).B + 2 : ℕ) : ℚ) / 2 - 1 := by rw [hBsum]
+        _ = ((trianglePolygon a b c).B : ℚ) / 2 + 1 - 1 := by push_cast; ring
+        _ = (1 : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by ring
+  · have hboth :=
+      EmptyInterior_edgeStep_both_of_uniqueInterior_edgeGcd_eq_two a b c hD hd hU
+        (by simpa [p] using hg2)
+    have he1 := shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle a p c hD1 hboth.1
+    have he2 := shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle p b c hD2 hboth.2
+    have hBsum : (trianglePolygon a p c).B + (trianglePolygon p b c).B =
+        (trianglePolygon a b c).B + 4 := by
+      have hBsum' : (trianglePolygon a p c).B + (trianglePolygon p b c).B =
+          (trianglePolygon a b c).B + 2 * edgeGcd p c := by simpa [p] using hBa
+      simpa [hg2] using hBsum'
+    calc
+      (trianglePolygon a b c).shoelace
+          = (trianglePolygon a p c).shoelace + (trianglePolygon p b c).shoelace := hsa
+      _ = ((((trianglePolygon a p c).B : ℚ) / 2 - 1) +
+            (((trianglePolygon p b c).B : ℚ) / 2 - 1)) := by rw [he1, he2]
+      _ = (((trianglePolygon a p c).B : ℚ) + (trianglePolygon p b c).B) / 2 - 2 := by ring
+      _ = (((trianglePolygon a p c).B + (trianglePolygon p b c).B : ℕ) : ℚ) / 2 - 2 := by
+            push_cast; rfl
+      _ = (((trianglePolygon a b c).B + 4 : ℕ) : ℚ) / 2 - 2 := by rw [hBsum]
+      _ = ((trianglePolygon a b c).B : ℚ) / 2 + 2 - 2 := by push_cast; ring
+      _ = (1 : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by ring
+
+/-- UniqueInterior closed lattice triangle Pick-form without `PrimitiveEdges`, by
+induction on `|det|` via `edgeStep` splits (not classical Pick). -/
+theorem shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q) :
+    (trianglePolygon a b c).shoelace =
+      (1 : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by
+  classical
+  generalize hn : Int.natAbs (latticeDet a b c) = n
+  revert a b c
+  refine Nat.strong_induction_on n fun n ih a b c hD hU hn => ?_
+  have _hpos := edgeGcd_pos_of_latticeDet_pos a b c hD
+  by_cases hprim : edgeGcd a b = 1 ∧ edgeGcd b c = 1 ∧ edgeGcd c a = 1
+  · have hedge :=
+      PrimitiveEdges_trianglePolygon_of_edgeGcds a b c hprim.1 hprim.2.1 hprim.2.2
+    exact shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior
+      (trianglePolygon a b c)
+      (injective_vertex_trianglePolygon a b c (ne_of_gt hD))
+      hedge (StrictlyConvexCCW_trianglePolygon a b c hD) hU
+  · have hge : 2 ≤ edgeGcd a b ∨ 2 ≤ edgeGcd b c ∨ 2 ≤ edgeGcd c a := by omega
+    have ih' : ∀ a' b' c' : ℤ × ℤ,
+        0 < latticeDet a' b' c' →
+        UniqueInterior (trianglePolygon a' b' c') q →
+        Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) →
+        (trianglePolygon a' b' c').shoelace =
+          (1 : ℚ) + ((trianglePolygon a' b' c').B : ℚ) / 2 - 1 := by
+      intro a' b' c' hD' hU' hlt'
+      have hltn : Int.natAbs (latticeDet a' b' c') < n := by simpa [hn] using hlt'
+      exact ih _ hltn a' b' c' hD' hU' rfl
+    rcases hge with hab | hbc | hca
+    · subst hn
+      exact shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle_of_edgeStep_ab
+        a b c hD hab hU ih'
+    · have hDc : 0 < latticeDet b c a := by simpa [← latticeDet_cyclic a b c] using hD
+      have hUc : UniqueInterior (trianglePolygon b c a) q :=
+        (UniqueInterior_trianglePolygon_cyclic a b c q).mp hU
+      have ihc : ∀ a' b' c' : ℤ × ℤ,
+          0 < latticeDet a' b' c' →
+          UniqueInterior (trianglePolygon a' b' c') q →
+          Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet b c a) →
+          (trianglePolygon a' b' c').shoelace =
+            (1 : ℚ) + ((trianglePolygon a' b' c').B : ℚ) / 2 - 1 := by
+        intro a' b' c' hD' hU' hlt'
+        have : Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) := by
+          simpa [← latticeDet_cyclic a b c] using hlt'
+        exact ih' a' b' c' hD' hU' this
+      have hpick :=
+        shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle_of_edgeStep_ab
+          b c a hDc hbc hUc ihc
+      rw [shoelace_trianglePolygon_cyclic a b c,
+          B_trianglePolygon_cyclic a b c (ne_of_gt hD)]
+      exact hpick
+    · have hDc : 0 < latticeDet c a b := by simpa [← latticeDet_cyclic₂ a b c] using hD
+      have hUc : UniqueInterior (trianglePolygon c a b) q := by
+        have h1 := (UniqueInterior_trianglePolygon_cyclic a b c q).mp hU
+        exact (UniqueInterior_trianglePolygon_cyclic b c a q).mp h1
+      have ihc : ∀ a' b' c' : ℤ × ℤ,
+          0 < latticeDet a' b' c' →
+          UniqueInterior (trianglePolygon a' b' c') q →
+          Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet c a b) →
+          (trianglePolygon a' b' c').shoelace =
+            (1 : ℚ) + ((trianglePolygon a' b' c').B : ℚ) / 2 - 1 := by
+        intro a' b' c' hD' hU' hlt'
+        have : Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) := by
+          simpa [← latticeDet_cyclic₂ a b c] using hlt'
+        exact ih' a' b' c' hD' hU' this
+      have hpick :=
+        shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle_of_edgeStep_ab
+          c a b hDc hca hUc ihc
+      have hs1 := shoelace_trianglePolygon_cyclic a b c
+      have hs2 := shoelace_trianglePolygon_cyclic b c a
+      have hB1 := B_trianglePolygon_cyclic a b c (ne_of_gt hD)
+      have hB2 := B_trianglePolygon_cyclic b c a
+        (by simpa [← latticeDet_cyclic a b c] using ne_of_gt hD)
+      rw [hs1, hs2, hB1, hB2]
+      exact hpick
+
+/-! ### I ≤ 1 triangle Pick without `PrimitiveEdges` (not classical Pick) -/
+
+/-- I ∈ {0,1} shoelace Pick-form for a closed lattice triangle without
+`PrimitiveEdges` (not classical Pick). -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = (trianglePolygon a b c).interiorLatticePoints)
+    (hcard : S.card ≤ 1) :
+    (trianglePolygon a b c).shoelace =
+      (S.card : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by
+  classical
+  rcases Nat.eq_zero_or_pos S.card with h0 | hpos
+  · have hSempty : S = ∅ := Finset.card_eq_zero.mp h0
+    have hI : EmptyInterior (trianglePolygon a b c) := by
+      simpa [EmptyInterior, hSempty] using hS.symm
+    have harea :=
+      shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle a b c hD hI
+    calc
+      (trianglePolygon a b c).shoelace
+          = ((trianglePolygon a b c).B : ℚ) / 2 - 1 := harea
+      _ = (0 : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by ring
+      _ = (S.card : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by simp [h0]
+  · have h1 : S.card = 1 := by omega
+    obtain ⟨q, rfl⟩ := Finset.card_eq_one.mp h1
+    have hU : UniqueInterior (trianglePolygon a b c) q := by
+      refine ⟨?_, ?_⟩
+      · have : q ∈ (({q} : Finset (ℤ × ℤ)) : Set (ℤ × ℤ)) := by simp
+        rwa [← hS]
+      · intro p hp
+        have hpS : p ∈ ({q} : Finset (ℤ × ℤ)) := by
+          change p ∈ (({q} : Finset (ℤ × ℤ)) : Set (ℤ × ℤ))
+          rwa [hS]
+        simpa using hpS
+    have harea :=
+      shoelace_eq_one_add_B_div_two_sub_one_of_unique_interior_triangle a b c hD hU
+    simpa [h1] using harea
 
 
 end InteriorFan
