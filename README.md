@@ -56,8 +56,8 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_platonic_schlafli_classification` | Combinatorial Platonic: Schläfli `(s,m)` ∈ five pairs | Mathlib-only |
 | `results_platonic_schlafli_card` | Exactly five admissible Schläfli pairs | Mathlib-only |
 | `results_platonic_five_constructions` | Five combinatorial `(V,E,F)` types (Euler bookkeeping) | Mathlib-only |
-| `results_picks_of_funkenbusch` | Bookkeeping: Euler + Funkenbusch ⇒ `A = I + B/2 − 1` (geometric Pick open) | Mathlib-only |
-| `results_picks_of_triangulation` | Bookkeeping: triangulation handshaking ⇒ same formula (geometric Pick open) | Mathlib-only |
+| `results_funkenbusch_identity` | Funkenbusch count identity `A = I + B/2 − 1` (**not** Pick) | Mathlib-only |
+| `results_triangulation_count_identity` | Triangulation count identity (**not** Pick) | Mathlib-only |
 | `results_euler_relation_of_faceEulerSum` | Bookkeeping: `faceEulerSum=1` + unique solid ⇒ `V−E+F=2` | Geometric (`EulersGem`) |
 | `results_faceEulerSum_of_height_one` | Height-1 H-rep: Paulson slice EP (`faceEulerSum = 1`) | Geometric (`EulersGem`) |
 | `results_Euler_Poincare_full` | Full-dim H+V-rep polytope: `faceEulerSum = 1` | Geometric (`EulersGem`) |
@@ -67,17 +67,16 @@ See `lean/Results.lean` (only claims what is actually proved):
 
 Paulson cone→slice→embed path green: `ConeSliceFaceBijection`, height-1 EP,
 `E × ℝ` embedding, `Euler_Poincare_full`, geometric 3D. Phase B (#1535): Platonic
-Schläfli + Pick Funkenbusch *bookkeeping* (geometric Pick open). Surveys: `lean/MATHLIB_SURVEY.md`,
+Schläfli + Funkenbusch/triangulation *count identities* (not Pick). Surveys: `lean/MATHLIB_SURVEY.md`,
 `lean/PHASE_B_PLAN.md`.
 
 ## Phase B (#1535) — landed (combinatorial)
 
 - **Platonic solids:** Schläfli classification + five Euler-bookkeeping constructions
   (`lean/EulersGem/Platonic.lean`). Geometric regular embeddings still open.
-- **Pick bookkeeping (not classical Pick yet):** Funkenbusch / triangulation
-  implications (`lean/EulersGem/Picks.lean`). Geometric lattice triangulation +
-  primitive triangle area `1/2` still open — classical Pick not claimed
-  (Mathlib gap; see `lean/PHASE_B_PLAN.md`).
+- **Funkenbusch / triangulation count identities (not Pick):** algebraic glue in
+  `lean/EulersGem/Picks.lean`. Classical geometric Pick is **not** claimed
+  (Claude audit FAIL for presenting as Pick — see `lean/PICKS_CLAUDE_AUDIT.md`).
 
 ## Building (Lean)
 

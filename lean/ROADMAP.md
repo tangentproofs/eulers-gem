@@ -12,8 +12,8 @@
 5. **Specialize:** done for full-dim convex 3-polytopes with H+V-rep (Results).
 6. **Cross-check:** against vendored AFP under `../isabelle/` once ported.
 7. **Done (Phase B, #1535):** combinatorial Platonic classification + five Schläfli
-   constructions; Euler→Pick Funkenbusch / triangulation bookkeeping
-   (`Platonic.lean`, `Picks.lean`, `PHASE_B_PLAN.md`). Geometric lattice
+   constructions; Funkenbusch / triangulation count identities (not Pick)
+   (`Platonic.lean`, `Picks.lean`, `PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`). Geometric lattice
    triangulation + primitive-triangle area `½` still open.
 
 Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
@@ -44,4 +44,4 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] ConeSliceFaceBijection (face-lift + affDim+1 + homogenized equality + height-1 EP)
 - [x] Euler_Poincare_full via E×ℝ embedding + geometric 3D V−E+F=2
 - [x] Platonic Schläfli classification + five combinatorial constructions (#1535)
-- [x] Pick's theorem Euler→Funkenbusch bookkeeping (#1535; geometric lattice gap open)
+- [ ] Classical geometric Pick's theorem (open; only Funkenbusch/triangulation *count identities* landed — not Pick; see `PICKS_CLAUDE_AUDIT.md`)

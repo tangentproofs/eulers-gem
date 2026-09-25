@@ -18,7 +18,7 @@ Only theorems that are **actually proved** appear here.
 
 ## Statement discipline (Mathlib auditability)
 
-* **Mathlib-only statements** (simplex / combinatorial / Platonic / Pick bookkeeping): the
+* **Mathlib-only statements** (simplex / combinatorial / Platonic / Funkenbusch count identities): the
   *statement* uses only Mathlib vocabulary (`Nat.choose`, `Finset`, `ℤ`, `ℚ`,
   etc.). Proofs may still call `EulersGem.*` lemmas.
 * **Geometric Euler–Poincaré** (separate section below): statements still need
@@ -26,9 +26,9 @@ Only theorems that are **actually proved** appear here.
   See `MATHLIB_SURVEY.md`.
 
 Phase B (#1535): combinatorial Platonic classification + five Schläfli
-constructions, and Euler→Pick Funkenbusch *bookkeeping* implications.
-**Classical geometric Pick's theorem is still open** (lattice triangulation /
-primitive triangle area `1/2`); see `Picks.lean` / `PHASE_B_PLAN.md`.
+constructions, and Funkenbusch / triangulation *count identities* (not Pick).
+**Classical geometric Pick's theorem is not claimed** — see `Picks.lean`,
+`PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 open scoped RealInnerProductSpace
@@ -114,28 +114,27 @@ theorem results_platonic_five_constructions :
     · simpa [← hs] using R.hFace
     · simpa [← hm] using R.hVert
 
-/-! ## Pick bookkeeping (not yet classical geometric Pick)
+/-! ## Funkenbusch / triangulation count identities (not Pick)
 
-These are algebraic implications from Euler + Funkenbusch / triangulation
-handshaking. They do **not** yet constitute classical Pick's theorem for lattice
-polygons (geometric area, lattice-point counts, triangulation existence remain
-open). Honest names keep the `_of_funkenbusch` / `_of_triangulation` suffix.
+Algebraic implications from Euler + Funkenbusch / triangulation handshaking.
+**Not** classical Pick's theorem (no lattice polygon, no geometric area, no
+triangulation existence). See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
-/-- **Bookkeeping implication** (Poly100 `pick's_theorem` shape; geometric Pick open):
+/-- **Funkenbusch count identity** (not Pick):
 Euler + `V=I+B` + `E=3I+2B−3` + `A=(F−1)/2` ⇒ `A = I + B/2 − 1`. -/
-theorem results_picks_of_funkenbusch
+theorem results_funkenbusch_identity
     (I B V E F : ℤ) (A : ℚ)
     (heuler : V - E + F = 2)
     (hverts : V = I + B)
     (hedges : E = 3 * I + 2 * B - 3)
     (harea : A = ((F : ℚ) - 1) / 2) :
     A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
-  EulersGem.Picks.picks_of_funkenbusch I B V E F A heuler hverts hedges harea
+  EulersGem.Picks.funkenbusch_identity I B V E F A heuler hverts hedges harea
 
-/-- **Bookkeeping implication** from triangulation handshaking (geometric Pick open):
+/-- **Triangulation count identity** (not Pick):
 `2E=3T+B`, Euler, `V=I+B`, `F=T+1`, `A=T/2` ⇒ `A = I + B/2 − 1`. -/
-theorem results_picks_of_triangulation
+theorem results_triangulation_count_identity
     (I B V E T F : ℤ) (A : ℚ)
     (hV : V = I + B)
     (hF : F = T + 1)
@@ -143,7 +142,7 @@ theorem results_picks_of_triangulation
     (hshake : 2 * E = 3 * T + B)
     (harea : A = (T : ℚ) / 2) :
     A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
-  EulersGem.Picks.picks_of_triangulation I B V E T F A hV hF heuler hshake harea
+  EulersGem.Picks.triangulation_count_identity I B V E T F A hV hF heuler hshake harea
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 

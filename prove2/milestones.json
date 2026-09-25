@@ -395,20 +395,20 @@
       "note": "Combinatorial (s,m) classification via (s-2)(m-2)<4; five V,E,F witnesses. Geometric regular embeddings open. Memnar #1535."
     },
     {
-      "id": "picks-funkenbusch",
-      "title": "Pick bookkeeping (geometric Pick open): Euler \u2192 Funkenbusch / triangulation",
+      "id": "funkenbusch-count-identity",
+      "title": "Funkenbusch / triangulation count identities (not Pick)",
       "status": "proved",
       "depends_on": [
         "polyhedron-formula-3d"
       ],
       "lean": [
-        "EulersGem.Picks.picks_of_funkenbusch",
+        "EulersGem.Picks.funkenbusch_identity",
         "EulersGem.Picks.funkenbusch_of_triangulation",
-        "EulersGem.Picks.picks_of_triangulation",
-        "Results.results_picks_of_funkenbusch",
-        "Results.results_picks_of_triangulation"
+        "EulersGem.Picks.triangulation_count_identity",
+        "Results.results_funkenbusch_identity",
+        "Results.results_triangulation_count_identity"
       ],
-      "note": "Algebraic Pick from Euler+Funkenbusch and from triangulation handshaking. Geometric lattice triangulation + primitive area 1/2 still open (Mathlib gap). Memnar #1535."
+      "note": "Count identities only — Claude audit FAIL for presenting as Pick. Classical geometric Pick open. Memnar #1535."
     }
   ],
   "parked": []

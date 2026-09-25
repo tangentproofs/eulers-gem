@@ -34,11 +34,13 @@ From Poly100 notes + Funkenbusch Monthly 1974:
 3. Primitive triangles have area `1/2` ⇒ `A = T/2 = (F−1)/2`.
 4. Plug into Euler ⇒ `A = I + B/2 − 1`.
 
-**Lean plan:** `EulersGem/Picks.lean`
+**Lean plan:** `EulersGem/Picks.lean` + `EulersGem/LatticeTriangle.lean`
 
-- Prove algebraic Pick from Euler + Funkenbusch + `A=(F−1)/2` (Poly100 `pick's_theorem`).
-- Prove triangulation identities: `2E = 3T + B` + Euler + `V=I+B` ⇒ Funkenbusch edge count and Pick.
-- **Scope narrowing (honest):** full geometric lattice triangulation + primitive-triangle area `1/2` remain open (Mathlib gap); we land the Euler→Pick combinatorial core that Poly100 already sketched.
+- Prove Funkenbusch / triangulation **count identities** (not named Pick):
+  `funkenbusch_identity`, `triangulation_count_identity`.
+- Shoelace/`|det|=1` helpers in `LatticeTriangle.lean` (explicitly not Haar volume).
+- **Claude audit (2026-09-24): FAIL** for presenting count identities as Pick — see `PICKS_CLAUDE_AUDIT.md`.
+- Classical geometric Pick remains open (lattice polygon + measure area + triangulation existence + planar Euler/handshaking proved).
 
 ## Deliverables
 
