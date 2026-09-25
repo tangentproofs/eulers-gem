@@ -32,15 +32,15 @@ This file provides:
 **Honesty / still open:**
 
 * Existence of a triangulation for an arbitrary simple lattice polygon
-  (combinatorial fan existence for `n ≤ 5` landed in `FanDiskTriangulation`;
+  (combinatorial fan existence for `3 ≤ n ≤ 7` landed in `FanDiskTriangulation`;
   geometric existence for general convex lattice polygons still open).
 * Discharge of handshaking `2E = 3T + B` from a *geometric* incidence structure
   (combinatorial discharge landed in `PlanarTriangulation.lean` —
   `CombinatorialDiskTriangulation.two_E_eq_three_T_add_B`; unit-square witness
   is wired below; general polygons still open).
 * Discharge of `hEuler_planar` for general polygons (unit square + fan disks
-  proved in `PlanarTriangulation.lean`; general EP→planar from
-  `Euler_Poincare_full` still open).
+  `3 ≤ n ≤ 7` + disk-count axioms proved in `PlanarTriangulation.lean`;
+  general EP→planar from `Euler_Poincare_full` still open).
 * Shoelace = Haar/Lebesgue measure.
 * Classical Pick's theorem (gated by `PICKS_CLAUDE_AUDIT.md`).
 
@@ -181,6 +181,34 @@ theorem shoelace_pick_form_of_witness_of_combinatorial_disk
     exact h
   exact W.shoelace_eq_I_add_B_div_two_sub_one V G.E F hV hF hEuler_planar hshake
 
+/-- **Witness + combinatorial disk + disk-count axioms ⇒ shoelace Pick-form**
+(handshaking **and** planar Euler discharged).
+
+If a geometric witness pairs with a `CombinatorialDiskTriangulation` sharing
+`T` and `B`, and the triangulation satisfies classical disk counts
+`V = I + B` and `T = 2I + B − 2`, then planar Euler follows from
+`planar_euler_of_disk_counts` (no free `hEuler_planar`). **Not classical Pick**
+(existence / measure / general EP still open). -/
+theorem shoelace_pick_form_of_witness_of_disk_counts
+    (W : PrimitiveLatticeTriangulationWitness)
+    {α : Type*} [DecidableEq α]
+    (G : CombinatorialDiskTriangulation α)
+    (hT : G.T = W.T)
+    (hB : G.B = W.B)
+    (hV : G.V = W.I + G.B)
+    (hTshape : G.T + 2 = 2 * W.I + G.B) :
+    W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1 := by
+  have hEuler : (G.V : ℤ) - (G.E : ℤ) + ((G.T : ℤ) + 1) = 2 := by
+    simpa [CombinatorialDiskTriangulation.planarCounts,
+      PlanarDiskEulerCounts.eulerChar, PlanarDiskEulerCounts.hF] using
+      G.planar_euler_of_disk_counts W.I hV hTshape
+  have hV' : (G.V : ℤ) = (W.I : ℤ) + W.B := by
+    omega
+  have hF : ((G.T : ℤ) + 1) = (W.T : ℤ) + 1 := by
+    omega
+  exact shoelace_pick_form_of_witness_of_combinatorial_disk
+    W G hT hB (G.V : ℤ) ((G.T : ℤ) + 1) hV' hF hEuler
+
 /-! ## Unit square: geometric witness ↔ combinatorial disk (Euler discharged)
 
 Concrete bridge: a `PrimitiveLatticeTriangulationWitness` for the unit square
@@ -258,18 +286,16 @@ theorem witness_matches_unitSquare_disk :
 
 /-- **Unit-square shoelace Pick-form with planar Euler discharged** (not classical Pick).
 
-Uses the combinatorial disk triangulation + proved `unitSquare_planar_euler`.
-No free `hEuler_planar` hypothesis. Still not classical Pick: one polygon,
-shoelace not Haar, no general existence. -/
+Uses combinatorial disk + disk-count axioms (`V = I + B`, `T = 2I + B − 2`)
+so Euler is discharged by `planar_euler_of_disk_counts`. No free
+`hEuler_planar`. Still not classical Pick: one polygon, shoelace not Haar,
+no general existence. -/
 theorem shoelace_pick_form_unit_square :
     witness.shoelaceArea = (witness.I : ℚ) + (witness.B : ℚ) / 2 - 1 := by
-  have hV : (unitSquare.V : ℤ) = (witness.I : ℤ) + witness.B := by native_decide
-  have hF : ((unitSquare.T : ℤ) + 1) = (witness.T : ℤ) + 1 := by native_decide
-  have hEuler : (unitSquare.V : ℤ) - (unitSquare.E : ℤ) + ((unitSquare.T : ℤ) + 1) = 2 := by
-    simpa using unitSquare_planar_euler'
-  exact shoelace_pick_form_of_witness_of_combinatorial_disk
-    witness unitSquare witness_T_eq_unitSquare witness_B_eq_unitSquare
-    (unitSquare.V : ℤ) ((unitSquare.T : ℤ) + 1) hV hF hEuler
+  have hV : unitSquare.V = witness.I + unitSquare.B := by native_decide
+  have hTshape : unitSquare.T + 2 = 2 * witness.I + unitSquare.B := by native_decide
+  exact shoelace_pick_form_of_witness_of_disk_counts
+    witness unitSquare witness_T_eq_unitSquare witness_B_eq_unitSquare hV hTshape
 
 end UnitSquareWitness
 

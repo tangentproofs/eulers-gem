@@ -176,3 +176,47 @@ Results exports: `results_unit_square_planar_euler`,
 | Triangulation existence (arbitrary lattice polygons) | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-24 (disk-count Euler + fan n≤7; still FAIL for classical Pick)
+
+Landed (honest names; **not** classical Pick):
+
+```lean
+theorem planar_disk_euler_of_disk_counts
+    (V E T B F I : ℕ)
+    (hshake : 2 * E = 3 * T + B)
+    (hV : V = I + B)
+    (hT : T + 2 = 2 * I + B)
+    (hF : F = T + 1) :
+    (V : ℤ) - E + F = 2
+
+theorem CombinatorialDiskTriangulation.planar_euler_of_disk_counts
+    (G) (I : ℕ) (hV : G.V = I + G.B) (hT : G.T + 2 = 2 * I + G.B) :
+    (G.planarCounts).eulerChar = 2
+
+theorem shoelace_pick_form_of_witness_of_disk_counts
+    (W) (G) (hT) (hB) (hV : G.V = W.I + G.B)
+    (hTshape : G.T + 2 = 2 * W.I + G.B) :
+    W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1
+
+theorem exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 7) :
+    Nonempty (CombinatorialDiskTriangulation (Fin n))
+```
+
+Unit-square planar Euler and shoelace Pick-form now discharge Euler via
+empty-interior / disk-count axioms (not bare `native_decide` on the char).
+Fan existence slice extended `5 → 7` (`fan6`, `fan7`); construction is uniform
+in `n`, but general-`n` incidence (removing the bound) remains open.
+`planar_disk_euler_of_EP_bridge` still open. Claude PlatonicOfEuler /
+PolytopeFaces / Embed untouched.
+
+| Item | Status |
+|------|--------|
+| Handshaking from incidence | Green |
+| Planar Euler from disk-count axioms | Green (combinatorial) |
+| Unit-square Euler via disk counts | Green |
+| Fan existence (`3 ≤ n ≤ 7`) | Green (slice; general incidence open) |
+| General EP → planar via `Euler_Poincare_full` | Open |
+| Triangulation existence (arbitrary lattice polygons) | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

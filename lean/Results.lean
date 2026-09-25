@@ -32,8 +32,8 @@ Pick; geometric regularity for Platonic; etc.).
 
 Phase B (#1535): combinatorial Platonic classification + five Schläfli
 constructions, Funkenbusch / triangulation *count identities* (not Pick), and a
-**witness-conditional** shoelace Pick-form on the EP spine, plus a unit-square
-case with planar Euler discharged (still not classical Pick).
+**witness-conditional** shoelace Pick-form on the EP spine, plus disk-count Euler discharge and a unit-square case with Euler
+discharged from disk axioms (still not classical Pick).
 **Classical geometric Pick's theorem is not claimed** — see `Picks.lean`,
 `PicksTriangulation.lean`, `PHASE_B_PLAN.md`, `PICKS_CLAUDE_AUDIT.md`.
 -/
@@ -215,8 +215,8 @@ theorem results_planar_disk_euler_of_fan_counts
     (V : ℤ) - E + F = 2 :=
   EulersGem.Picks.planar_disk_euler_of_fan_counts n V E T B F hn hV hB hT hE hF
 
-/-- Combinatorial fan disk triangulation exists for every `n` with `3 ≤ n ≤ 5`. -/
-theorem results_exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 5) :
+/-- Combinatorial fan disk triangulation exists for every `n` with `3 ≤ n ≤ 7`. -/
+theorem results_exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 7) :
     Nonempty (EulersGem.Picks.CombinatorialDiskTriangulation (Fin n)) :=
   EulersGem.Picks.FanDiskTriangulation.exists_fan_disk_triangulation hn hN
 
@@ -224,6 +224,36 @@ theorem results_exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n �
 theorem results_fan5_planar_euler :
     (EulersGem.Picks.FanDiskTriangulation.fan5.planarCounts).eulerChar = 2 :=
   EulersGem.Picks.FanDiskTriangulation.fan5_planar_euler
+
+/-- Planar Euler for the abstract heptagon fan triangulation. -/
+theorem results_fan7_planar_euler :
+    (EulersGem.Picks.FanDiskTriangulation.fan7.planarCounts).eulerChar = 2 :=
+  EulersGem.Picks.FanDiskTriangulation.fan7_planar_euler
+
+/-- **Planar Euler from handshaking + classical disk counts** (not Pick).
+
+`2E = 3T + B`, `V = I + B`, `T = 2I + B − 2`, `F = T + 1` ⇒ `V − E + F = 2`.
+Discharges planar Euler for any combinatorial disk triangulation satisfying
+these count axioms — no free `ℤ` Euler hyp. -/
+theorem results_planar_disk_euler_of_disk_counts
+    (V E T B F I : ℕ)
+    (hshake : 2 * E = 3 * T + B)
+    (hV : V = I + B)
+    (hT : T + 2 = 2 * I + B)
+    (hF : F = T + 1) :
+    (V : ℤ) - E + F = 2 :=
+  EulersGem.Picks.planar_disk_euler_of_disk_counts V E T B F I hshake hV hT hF
+
+/-- Empty-interior specialization: `V = B`, `T = B − 2`. -/
+theorem results_planar_disk_euler_of_empty_interior_disk_counts
+    (V E T B F : ℕ)
+    (hshake : 2 * E = 3 * T + B)
+    (hV : V = B)
+    (hT : T + 2 = B)
+    (hF : F = T + 1) :
+    (V : ℤ) - E + F = 2 :=
+  EulersGem.Picks.planar_disk_euler_of_empty_interior_disk_counts
+    V E T B F hshake hV hT hF
 
 /-! ## Witness-conditional shoelace Pick-form (not classical Pick)
 
@@ -268,6 +298,20 @@ theorem results_shoelace_pick_form_of_witness_of_combinatorial_disk
     W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.shoelace_pick_form_of_witness_of_combinatorial_disk
     W G hT hB V F hV hF hEuler_planar
+
+/-- Witness + combinatorial disk + disk-count axioms: handshaking and planar Euler
+discharged. **Not classical Pick.** -/
+theorem results_shoelace_pick_form_of_witness_of_disk_counts
+    (W : EulersGem.Picks.PrimitiveLatticeTriangulationWitness)
+    {α : Type*} [DecidableEq α]
+    (G : EulersGem.Picks.CombinatorialDiskTriangulation α)
+    (hT : G.T = W.T)
+    (hB : G.B = W.B)
+    (hV : G.V = W.I + G.B)
+    (hTshape : G.T + 2 = 2 * W.I + G.B) :
+    W.shoelaceArea = (W.I : ℚ) + (W.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.shoelace_pick_form_of_witness_of_disk_counts
+    W G hT hB hV hTshape
 
 /-- **Unit-square shoelace Pick-form with planar Euler discharged** (not classical Pick).
 

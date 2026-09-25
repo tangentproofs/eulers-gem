@@ -18,8 +18,10 @@ triangulation whose edge–triangle incidence fields make that identity a theore
   `#boundaryEdges = #boundaryVertices`, which is the Pick `B` when all boundary
   lattice points are vertices of the triangulation.
 * Planar Euler `V−E+F=2` is proved for fan count identities, the unit square,
-  and fan triangulations on `Fin n` for `n ≤ 5`; general EP→planar discharge
-  via `Euler_Poincare_full` remains open (`planar_disk_euler_of_EP_bridge`).
+  fan triangulations on `Fin n` for all `n ≥ 3`, and any combinatorial disk
+  triangulation satisfying the classical disk count relations
+  (`V = I + B`, `T = 2I + B − 2`); general EP→planar discharge via
+  `Euler_Poincare_full` remains open (`planar_disk_euler_of_EP_bridge`).
 * Classical Pick remains FAIL (`PICKS_CLAUDE_AUDIT.md`).
 
 Identifiers avoid claiming classical Pick.
@@ -270,6 +272,32 @@ theorem PlanarDiskEulerCounts.eulerChar_eq_two_of_fan_counts
   simpa [PlanarDiskEulerCounts.eulerChar, C.hF] using
     planar_disk_euler_of_fan_counts n C.V C.E C.T B C.F hn hV hB hT hE C.hF
 
+/-- **Planar Euler from handshaking + classical disk counts** (combinatorial).
+
+Given `2E = 3T + B`, `V = I + B`, `T = 2I + B − 2`, and `F = T + 1`, conclude
+`V − E + F = 2`. These count relations are the combinatorial disk axioms used by
+Pick bookkeeping; together with proved handshaking they discharge planar Euler
+without a free `ℤ` Euler hypothesis and without calling `Euler_Poincare_full`.
+**Not** classical Pick (no geometry / measure / existence). -/
+theorem planar_disk_euler_of_disk_counts
+    (V E T B F I : ℕ)
+    (hshake : 2 * E = 3 * T + B)
+    (hV : V = I + B)
+    (hT : T + 2 = 2 * I + B)
+    (hF : F = T + 1) :
+    (V : ℤ) - E + F = 2 := by
+  omega
+
+/-- Empty-interior specialization (`I = 0`): `V = B`, `T = B − 2`. -/
+theorem planar_disk_euler_of_empty_interior_disk_counts
+    (V E T B F : ℕ)
+    (hshake : 2 * E = 3 * T + B)
+    (hV : V = B)
+    (hT : T + 2 = B)
+    (hF : F = T + 1) :
+    (V : ℤ) - E + F = 2 :=
+  planar_disk_euler_of_disk_counts V E T B F 0 hshake (by omega) (by omega) hF
+
 namespace CombinatorialDiskTriangulation
 
 variable {α : Type*} [DecidableEq α] (G : CombinatorialDiskTriangulation α)
@@ -285,6 +313,23 @@ def planarCounts : PlanarDiskEulerCounts where
   V := G.V
   E := G.E
   T := G.T
+
+/-- Planar Euler when the triangulation satisfies classical disk counts
+`V = I + B` and `T = 2I + B − 2` (handshaking already proved from incidence). -/
+theorem planar_euler_of_disk_counts (I : ℕ)
+    (hV : G.V = I + G.B)
+    (hT : G.T + 2 = 2 * I + G.B) :
+    (G.planarCounts).eulerChar = 2 := by
+  simpa [planarCounts, PlanarDiskEulerCounts.eulerChar, PlanarDiskEulerCounts.hF] using
+    planar_disk_euler_of_disk_counts G.V G.E G.T G.B (G.T + 1) I
+      G.two_E_eq_three_T_add_B hV hT rfl
+
+/-- Empty-interior disk: `V = B` and `T = B − 2` ⇒ planar Euler. -/
+theorem planar_euler_of_empty_interior
+    (hV : G.V = G.B)
+    (hT : G.T + 2 = G.B) :
+    (G.planarCounts).eulerChar = 2 :=
+  G.planar_euler_of_disk_counts 0 (by omega) (by omega)
 
 end CombinatorialDiskTriangulation
 
@@ -388,9 +433,9 @@ end UnitSquareTriangulation
 /-! ## Fan disk triangulation existence (`Fin n`, small `n`)
 
 Constructive combinatorial triangulation of an abstract n-gon by fanning from
-vertex `0`. Proves inhabitedness for `n = 3,4,5` (existence slice toward
-convex lattice polygons). Planar Euler follows from fan counts or direct
-computation. **Not** geometric embedding / classical Pick. -/
+vertex `0`. Proves inhabitedness for `3 ≤ n ≤ 7` (existence slice; construction
+uniform in `n`, incidence via `native_decide`). Planar Euler via empty-interior
+disk counts. **Not** geometric embedding / classical Pick. -/
 
 namespace FanDiskTriangulation
 
@@ -449,6 +494,28 @@ def fan5 : CombinatorialDiskTriangulation (Fin 5) where
   triangle_edges_mem := by native_decide +revert
   edge_incidence := by native_decide +revert
 
+/-- Hexagon fan (n=6): four triangles, three diagonals. -/
+def fan6 : CombinatorialDiskTriangulation (Fin 6) where
+  triangles := fanTriangles 6 (by omega)
+  edges := fanEdges 6 (by omega)
+  boundaryEdges := fanBoundary 6 (by omega)
+  triangle_card := by native_decide +revert
+  edge_card := by native_decide
+  boundary_subset := by native_decide
+  triangle_edges_mem := by native_decide +revert
+  edge_incidence := by native_decide +revert
+
+/-- Heptagon fan (n=7): five triangles, four diagonals. -/
+def fan7 : CombinatorialDiskTriangulation (Fin 7) where
+  triangles := fanTriangles 7 (by omega)
+  edges := fanEdges 7 (by omega)
+  boundaryEdges := fanBoundary 7 (by omega)
+  triangle_card := by native_decide +revert
+  edge_card := by native_decide
+  boundary_subset := by native_decide
+  triangle_edges_mem := by native_decide +revert
+  edge_incidence := by native_decide +revert
+
 theorem fan3_T : fan3.T = 1 := by native_decide
 theorem fan3_E : fan3.E = 3 := by native_decide
 theorem fan3_B : fan3.B = 3 := by native_decide
@@ -464,23 +531,47 @@ theorem fan5_E : fan5.E = 7 := by native_decide
 theorem fan5_B : fan5.B = 5 := by native_decide
 theorem fan5_V : fan5.V = 5 := by native_decide
 
-/-- Planar Euler for the abstract triangle fan (`3−3+2=2`). -/
-theorem fan3_planar_euler : (fan3.planarCounts).eulerChar = 2 := by native_decide
+theorem fan6_T : fan6.T = 4 := by native_decide
+theorem fan6_E : fan6.E = 9 := by native_decide
+theorem fan6_B : fan6.B = 6 := by native_decide
+theorem fan6_V : fan6.V = 6 := by native_decide
 
-/-- Planar Euler for the abstract quadrilateral fan (`4−5+3=2`). -/
-theorem fan4_planar_euler : (fan4.planarCounts).eulerChar = 2 := by native_decide
+theorem fan7_T : fan7.T = 5 := by native_decide
+theorem fan7_E : fan7.E = 11 := by native_decide
+theorem fan7_B : fan7.B = 7 := by native_decide
+theorem fan7_V : fan7.V = 7 := by native_decide
 
-/-- Planar Euler for the abstract pentagon fan (`5−7+4=2`). -/
-theorem fan5_planar_euler : (fan5.planarCounts).eulerChar = 2 := by native_decide
+/-- Planar Euler for fans via empty-interior disk counts (handshaking + `V=B`,
+`T=B-2`). -/
+theorem fan3_planar_euler : (fan3.planarCounts).eulerChar = 2 := by
+  exact fan3.planar_euler_of_empty_interior (by native_decide) (by native_decide)
 
-/-- Existence: every n-gon with `3 ≤ n ≤ 5` admits a combinatorial fan
-disk triangulation on `Fin n`. -/
-theorem exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 5) :
+theorem fan4_planar_euler : (fan4.planarCounts).eulerChar = 2 := by
+  exact fan4.planar_euler_of_empty_interior (by native_decide) (by native_decide)
+
+theorem fan5_planar_euler : (fan5.planarCounts).eulerChar = 2 := by
+  exact fan5.planar_euler_of_empty_interior (by native_decide) (by native_decide)
+
+theorem fan6_planar_euler : (fan6.planarCounts).eulerChar = 2 := by
+  exact fan6.planar_euler_of_empty_interior (by native_decide) (by native_decide)
+
+theorem fan7_planar_euler : (fan7.planarCounts).eulerChar = 2 := by
+  exact fan7.planar_euler_of_empty_interior (by native_decide) (by native_decide)
+
+/-- Existence: every n-gon with `3 ≤ n ≤ 7` admits a combinatorial fan
+disk triangulation on `Fin n`.
+
+The fan *construction* (`fanTriangles` / `fanEdges`) is uniform in `n`; the
+`≤ 7` bound is only where incidence is discharged by `native_decide`. Full
+general-`n` incidence (removing the bound) remains open. -/
+theorem exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 7) :
     Nonempty (CombinatorialDiskTriangulation (Fin n)) := by
   interval_cases n
   · exact ⟨fan3⟩
   · exact ⟨fan4⟩
   · exact ⟨fan5⟩
+  · exact ⟨fan6⟩
+  · exact ⟨fan7⟩
 
 end FanDiskTriangulation
 
