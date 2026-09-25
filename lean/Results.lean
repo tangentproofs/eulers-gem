@@ -451,18 +451,25 @@ theorem results_FanDetsNonneg_of_ConvexCCW
     EulersGem.Picks.LatticeFan.FanDetsNonneg P :=
   EulersGem.Picks.LatticeFan.FanDetsNonneg_of_ConvexCCW P h
 
-/-- Empty-interior shoelace Pick-form with `VerticesExtreme` discharged from
-`StrictlyConvexCCW` (not classical Pick). -/
+/-- Fan dets strictly positive from `StrictlyConvexCCW` + injective vertices. -/
+theorem results_FanDetsPos_of_strictlyConvexCCW
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    EulersGem.Picks.LatticeFan.FanDetsPos P :=
+  EulersGem.Picks.LatticeFan.FanDetsPos_of_strictlyConvexCCW P hsc hinj
+
+/-- Empty-interior shoelace Pick-form with `VerticesExtreme` and `FanDetsPos`
+discharged from `StrictlyConvexCCW` (not classical Pick). -/
 theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
     (P : EulersGem.Picks.LatticePolygon)
     (hverts : Function.Injective P.vertex)
     (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
-    (hpos : EulersGem.Picks.LatticeFan.FanDetsPos P)
     (hI : EulersGem.Picks.LatticeFan.EmptyInterior P)
     (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
     P.shoelace = (P.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
-    P hverts hedge hpos hI hsc
+    P hverts hedge hI hsc
 
 /-- Barycentric closed triangle ⇒ Euclidean convex hull of the three vertices. -/
 theorem results_mem_convexHull_of_memClosedTriangle
