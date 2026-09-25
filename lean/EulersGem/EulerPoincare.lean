@@ -187,7 +187,7 @@ private lemma faceEulerSum_three_expand (p : Set E) :
         ({f : Set E | IsFaceOf p f ∧ affDim f = 2}.ncard : ℤ) -
         ({f : Set E | IsFaceOf p f ∧ affDim f = 3}.ncard : ℤ) := by
   unfold faceEulerSum
-  rw [show range 4 = ({0, 1, 2, 3} : Finset ℕ) from by native_decide]
+  rw [show range 4 = ({0, 1, 2, 3} : Finset ℕ) from by decide]
   simp [Finset.sum_insert, Finset.sum_singleton, pow_succ]
   ring
 
@@ -207,7 +207,7 @@ theorem euler_relation_of_faceEulerSum
 /-- Tetrahedron face counts: `V − E + F = 2`. -/
 theorem tetrahedron_euler_relation_from_faceCount :
     (faceCount 3 0 : ℤ) - faceCount 3 1 + faceCount 3 2 = 2 := by
-  native_decide
+  decide
 
 /-! ### Stated targets -/
 

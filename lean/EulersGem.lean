@@ -21,3 +21,4 @@ import EulersGem.PlanarTriangulation
 import EulersGem.PolytopeFaces
 import EulersGem.PlatonicOfEuler
 import EulersGem.SimplexFaces
+import EulersGem.GeometricPlatonic

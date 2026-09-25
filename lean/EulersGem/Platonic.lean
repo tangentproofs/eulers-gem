@@ -172,7 +172,7 @@ theorem schlafli_pair_mem (R : RegularNumbers) :
 
 /-- There are exactly five admissible Schläfli pairs. -/
 theorem card_schlafliPairs : schlafliPairs.card = 5 := by
-  native_decide
+  decide
 
 /-! ## Combinatorial constructions (Euler bookkeeping for the five) -/
 
