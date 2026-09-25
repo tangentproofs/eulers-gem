@@ -53,6 +53,30 @@ This file is the gate: no Results/README claim that classical Pick is proved unt
 
 None yet in Results. When a candidate exists, paste the **exact theorem type**, file path, and `lake build Results` log excerpt below and re-run Claude before any claim commit.
 
+Strongest Pick-*related* statements now in tree (none claimed as classical Pick in Results):
+
+**Results (count identities only):**
+```lean
+theorem results_funkenbusch_identity
+    (I B V E F : ℤ) (A : ℚ)
+    (heuler : V - E + F = 2) (hverts : V = I + B)
+    (hedges : E = 3 * I + 2 * B - 3)
+    (harea : A = ((F : ℚ) - 1) / 2) :
+    A = (I : ℚ) + (B : ℚ) / 2 - 1
+
+theorem results_triangulation_count_identity
+    (I B V E T F : ℤ) (A : ℚ)
+    (hV : V = I + B) (hF : F = T + 1)
+    (heuler : V - E + F = 2) (hshake : 2 * E = 3 * T + B)
+    (harea : A = (T : ℚ) / 2) :
+    A = (I : ℚ) + (B : ℚ) / 2 - 1
 ```
-(candidate statement reserved)
+
+**LatticeTriangle (shoelace arithmetic, not Haar):**
+```lean
+theorem triangleShoelace_eq_half_of_natAbs_det_eq_one
+    (a b c : ℤ × ℤ) (h : Int.natAbs (latticeDet a b c) = 1) :
+    triangleShoelace a b c = 1 / 2
 ```
+File: `lean/EulersGem/LatticeTriangle.lean`. Not exported in Results as Pick.
+
