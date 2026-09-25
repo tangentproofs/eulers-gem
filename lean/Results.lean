@@ -2150,7 +2150,7 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_e
     P S hS hcard hverts hedge hsc hfour
 
 
-/-! ### Edge-split substrate toward non-primitive ear Pick (not classical Pick) -/
+/-! ### Empty-interior triangle Pick without PrimitiveEdges (not classical Pick) -/
 
 /-- First open lattice point on a non-primitive edge. -/
 theorem results_edgeStep_mem_edgeLatticePoints
@@ -2214,6 +2214,49 @@ theorem results_edgeGcd_eq_one_of_empty_interior_edgeStep
       (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c = 1 :=
   EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_one_of_empty_interior_edgeStep
     a b c hD hd hI
+
+/-- EmptyInterior inherits to the left edge-step sub-triangle (not classical Pick). -/
+theorem results_EmptyInterior_trianglePolygon_of_edgeStep_left
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c)) :
+    EulersGem.Picks.LatticeFan.EmptyInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a
+        (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.EmptyInterior_trianglePolygon_of_edgeStep_left
+    a b c hD hd hI
+
+/-- EmptyInterior inherits to the right edge-step sub-triangle (not classical Pick). -/
+theorem results_EmptyInterior_trianglePolygon_of_edgeStep_right
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c)) :
+    EulersGem.Picks.LatticeFan.EmptyInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b c) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.EmptyInterior_trianglePolygon_of_edgeStep_right
+    a b c hD hd hI
+
+/-- **Empty closed lattice triangle Pick-form without `PrimitiveEdges`**
+(not classical Pick).
+
+Induction on `|det|` via `edgeStep` splits. Base: all-primitive edges reuse
+empty-interior convex Pick-form. Step: shoelace/B additivity + EmptyInterior
+inheritance + primitive new chord. Hyp-light I = 4 / I ≤ 2 without
+`PrimitiveEdges` still open. Classical Pick FAIL. -/
+theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c)) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace =
+      ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle
+    a b c hD hI
 
 
 

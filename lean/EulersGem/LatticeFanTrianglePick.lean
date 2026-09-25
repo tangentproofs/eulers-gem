@@ -6,13 +6,16 @@ Authors: Michal Wallace, Grok Bot
 import EulersGem.LatticeFanInduction
 
 /-!
-# Edge-split substrate for triangle Pick without `PrimitiveEdges` (not classical Pick)
+# Empty-interior triangle Pick without `PrimitiveEdges` (not classical Pick)
 
-`edgeStep` + shoelace/B additivity + empty-interior ⇒ `edgeGcd(edgeStep, c) = 1`.
-Intended next: empty-interior triangle Pick by `|det|` induction, then I ≤ 2
-general ears, then hyp-light I = 4 (drop spokes-empty apex).
+`edgeStep` split arithmetic + `|det|` induction: empty closed lattice triangle
+(no interior points; edges may be non-primitive) satisfies
+`shoelace = B/2 − 1`. EmptyInterior inherits across edge-steps; new chord is
+primitive under parent-empty.
 
-Shoelace ≠ Haar. Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
+Still open: I ≤ 2 triangle Pick without `PrimitiveEdges`; I = 4 Finset without
+spokes-empty apex. Shoelace ≠ Haar. Classical Pick FAIL. See
+`PICKS_CLAUDE_AUDIT.md`.
 -/
 
 namespace EulersGem
@@ -354,6 +357,545 @@ theorem edgeGcd_eq_one_of_empty_interior_edgeStep
   exact (by simp [hempty] : r ∉ (trianglePolygon a b c).interiorLatticePoints) hint
 
 
+
+/-! ## EmptyInterior / shoelace / B under cyclic rotation -/
+
+lemma trianglePolygon_convexHullRegion_cyclic (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).convexHullRegion =
+      (trianglePolygon b c a).convexHullRegion := by
+  simp only [trianglePolygon_convexHullRegion]
+  congr 1
+  ext x
+  simp [or_left_comm, or_comm]
+
+lemma boundaryLatticePoints_trianglePolygon_cyclic (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).boundaryLatticePoints =
+      (trianglePolygon b c a).boundaryLatticePoints := by
+  simp only [boundaryLatticePoints_trianglePolygon]
+  ext p
+  simp [Finset.mem_union, or_left_comm, or_comm]
+
+lemma interiorLatticePoints_trianglePolygon_cyclic (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).interiorLatticePoints =
+      (trianglePolygon b c a).interiorLatticePoints := by
+  ext p
+  simp only [LatticePolygon.interiorLatticePoints,
+    trianglePolygon_convexHullRegion_cyclic a b c,
+    boundaryLatticePoints_trianglePolygon_cyclic a b c]
+
+lemma EmptyInterior_trianglePolygon_cyclic (a b c : ℤ × ℤ) :
+    EmptyInterior (trianglePolygon a b c) ↔
+      EmptyInterior (trianglePolygon b c a) := by
+  simp only [EmptyInterior]
+  rw [interiorLatticePoints_trianglePolygon_cyclic]
+
+lemma shoelace_trianglePolygon_cyclic (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).shoelace = (trianglePolygon b c a).shoelace := by
+  rw [shoelace_trianglePolygon_eq_half_natAbs_det,
+      shoelace_trianglePolygon_eq_half_natAbs_det, latticeDet_cyclic]
+
+lemma B_trianglePolygon_cyclic (a b c : ℤ × ℤ) (hne : latticeDet a b c ≠ 0) :
+    (trianglePolygon a b c).B = (trianglePolygon b c a).B := by
+  have hne' : latticeDet b c a ≠ 0 := by simpa [← latticeDet_cyclic a b c] using hne
+  rw [B_trianglePolygon_eq_sum_edgeGcd a b c hne,
+      B_trianglePolygon_eq_sum_edgeGcd b c a hne']
+  ac_rfl
+
+/-! ## `|det|` decrease across edgeStep -/
+
+lemma natAbs_latticeDet_edgeStep_lt (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b) :
+    Int.natAbs (latticeDet a (edgeStep a b) c) < Int.natAbs (latticeDet a b c) ∧
+      Int.natAbs (latticeDet (edgeStep a b) b c) < Int.natAbs (latticeDet a b c) := by
+  set p := edgeStep a b
+  set d := edgeGcd a b
+  have hmul : latticeDet a p c * (d : ℤ) = latticeDet a b c := by
+    simpa [p, d] using latticeDet_edgeStep_mul a b c (by omega : 1 ≤ d)
+  have h1 := latticeDet_edgeStep_pos a b c hD (by omega : 1 ≤ d)
+  have h2 := latticeDet_edgeStep_right_pos a b c hD hd
+  have hadd : latticeDet a b c = latticeDet a p c + latticeDet p b c :=
+    latticeDet_add_of_mem_edgeLatticePoints a b c p
+      (edgeStep_mem_edgeLatticePoints a b (by omega))
+  have hnn1 : 0 ≤ latticeDet a p c := le_of_lt h1
+  have hnn2 : 0 ≤ latticeDet p b c := le_of_lt h2
+  have hAbs :
+      Int.natAbs (latticeDet a p c) * d = Int.natAbs (latticeDet a b c) := by
+    have := congrArg Int.natAbs hmul
+    rwa [Int.natAbs_mul, Int.natAbs_natCast d] at this
+  have hlt1 : Int.natAbs (latticeDet a p c) < Int.natAbs (latticeDet a b c) := by
+    have hpos : 0 < Int.natAbs (latticeDet a p c) := Int.natAbs_pos.mpr (ne_of_gt h1)
+    nlinarith [hAbs, (by omega : 1 < d)]
+  have hlt2 : Int.natAbs (latticeDet p b c) < Int.natAbs (latticeDet a b c) := by
+    have hsum :
+        Int.natAbs (latticeDet a b c) =
+          Int.natAbs (latticeDet a p c) + Int.natAbs (latticeDet p b c) := by
+      rw [hadd, Int.natAbs_add_of_nonneg hnn1 hnn2]
+    have hpos1 : 0 < Int.natAbs (latticeDet a p c) := Int.natAbs_pos.mpr (ne_of_gt h1)
+    omega
+  exact ⟨hlt1, hlt2⟩
+
+/-! ## EmptyInterior inheritance across edgeStep -/
+
+lemma memClosedTriangle_of_memClosedTriangle_edgeStep_left
+    (a b c p r : ℤ × ℤ)
+    (hp : p ∈ edgeLatticePoints a b)
+    (hr : MemClosedTriangle a p c r) :
+    MemClosedTriangle a b c r := by
+  have hr_hull := mem_convexHull_of_memClosedTriangle a p c r hr
+  have hp_seg := mem_segment_of_mem_edgeLatticePoints a b p hp
+  set S : Set (ℝ × ℝ) := {toReal a, toReal b, toReal c}
+  have haS : toReal a ∈ S := by simp [S]
+  have hbS : toReal b ∈ S := by simp [S]
+  have hcS : toReal c ∈ S := by simp [S]
+  have hp_hull : toReal p ∈ convexHull ℝ S :=
+    (segment_subset_convexHull haS hbS) hp_seg
+  have hsub :
+      convexHull ℝ ({toReal a, toReal p, toReal c} : Set (ℝ × ℝ)) ⊆ convexHull ℝ S := by
+    refine convexHull_min ?_ (convex_convexHull ℝ S)
+    intro x hx
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+    rcases hx with rfl | rfl | rfl
+    · exact subset_convexHull ℝ S haS
+    · exact hp_hull
+    · exact subset_convexHull ℝ S hcS
+  exact memClosedTriangle_of_mem_convexHull a b c r (hsub hr_hull)
+
+lemma memClosedTriangle_of_memClosedTriangle_edgeStep_right
+    (a b c p r : ℤ × ℤ)
+    (hp : p ∈ edgeLatticePoints a b)
+    (hr : MemClosedTriangle p b c r) :
+    MemClosedTriangle a b c r := by
+  have hr_hull := mem_convexHull_of_memClosedTriangle p b c r hr
+  have hp_seg := mem_segment_of_mem_edgeLatticePoints a b p hp
+  set S : Set (ℝ × ℝ) := {toReal a, toReal b, toReal c}
+  have haS : toReal a ∈ S := by simp [S]
+  have hbS : toReal b ∈ S := by simp [S]
+  have hcS : toReal c ∈ S := by simp [S]
+  have hp_hull : toReal p ∈ convexHull ℝ S :=
+    (segment_subset_convexHull haS hbS) hp_seg
+  have hsub :
+      convexHull ℝ ({toReal p, toReal b, toReal c} : Set (ℝ × ℝ)) ⊆ convexHull ℝ S := by
+    refine convexHull_min ?_ (convex_convexHull ℝ S)
+    intro x hx
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+    rcases hx with rfl | rfl | rfl
+    · exact hp_hull
+    · exact subset_convexHull ℝ S hbS
+    · exact subset_convexHull ℝ S hcS
+  exact memClosedTriangle_of_mem_convexHull a b c r (hsub hr_hull)
+
+private lemma exists_edgeStep_segment_param (a b : ℤ × ℤ)
+    (hd : 2 ≤ edgeGcd a b) :
+    ∃ t : ℝ, 0 < t ∧ t < 1 ∧
+      toReal (edgeStep a b) = (1 - t) • toReal a + t • toReal b := by
+  have hp_seg := mem_segment_of_mem_edgeLatticePoints a b (edgeStep a b)
+    (edgeStep_mem_edgeLatticePoints a b (by omega))
+  obtain ⟨t, ⟨ht0, ht1⟩, hp_eq⟩ :
+      ∃ t : ℝ, (0 ≤ t ∧ t ≤ 1) ∧
+        (1 - t) • toReal a + t • toReal b = toReal (edgeStep a b) := by
+    simpa [segment_eq_image] using hp_seg
+  refine ⟨t, ?_, ?_, hp_eq.symm⟩
+  · by_contra h
+    have ht' : t = 0 := le_antisymm (le_of_not_gt h) ht0
+    have : toReal (edgeStep a b) = toReal a := by simpa [ht'] using hp_eq.symm
+    exact (edgeStep_ne_left a b (by omega)) (toReal_injective this)
+  · by_contra h
+    have ht' : t = 1 := le_antisymm ht1 (le_of_not_gt h)
+    have : toReal (edgeStep a b) = toReal b := by simpa [ht'] using hp_eq.symm
+    exact (edgeStep_ne_right a b hd) (toReal_injective this)
+
+lemma OffTriangleBoundary_of_mem_interior_edgeStep_left
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    (r : ℤ × ℤ)
+    (hr : MemClosedTriangle a (edgeStep a b) c r)
+    (hoff : OffTriangleBoundary a (edgeStep a b) c r) :
+    OffTriangleBoundary a b c r := by
+  set p := edgeStep a b
+  have hD1 : 0 < latticeDet a p c := latticeDet_edgeStep_pos a b c hD (by omega)
+  obtain ⟨hα, hβ, hγ⟩ :=
+    latticeDet_pos_of_memClosedTriangle_offBoundary a p c r hr hD1 hoff
+  obtain ⟨α, β, γ, hα0, hβ0, hγ0, hsum, heq⟩ := hr
+  obtain ⟨e_pc, e_ac, e_ap⟩ :=
+    latticeDet_eq_bary_mul_of_affine a p c r α β γ hsum heq
+  obtain ⟨t, ht_pos, ht_lt, hp_eq⟩ := exists_edgeStep_segment_param a b hd
+  have hαpos : (0 : ℝ) < α := by
+    have hD1R : (0 : ℝ) < (latticeDet a p c : ℝ) := by exact_mod_cast hD1
+    have hpos : (0 : ℝ) < (latticeDet p c r : ℝ) := by exact_mod_cast hα
+    nlinarith [e_pc]
+  have hβpos : (0 : ℝ) < β := by
+    have hD1R : (0 : ℝ) < (latticeDet a p c : ℝ) := by exact_mod_cast hD1
+    have hpos : (0 : ℝ) < (latticeDet a r c : ℝ) := by exact_mod_cast hβ
+    nlinarith [e_ac]
+  have hγpos : (0 : ℝ) < γ := by
+    have hD1R : (0 : ℝ) < (latticeDet a p c : ℝ) := by exact_mod_cast hD1
+    have hpos : (0 : ℝ) < (latticeDet a p r : ℝ) := by exact_mod_cast hγ
+    nlinarith [e_ap]
+  have hDR : (0 : ℝ) < (latticeDet a b c : ℝ) := by exact_mod_cast hD
+  have hp0 : latticeDet a b p = 0 :=
+    latticeDet_eq_zero_of_mem_edge_ab a b p
+      (edgeStep_mem_edgeLatticePoints a b (by omega))
+  have ha0 : latticeDet a b a = 0 := by unfold latticeDet; ring
+  have hr_ab :
+      (latticeDet a b r : ℝ) = γ * (latticeDet a b c : ℝ) := by
+    have haff :=
+      detR_affine_combination3 (toReal a) (toReal b)
+        (toReal a) (toReal p) (toReal c) α β γ hsum
+    have hz1 : detR (toReal a) (toReal b) (toReal a) = 0 := by
+      simpa [detR_toReal] using congrArg (Int.cast (R := ℝ)) ha0
+    have hz2 : detR (toReal a) (toReal b) (toReal p) = 0 := by
+      simpa [detR_toReal] using congrArg (Int.cast (R := ℝ)) hp0
+    have : detR (toReal a) (toReal b) (toReal r) =
+        γ * detR (toReal a) (toReal b) (toReal c) := by
+      have heq' : toReal r = α • toReal a + β • toReal p + γ • toReal c := by
+        simpa [toReal] using heq.symm
+      rw [heq', haff, hz1, hz2]; ring
+    simpa [detR_toReal] using this
+  have hnot_ab : r ∉ edgeLatticePoints a b := by
+    intro hab
+    have hz : latticeDet a b r = 0 := latticeDet_eq_zero_of_mem_edge_ab a b r hab
+    have hzR : (latticeDet a b r : ℝ) = 0 := by exact_mod_cast hz
+    have hpos : (0 : ℝ) < (latticeDet a b r : ℝ) := by rw [hr_ab]; nlinarith
+    exact (ne_of_gt hpos) hzR
+  have hp_bc :
+      (latticeDet b c p : ℝ) = (1 - t) * (latticeDet b c a : ℝ) := by
+    have hlin :
+        detR (toReal b) (toReal c) ((1 - t) • toReal a + t • toReal b) =
+          (1 - t) * detR (toReal b) (toReal c) (toReal a) +
+            t * detR (toReal b) (toReal c) (toReal b) := by
+      simp [detR, Prod.smul_def, smul_eq_mul]; ring
+    have hz : detR (toReal b) (toReal c) (toReal b) = 0 := by simp [detR]
+    calc
+      (latticeDet b c p : ℝ)
+          = detR (toReal b) (toReal c) (toReal p) := (detR_toReal b c p).symm
+      _ = detR (toReal b) (toReal c) ((1 - t) • toReal a + t • toReal b) := by rw [hp_eq]
+      _ = (1 - t) * detR (toReal b) (toReal c) (toReal a) := by rw [hlin, hz]; ring
+      _ = (1 - t) * (latticeDet b c a : ℝ) := by rw [detR_toReal]
+  have hr_bc :
+      (latticeDet b c r : ℝ) =
+        α * (latticeDet b c a : ℝ) + β * (latticeDet b c p : ℝ) := by
+    have haff :=
+      detR_affine_combination3 (toReal b) (toReal c)
+        (toReal a) (toReal p) (toReal c) α β γ hsum
+    have hz : detR (toReal b) (toReal c) (toReal c) = 0 := by unfold detR; ring
+    have heq' : toReal r = α • toReal a + β • toReal p + γ • toReal c := by
+      simpa [toReal] using heq.symm
+    have : detR (toReal b) (toReal c) (toReal r) =
+        α * detR (toReal b) (toReal c) (toReal a) +
+          β * detR (toReal b) (toReal c) (toReal p) := by
+      rw [heq', haff, hz]; ring
+    simpa [detR_toReal] using this
+  have hnot_bc : r ∉ edgeLatticePoints b c := by
+    intro hbc
+    have hz : latticeDet b c r = 0 := latticeDet_eq_zero_of_mem_edge_ab b c r hbc
+    have hzR : (latticeDet b c r : ℝ) = 0 := by exact_mod_cast hz
+    have hcyc : (latticeDet b c a : ℝ) = (latticeDet a b c : ℝ) := by
+      exact_mod_cast (latticeDet_cyclic a b c).symm
+    have h1t : (0 : ℝ) < 1 - t := sub_pos.mpr ht_lt
+    have hpos : (0 : ℝ) < (latticeDet b c r : ℝ) := by
+      have hform : (latticeDet b c r : ℝ) =
+          (α + β * (1 - t)) * (latticeDet a b c : ℝ) := by
+        calc
+          (latticeDet b c r : ℝ)
+              = α * (latticeDet b c a : ℝ) + β * (latticeDet b c p : ℝ) := hr_bc
+          _ = α * (latticeDet a b c : ℝ) + β * ((1 - t) * (latticeDet a b c : ℝ)) := by
+                rw [hp_bc, hcyc]
+          _ = (α + β * (1 - t)) * (latticeDet a b c : ℝ) := by ring
+      rw [hform]
+      exact mul_pos (by nlinarith [hαpos, hβpos, h1t]) hDR
+    exact (ne_of_gt hpos) hzR
+  exact ⟨hnot_ab, hnot_bc, hoff.2.2⟩
+
+lemma OffTriangleBoundary_of_mem_interior_edgeStep_right
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    (r : ℤ × ℤ)
+    (hr : MemClosedTriangle (edgeStep a b) b c r)
+    (hoff : OffTriangleBoundary (edgeStep a b) b c r) :
+    OffTriangleBoundary a b c r := by
+  set p := edgeStep a b
+  have hD2 : 0 < latticeDet p b c := latticeDet_edgeStep_right_pos a b c hD hd
+  obtain ⟨hα, hβ, hγ⟩ :=
+    latticeDet_pos_of_memClosedTriangle_offBoundary p b c r hr hD2 hoff
+  obtain ⟨α, β, γ, hα0, hβ0, hγ0, hsum, heq⟩ := hr
+  obtain ⟨e_bc, e_pc, e_pb⟩ :=
+    latticeDet_eq_bary_mul_of_affine p b c r α β γ hsum heq
+  obtain ⟨t, ht_pos, ht_lt, hp_eq⟩ := exists_edgeStep_segment_param a b hd
+  have hαpos : (0 : ℝ) < α := by
+    have hD2R : (0 : ℝ) < (latticeDet p b c : ℝ) := by exact_mod_cast hD2
+    have hpos : (0 : ℝ) < (latticeDet b c r : ℝ) := by exact_mod_cast hα
+    nlinarith [e_bc]
+  have hβpos : (0 : ℝ) < β := by
+    have hD2R : (0 : ℝ) < (latticeDet p b c : ℝ) := by exact_mod_cast hD2
+    have hpos : (0 : ℝ) < (latticeDet p r c : ℝ) := by exact_mod_cast hβ
+    nlinarith [e_pc]
+  have hγpos : (0 : ℝ) < γ := by
+    have hD2R : (0 : ℝ) < (latticeDet p b c : ℝ) := by exact_mod_cast hD2
+    have hpos : (0 : ℝ) < (latticeDet p b r : ℝ) := by exact_mod_cast hγ
+    nlinarith [e_pb]
+  have hDR : (0 : ℝ) < (latticeDet a b c : ℝ) := by exact_mod_cast hD
+  have hp0 : latticeDet a b p = 0 :=
+    latticeDet_eq_zero_of_mem_edge_ab a b p
+      (edgeStep_mem_edgeLatticePoints a b (by omega))
+  have hb0 : latticeDet a b b = 0 := by unfold latticeDet; ring
+  have hr_ab :
+      (latticeDet a b r : ℝ) = γ * (latticeDet a b c : ℝ) := by
+    have haff :=
+      detR_affine_combination3 (toReal a) (toReal b)
+        (toReal p) (toReal b) (toReal c) α β γ hsum
+    have hz1 : detR (toReal a) (toReal b) (toReal p) = 0 := by
+      simpa [detR_toReal] using congrArg (Int.cast (R := ℝ)) hp0
+    have hz2 : detR (toReal a) (toReal b) (toReal b) = 0 := by
+      simpa [detR_toReal] using congrArg (Int.cast (R := ℝ)) hb0
+    have heq' : toReal r = α • toReal p + β • toReal b + γ • toReal c := by
+      simpa [toReal] using heq.symm
+    have : detR (toReal a) (toReal b) (toReal r) =
+        γ * detR (toReal a) (toReal b) (toReal c) := by
+      rw [heq', haff, hz1, hz2]; ring
+    simpa [detR_toReal] using this
+  have hnot_ab : r ∉ edgeLatticePoints a b := by
+    intro hab
+    have hz : latticeDet a b r = 0 := latticeDet_eq_zero_of_mem_edge_ab a b r hab
+    have hzR : (latticeDet a b r : ℝ) = 0 := by exact_mod_cast hz
+    have hpos : (0 : ℝ) < (latticeDet a b r : ℝ) := by rw [hr_ab]; nlinarith
+    exact (ne_of_gt hpos) hzR
+  have hp_ca :
+      (latticeDet c a p : ℝ) = t * (latticeDet c a b : ℝ) := by
+    have hlin :
+        detR (toReal c) (toReal a) ((1 - t) • toReal a + t • toReal b) =
+          (1 - t) * detR (toReal c) (toReal a) (toReal a) +
+            t * detR (toReal c) (toReal a) (toReal b) := by
+      simp [detR, Prod.smul_def, smul_eq_mul]; ring
+    have hz : detR (toReal c) (toReal a) (toReal a) = 0 := by unfold detR; ring
+    calc
+      (latticeDet c a p : ℝ)
+          = detR (toReal c) (toReal a) (toReal p) := (detR_toReal c a p).symm
+      _ = detR (toReal c) (toReal a) ((1 - t) • toReal a + t • toReal b) := by rw [hp_eq]
+      _ = t * detR (toReal c) (toReal a) (toReal b) := by rw [hlin, hz]; ring
+      _ = t * (latticeDet c a b : ℝ) := by rw [detR_toReal]
+  have hr_ca :
+      (latticeDet c a r : ℝ) =
+        α * (latticeDet c a p : ℝ) + β * (latticeDet c a b : ℝ) := by
+    have haff :=
+      detR_affine_combination3 (toReal c) (toReal a)
+        (toReal p) (toReal b) (toReal c) α β γ hsum
+    have hz : detR (toReal c) (toReal a) (toReal c) = 0 := by unfold detR; ring
+    have heq' : toReal r = α • toReal p + β • toReal b + γ • toReal c := by
+      simpa [toReal] using heq.symm
+    have : detR (toReal c) (toReal a) (toReal r) =
+        α * detR (toReal c) (toReal a) (toReal p) +
+          β * detR (toReal c) (toReal a) (toReal b) := by
+      rw [heq', haff, hz]; ring
+    simpa [detR_toReal] using this
+  have hnot_ca : r ∉ edgeLatticePoints c a := by
+    intro hca
+    have hz : latticeDet c a r = 0 := latticeDet_eq_zero_of_mem_edge_ab c a r hca
+    have hzR : (latticeDet c a r : ℝ) = 0 := by exact_mod_cast hz
+    have hcyc : (latticeDet c a b : ℝ) = (latticeDet a b c : ℝ) := by
+      exact_mod_cast (latticeDet_cyclic₂ a b c).symm
+    have hpos : (0 : ℝ) < (latticeDet c a r : ℝ) := by
+      have hform : (latticeDet c a r : ℝ) =
+          (α * t + β) * (latticeDet a b c : ℝ) := by
+        calc
+          (latticeDet c a r : ℝ)
+              = α * (latticeDet c a p : ℝ) + β * (latticeDet c a b : ℝ) := hr_ca
+          _ = α * (t * (latticeDet a b c : ℝ)) + β * (latticeDet a b c : ℝ) := by
+                rw [hp_ca, hcyc]
+          _ = (α * t + β) * (latticeDet a b c : ℝ) := by ring
+      rw [hform]
+      exact mul_pos (by nlinarith [hαpos, hβpos, ht_pos]) hDR
+    exact (ne_of_gt hpos) hzR
+  -- hoff.1 is r ∉ edgeLatticePoints p b; need r ∉ edgeLatticePoints b c
+  have hnot_bc : r ∉ edgeLatticePoints b c := hoff.2.1
+  exact ⟨hnot_ab, hnot_bc, hnot_ca⟩
+
+theorem EmptyInterior_trianglePolygon_of_edgeStep_left
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    (hI : EmptyInterior (trianglePolygon a b c)) :
+    EmptyInterior (trianglePolygon a (edgeStep a b) c) := by
+  classical
+  set p := edgeStep a b
+  rw [EmptyInterior] at hI ⊢
+  ext r
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hr
+  have hr' := (mem_interiorLatticePoints_trianglePolygon_iff a p c r).mp hr
+  have hmem := memClosedTriangle_of_memClosedTriangle_edgeStep_left a b c p r
+    (edgeStep_mem_edgeLatticePoints a b (by omega)) hr'.1
+  have hoff :=
+    OffTriangleBoundary_of_mem_interior_edgeStep_left a b c hD hd r hr'.1 hr'.2
+  have hint : r ∈ (trianglePolygon a b c).interiorLatticePoints :=
+    (mem_interiorLatticePoints_trianglePolygon_iff a b c r).mpr ⟨hmem, hoff⟩
+  exact (by simp [hI] : r ∉ (trianglePolygon a b c).interiorLatticePoints) hint
+
+theorem EmptyInterior_trianglePolygon_of_edgeStep_right
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    (hI : EmptyInterior (trianglePolygon a b c)) :
+    EmptyInterior (trianglePolygon (edgeStep a b) b c) := by
+  classical
+  set p := edgeStep a b
+  rw [EmptyInterior] at hI ⊢
+  ext r
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hr
+  have hr' := (mem_interiorLatticePoints_trianglePolygon_iff p b c r).mp hr
+  have hmem := memClosedTriangle_of_memClosedTriangle_edgeStep_right a b c p r
+    (edgeStep_mem_edgeLatticePoints a b (by omega)) hr'.1
+  have hoff :=
+    OffTriangleBoundary_of_mem_interior_edgeStep_right a b c hD hd r hr'.1 hr'.2
+  have hint : r ∈ (trianglePolygon a b c).interiorLatticePoints :=
+    (mem_interiorLatticePoints_trianglePolygon_iff a b c r).mpr ⟨hmem, hoff⟩
+  exact (by simp [hI] : r ∉ (trianglePolygon a b c).interiorLatticePoints) hint
+
+/-! ## PrimitiveEdges for triangles + empty-interior Pick by `|det|` induction -/
+
+lemma PrimitiveEdges_trianglePolygon_of_edgeGcds
+    (a b c : ℤ × ℤ)
+    (hab : edgeGcd a b = 1) (hbc : edgeGcd b c = 1) (hca : edgeGcd c a = 1) :
+    PrimitiveEdges (trianglePolygon a b c) := by
+  intro i
+  fin_cases i
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using hab
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using hbc
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using hca
+
+lemma edgeGcd_pos_of_latticeDet_pos (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) :
+    1 ≤ edgeGcd a b ∧ 1 ≤ edgeGcd b c ∧ 1 ≤ edgeGcd c a := by
+  refine ⟨?_, ?_, ?_⟩
+  · have hne : a ≠ b := by
+      intro h; simp [latticeDet, h] at hD
+    exact Nat.pos_of_ne_zero fun hz => hne ((edgeGcd_eq_zero_iff a b).mp hz)
+  · have hne : b ≠ c := by
+      intro h; subst h; unfold latticeDet at hD; linarith
+    exact Nat.pos_of_ne_zero fun hz => hne ((edgeGcd_eq_zero_iff b c).mp hz)
+  · have hne : c ≠ a := by
+      intro h; simp [latticeDet, h] at hD
+    exact Nat.pos_of_ne_zero fun hz => hne ((edgeGcd_eq_zero_iff c a).mp hz)
+
+/-- Helper: empty-triangle Pick when a designated edge has `edgeGcd ≥ 2`. -/
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle_of_edgeStep_ab
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    (hI : EmptyInterior (trianglePolygon a b c))
+    (ih : ∀ a' b' c' : ℤ × ℤ,
+      0 < latticeDet a' b' c' →
+      EmptyInterior (trianglePolygon a' b' c') →
+      Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) →
+      (trianglePolygon a' b' c').shoelace =
+        ((trianglePolygon a' b' c').B : ℚ) / 2 - 1) :
+    (trianglePolygon a b c).shoelace =
+      ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by
+  classical
+  set p := edgeStep a b
+  have hlt := natAbs_latticeDet_edgeStep_lt a b c hD hd
+  have hD1 : 0 < latticeDet a p c := latticeDet_edgeStep_pos a b c hD (by omega)
+  have hD2 : 0 < latticeDet p b c := latticeDet_edgeStep_right_pos a b c hD hd
+  have hI1 := EmptyInterior_trianglePolygon_of_edgeStep_left a b c hD hd hI
+  have hI2 := EmptyInterior_trianglePolygon_of_edgeStep_right a b c hD hd hI
+  have ih1 := ih a p c hD1 hI1 hlt.1
+  have ih2 := ih p b c hD2 hI2 hlt.2
+  have hpc := edgeGcd_eq_one_of_empty_interior_edgeStep a b c hD hd hI
+  have hsa := shoelace_add_of_edgeStep a b c hD hd
+  have hBa := B_add_of_edgeStep a b c hD hd hpc
+  calc
+    (trianglePolygon a b c).shoelace
+        = (trianglePolygon a p c).shoelace + (trianglePolygon p b c).shoelace := hsa
+    _ = (((trianglePolygon a p c).B : ℚ) / 2 - 1) +
+          (((trianglePolygon p b c).B : ℚ) / 2 - 1) := by rw [ih1, ih2]
+    _ = (((trianglePolygon a p c).B : ℚ) + (trianglePolygon p b c).B) / 2 - 2 := by
+          ring
+    _ = (((trianglePolygon a p c).B + (trianglePolygon p b c).B : ℕ) : ℚ) / 2 - 2 := by
+          push_cast; rfl
+    _ = (((trianglePolygon a b c).B + 2 : ℕ) : ℚ) / 2 - 2 := by rw [hBa]
+    _ = ((trianglePolygon a b c).B : ℚ) / 2 + 1 - 2 := by push_cast; ring
+    _ = ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by ring
+
+/-- Empty closed lattice triangle Pick-form without `PrimitiveEdges`, by induction
+on `|det|` via `edgeStep` splits (not classical Pick). -/
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c)
+    (hI : EmptyInterior (trianglePolygon a b c)) :
+    (trianglePolygon a b c).shoelace =
+      ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by
+  classical
+  generalize hn : Int.natAbs (latticeDet a b c) = n
+  revert a b c
+  refine Nat.strong_induction_on n fun n ih a b c hD hI hn => ?_
+  have hpos := edgeGcd_pos_of_latticeDet_pos a b c hD
+  by_cases hprim : edgeGcd a b = 1 ∧ edgeGcd b c = 1 ∧ edgeGcd c a = 1
+  · have hedge :=
+      PrimitiveEdges_trianglePolygon_of_edgeGcds a b c hprim.1 hprim.2.1 hprim.2.2
+    exact shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
+      (trianglePolygon a b c)
+      (injective_vertex_trianglePolygon a b c (ne_of_gt hD))
+      hedge hI (StrictlyConvexCCW_trianglePolygon a b c hD)
+  · have hge : 2 ≤ edgeGcd a b ∨ 2 ≤ edgeGcd b c ∨ 2 ≤ edgeGcd c a := by omega
+    have ih' : ∀ a' b' c' : ℤ × ℤ,
+        0 < latticeDet a' b' c' →
+        EmptyInterior (trianglePolygon a' b' c') →
+        Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) →
+        (trianglePolygon a' b' c').shoelace =
+          ((trianglePolygon a' b' c').B : ℚ) / 2 - 1 := by
+      intro a' b' c' hD' hI' hlt'
+      have hltn : Int.natAbs (latticeDet a' b' c') < n := by simpa [hn] using hlt'
+      exact ih _ hltn a' b' c' hD' hI' rfl
+    rcases hge with hab | hbc | hca
+    · -- split on a—b
+      subst hn
+      exact shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle_of_edgeStep_ab
+        a b c hD hab hI ih'
+    · -- rotate to (b,c,a) and split on b—c
+      have hDc : 0 < latticeDet b c a := by simpa [← latticeDet_cyclic a b c] using hD
+      have hIc : EmptyInterior (trianglePolygon b c a) :=
+        (EmptyInterior_trianglePolygon_cyclic a b c).mp hI
+      have ihc : ∀ a' b' c' : ℤ × ℤ,
+          0 < latticeDet a' b' c' →
+          EmptyInterior (trianglePolygon a' b' c') →
+          Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet b c a) →
+          (trianglePolygon a' b' c').shoelace =
+            ((trianglePolygon a' b' c').B : ℚ) / 2 - 1 := by
+        intro a' b' c' hD' hI' hlt'
+        have : Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) := by
+          simpa [← latticeDet_cyclic a b c] using hlt'
+        exact ih' a' b' c' hD' hI' this
+      have hpick :=
+        shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle_of_edgeStep_ab
+          b c a hDc hbc hIc ihc
+      rw [shoelace_trianglePolygon_cyclic a b c,
+          B_trianglePolygon_cyclic a b c (ne_of_gt hD)]
+      exact hpick
+    · -- rotate to (c,a,b) and split on c—a
+      have hDc : 0 < latticeDet c a b := by simpa [← latticeDet_cyclic₂ a b c] using hD
+      have hIc : EmptyInterior (trianglePolygon c a b) := by
+        have h1 := (EmptyInterior_trianglePolygon_cyclic a b c).mp hI
+        exact (EmptyInterior_trianglePolygon_cyclic b c a).mp h1
+      have ihc : ∀ a' b' c' : ℤ × ℤ,
+          0 < latticeDet a' b' c' →
+          EmptyInterior (trianglePolygon a' b' c') →
+          Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet c a b) →
+          (trianglePolygon a' b' c').shoelace =
+            ((trianglePolygon a' b' c').B : ℚ) / 2 - 1 := by
+        intro a' b' c' hD' hI' hlt'
+        have : Int.natAbs (latticeDet a' b' c') < Int.natAbs (latticeDet a b c) := by
+          simpa [← latticeDet_cyclic₂ a b c] using hlt'
+        exact ih' a' b' c' hD' hI' this
+      have hpick :=
+        shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle_of_edgeStep_ab
+          c a b hDc hca hIc ihc
+      have hs1 := shoelace_trianglePolygon_cyclic a b c
+      have hs2 := shoelace_trianglePolygon_cyclic b c a
+      have hB1 := B_trianglePolygon_cyclic a b c (ne_of_gt hD)
+      have hB2 := B_trianglePolygon_cyclic b c a
+        (by simpa [← latticeDet_cyclic a b c] using ne_of_gt hD)
+      rw [hs1, hs2, hB1, hB2]
+      exact hpick
 
 end InteriorFan
 end LatticeFan

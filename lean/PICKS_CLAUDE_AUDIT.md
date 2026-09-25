@@ -1718,3 +1718,44 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+
+## Update 2026-09-25 (empty-interior triangle Pick w/o PrimitiveEdges; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem EmptyInterior_trianglePolygon_of_edgeStep_left/right
+    -- EmptyInterior inherits across edgeStep splits
+
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle
+    (0 < latticeDet a b c) (EmptyInterior (trianglePolygon a b c)) :
+    (trianglePolygon a b c).shoelace = B/2 - 1
+    -- no PrimitiveEdges hyp; induction on |det| via edgeStep
+```
+
+Results exports: `results_EmptyInterior_trianglePolygon_of_edgeStep_{left,right}`,
+`results_shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle`
+(prior edgeStep substrate retained).
+
+**Prize progress:** first triangle shoelace Pick-form that drops `PrimitiveEdges`.
+Base uses existing empty-interior convex form when all edges are primitive; step
+splits a non-primitive edge at `edgeStep`, inherits EmptyInterior on both
+sub-triangles (det-positivity OffBoundary), applies IH on strictly smaller
+`|det|`, and reassembles via shoelace/B additivity with primitive new chord.
+Still **not** classical Pick: I ≤ 2 triangle without PrimitiveEdges; I = 4
+Finset without spokes-empty apex; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| `edgeStep` + gcd / det / shoelace / B split | Green |
+| Empty-interior ⇒ `edgeGcd(edgeStep,c)=1` | Green |
+| EmptyInterior inheritance across edgeStep | **Green** |
+| Empty-interior triangle Pick w/o PrimitiveEdges | **Green** |
+| I≤2 triangle Pick w/o PrimitiveEdges | Open |
+| I=4 without spokes-empty hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+
