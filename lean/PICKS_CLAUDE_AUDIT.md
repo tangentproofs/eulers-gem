@@ -1995,3 +1995,52 @@ MetricRegular / EdgeVertices untouched. Classical Pick **FAIL** — no rename.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (I≤4/I≤5 triangle w/o PE + I=6/I≤6 + strong induction; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_triangle_of_pe_ih
+    -- general: PE Pick for card≤k ⇒ triangle Pick w/o PE for card≤k (|det|/edgeStep)
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_triangle
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_five_triangle
+    -- I∈{0..4} / I∈{0..5} Finset packaging without PrimitiveEdges
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_six
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_six
+    -- parent #S=6: all ears #earOff≤5 use triangle I≤5 w/o PE (no PE inheritance branch)
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one
+    (StrictlyConvexCCW + PrimitiveEdges parent + Injective)
+    (S = interior) :
+    shoelace = #S + B/2 - 1
+    -- strong induction on Finset card; base I≤5; step fan_ear_IH + pe_ih triangle ears
+```
+
+Results exports: `results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_triangle`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_five_triangle`,
+`results_card_earOffInterior_le_five_of_card_eq_six`,
+`results_shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_five_of_card_eq_six`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_six`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_six`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one`.
+
+**Prize progress:** PE inheritance on large ears unblocked by general `pe_ih` triangle
+form (`|det|` induction; primitive-edge base uses PE Pick at same card bound). Strong
+induction on `#S` closes geometric Finset Pick-form for **all** interior cardinalities
+under parent `PrimitiveEdges` + `StrictlyConvexCCW` + injective. I=6 / I≤6 and triangle
+I≤4 / I≤5 are stepping stones / specializations. Still **not** classical Pick: Haar /
+shoelace=measure; EP→planar Euler; triangulation existence for general polygons;
+boundary may be non-primitive on parent (hyp requires parent PE). Claude Platonic /
+Cube / MetricRegular / EdgeVertices untouched. Classical Pick **FAIL** — no rename.
+
+| Item | Status |
+|------|--------|
+| Empty / UniqueInterior / TwoInterior / I≤2 / I≤3 / I≤4 / I≤5 triangle w/o PrimitiveEdges | **Green** |
+| I=4 / I≤4 / I=5 / I≤5 / I=6 / I≤6 without spokes-empty hyp | **Green** |
+| Strong induction on Finset card (geometric Finset Pick-form) | **Green** |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
