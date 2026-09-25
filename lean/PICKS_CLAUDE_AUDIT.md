@@ -47,7 +47,7 @@ This file is the gate: no Results/README claim that classical Pick is proved unt
 | Results exports | `results_funkenbusch_identity`, `results_triangulation_count_identity` |
 | README / site / ROADMAP | Explicit **not Pick**; ROADMAP unchecked |
 | Classical Pick in Results | **Not claimed** (gate) |
-| Geometric substrate | Not yet green-committed; next incremental commits only |
+| Geometric substrate | `LatticeTriangle.lean` shoelace/`|det|=1`/Cramer green — **not** Haar, **not** Pick |
 
 ## Candidate for a future PASS (do not promote until re-audited)
 
