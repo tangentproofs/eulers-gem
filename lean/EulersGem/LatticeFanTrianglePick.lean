@@ -3695,6 +3695,201 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_triangle
       shoelace_eq_cardI_add_B_div_two_sub_one Q T hT hverts hedge hsc)
     a b c hD S hS le_rfl
 
+/-! ## Empty-interior StrictlyConvexCCW without PrimitiveEdges (not classical Pick)
+
+Vertex fan from `v₀` + empty PE-free triangles + chord `edgeGcd = 1` + `B = ∑ edgeGcd`
+telescoping. Classical Pick FAIL.
+-/
+
+/-- Three points each collinear with edge `(A,B)` are themselves collinear. -/
+lemma latticeDet_eq_zero_of_edge_dets_eq_zero
+    (A B X Y Z : ℤ × ℤ) (hAB : A ≠ B)
+    (hx : latticeDet A B X = 0) (hy : latticeDet A B Y = 0)
+    (hz : latticeDet A B Z = 0) :
+    latticeDet X Y Z = 0 := by
+  set w : ℤ × ℤ := (B.1 - A.1, B.2 - A.2)
+  set u : ℤ × ℤ := (Y.1 - X.1, Y.2 - X.2)
+  set v : ℤ × ℤ := (Z.1 - X.1, Z.2 - X.2)
+  have hw : w ≠ 0 := by
+    intro h
+    have h1 : B.1 - A.1 = 0 := by simpa [w] using congrArg Prod.fst h
+    have h2 : B.2 - A.2 = 0 := by simpa [w] using congrArg Prod.snd h
+    exact hAB (Prod.ext (by linarith) (by linarith))
+  -- latticeDet A B W = w × (W-A); cross lemma wants (W-A) × w = -(w × (W-A))
+  have hx' : (X.1 - A.1) * w.2 - (X.2 - A.2) * w.1 = 0 := by
+    have : w.1 * (X.2 - A.2) - w.2 * (X.1 - A.1) = 0 := by
+      simpa [latticeDet, w] using hx
+    linarith
+  have hy' : (Y.1 - A.1) * w.2 - (Y.2 - A.2) * w.1 = 0 := by
+    have : w.1 * (Y.2 - A.2) - w.2 * (Y.1 - A.1) = 0 := by
+      simpa [latticeDet, w] using hy
+    linarith
+  have hz' : (Z.1 - A.1) * w.2 - (Z.2 - A.2) * w.1 = 0 := by
+    have : w.1 * (Z.2 - A.2) - w.2 * (Z.1 - A.1) = 0 := by
+      simpa [latticeDet, w] using hz
+    linarith
+  have hu : u.1 * w.2 - u.2 * w.1 = 0 := by
+    have : ((Y.1 - A.1) - (X.1 - A.1)) * w.2 -
+        ((Y.2 - A.2) - (X.2 - A.2)) * w.1 = 0 := by
+      linear_combination hy' - hx'
+    simpa [u] using this
+  have hv : v.1 * w.2 - v.2 * w.1 = 0 := by
+    have : ((Z.1 - A.1) - (X.1 - A.1)) * w.2 -
+        ((Z.2 - A.2) - (X.2 - A.2)) * w.1 = 0 := by
+      linear_combination hz' - hx'
+    simpa [v] using this
+  have hcross := cross_eq_zero_of_cross_eq_zero_both u v w hu hv hw
+  simpa [latticeDet, u, v] using hcross
+
+/-- An OffBoundary lattice point of a vertex-fan ear is a parent-interior point,
+without `PrimitiveEdges`. -/
+theorem mem_interiorLatticePoints_of_memClosedTriangle_off_fan_no_pe
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (i : ℕ) (hi : i < P.nVertices - 2) {p : ℤ × ℤ}
+    (hmem : MemClosedTriangle (fanTriangle P i hi).a (fanTriangle P i hi).b
+      (fanTriangle P i hi).c p)
+    (hoff : OffTriangleBoundary (fanTriangle P i hi).a (fanTriangle P i hi).b
+      (fanTriangle P i hi).c p) :
+    p ∈ P.interiorLatticePoints := by
+  classical
+  set a := (fanTriangle P i hi).a
+  set b := (fanTriangle P i hi).b
+  set c := (fanTriangle P i hi).c
+  have hposFan := FanDetsPos_of_strictlyConvexCCW P hsc hinj
+  have hD : 0 < latticeDet a b c := by
+    simpa [a, b, c, fanDet, fanTriangle, Triangle.det] using hposFan i hi
+  obtain ⟨hd_bc, hd_ac, hd_ab⟩ :=
+    latticeDet_pos_of_memClosedTriangle_offBoundary a b c p
+      (by simpa [a, b, c] using hmem) hD (by simpa [a, b, c] using hoff)
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := (by simpa [a, b, c] using hmem)
+  obtain ⟨e1, e2, e3⟩ := latticeDet_eq_bary_mul_of_affine a b c p α β γ hsum heq
+  have hD0 : (0 : ℝ) < (latticeDet a b c : ℝ) := by exact_mod_cast hD
+  have hαpos : 0 < α := by
+    have hposR : (0 : ℝ) < (latticeDet b c p : ℝ) := by exact_mod_cast hd_bc
+    nlinarith [e1, hposR, hD0]
+  have hβpos : 0 < β := by
+    have hposR : (0 : ℝ) < (latticeDet a p c : ℝ) := by exact_mod_cast hd_ac
+    nlinarith [e2, hposR, hD0]
+  have hγpos : 0 < γ := by
+    have hposR : (0 : ℝ) < (latticeDet a b p : ℝ) := by exact_mod_cast hd_ab
+    nlinarith [e3, hposR, hD0]
+  have hedge_det_pos : ∀ j : Fin P.nVertices,
+      0 < latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) p := by
+    intro j
+    set A := toReal (P.vertex j)
+    set B := toReal (P.vertex (P.nextIdx j))
+    have haff :=
+      detR_affine_combination3 A B (toReal a) (toReal b) (toReal c) α β γ hsum
+    have hdetR :
+        detR A B (toReal p) =
+          α * detR A B (toReal a) + β * detR A B (toReal b) +
+            γ * detR A B (toReal c) := by
+      have hp_eq : toReal p = α • toReal a + β • toReal b + γ • toReal c := heq.symm
+      rw [hp_eq, haff]
+    have ha_nn : 0 ≤ latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) a := by
+      have ha0 : a = P.vertex ⟨0, P.nVertices_pos⟩ := by simp [a, fanTriangle]
+      simpa [ha0] using hsc.1 j ⟨0, P.nVertices_pos⟩
+    have hb_nn : 0 ≤ latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) b := by
+      have hb0 : b = P.vertex ⟨i + 1, by have := P.length_ge; omega⟩ := by
+        simp [b, fanTriangle]
+      simpa [hb0] using hsc.1 j ⟨i + 1, by have := P.length_ge; omega⟩
+    have hc_nn : 0 ≤ latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) c := by
+      have hc0 : c = P.vertex ⟨i + 2, by have := P.length_ge; omega⟩ := by
+        simp [c, fanTriangle]
+      simpa [hc0] using hsc.1 j ⟨i + 2, by have := P.length_ge; omega⟩
+    have haR : (0 : ℝ) ≤ detR A B (toReal a) := by
+      have : (0 : ℝ) ≤ (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) a : ℝ) :=
+        Int.cast_nonneg ha_nn
+      simpa [A, B, detR_toReal] using this
+    have hbR : (0 : ℝ) ≤ detR A B (toReal b) := by
+      have : (0 : ℝ) ≤ (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) b : ℝ) :=
+        Int.cast_nonneg hb_nn
+      simpa [A, B, detR_toReal] using this
+    have hcR : (0 : ℝ) ≤ detR A B (toReal c) := by
+      have : (0 : ℝ) ≤ (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) c : ℝ) :=
+        Int.cast_nonneg hc_nn
+      simpa [A, B, detR_toReal] using this
+    have hne_edge : P.vertex j ≠ P.vertex (P.nextIdx j) :=
+      fun h => (nextIdx_ne P j) (hinj h).symm
+    refine lt_of_le_of_ne ?hnn ?hne0
+    · have hposR : (0 : ℝ) ≤ detR A B (toReal p) := by
+        have h1 : 0 ≤ α * detR A B (toReal a) := mul_nonneg (le_of_lt hαpos) haR
+        have h2 : 0 ≤ β * detR A B (toReal b) := mul_nonneg (le_of_lt hβpos) hbR
+        have h3 : 0 ≤ γ * detR A B (toReal c) := mul_nonneg (le_of_lt hγpos) hcR
+        linarith [hdetR]
+      have : (0 : ℝ) ≤ (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) p : ℝ) := by
+        simpa [A, B, detR_toReal] using hposR
+      exact_mod_cast this
+    · intro hz
+      have hsum0 : detR A B (toReal p) = 0 := by
+        have : (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) p : ℝ) = 0 := by
+          exact_mod_cast hz.symm
+        simpa [A, B, detR_toReal] using this
+      have ha0 : latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) a = 0 := by
+        have hR : detR A B (toReal a) = 0 := by
+          nlinarith [hdetR, hsum0,
+            mul_nonneg (le_of_lt hαpos) haR,
+            mul_nonneg (le_of_lt hβpos) hbR,
+            mul_nonneg (le_of_lt hγpos) hcR, hαpos, haR]
+        have : (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) a : ℝ) = 0 := by
+          simpa [A, B, detR_toReal] using hR
+        exact_mod_cast this
+      have hb0 : latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) b = 0 := by
+        have hR : detR A B (toReal b) = 0 := by
+          nlinarith [hdetR, hsum0,
+            mul_nonneg (le_of_lt hαpos) haR,
+            mul_nonneg (le_of_lt hβpos) hbR,
+            mul_nonneg (le_of_lt hγpos) hcR, hβpos, hbR]
+        have : (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) b : ℝ) = 0 := by
+          simpa [A, B, detR_toReal] using hR
+        exact_mod_cast this
+      have hc0 : latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) c = 0 := by
+        have hR : detR A B (toReal c) = 0 := by
+          nlinarith [hdetR, hsum0,
+            mul_nonneg (le_of_lt hαpos) haR,
+            mul_nonneg (le_of_lt hβpos) hbR,
+            mul_nonneg (le_of_lt hγpos) hcR, hγpos, hcR]
+        have : (latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) c : ℝ) = 0 := by
+          simpa [A, B, detR_toReal] using hR
+        exact_mod_cast this
+      have hcoll :=
+        latticeDet_eq_zero_of_edge_dets_eq_zero
+          (P.vertex j) (P.vertex (P.nextIdx j)) a b c hne_edge ha0 hb0 hc0
+      exact (ne_of_gt hD) hcoll
+  have hnb : p ∉ P.boundaryLatticePoints := by
+    intro hb
+    obtain ⟨j, hj⟩ := (mem_boundaryLatticePoints_iff P p).mp hb
+    have hz : latticeDet (P.vertex j) (P.vertex (P.nextIdx j)) p = 0 :=
+      latticeDet_eq_zero_of_mem_edge_ab (P.vertex j) (P.vertex (P.nextIdx j)) p
+        (by simpa [LatticePolygon.edgePair] using hj)
+    exact (ne_of_gt (hedge_det_pos j)) hz
+  have hhull :=
+    mem_convexHullRegion_of_memClosedTriangle_fan P i hi
+      (by simpa [a, b, c] using hmem)
+  refine ⟨?_, hnb⟩
+  simpa [LatticePolygon.convexHullRegion] using hhull
+
+/-- Fan ear `trianglePolygon` is empty-interior when the parent is (no PE). -/
+theorem EmptyInterior_trianglePolygon_fanTriangle
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hI : EmptyInterior P)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    EmptyInterior
+      (trianglePolygon (fanTriangle P i hi).a (fanTriangle P i hi).b
+        (fanTriangle P i hi).c) := by
+  classical
+  set a := (fanTriangle P i hi).a
+  set b := (fanTriangle P i hi).b
+  set c := (fanTriangle P i hi).c
+  change (trianglePolygon a b c).interiorLatticePoints = ∅
+  refine Set.eq_empty_of_forall_notMem fun p hp => ?_
+  have hp' := (mem_interiorLatticePoints_trianglePolygon_iff a b c p).mp hp
+  have hpI :=
+    mem_interiorLatticePoints_of_memClosedTriangle_off_fan_no_pe P hsc hinj i hi
+      (by simpa [a, b, c] using hp'.1) (by simpa [a, b, c] using hp'.2)
+  have hEmpty : P.interiorLatticePoints = ∅ := hI
+  exact (hEmpty ▸ hpI).elim
+
 end InteriorFan
 end LatticeFan
 end Picks

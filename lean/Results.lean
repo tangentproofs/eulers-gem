@@ -2099,6 +2099,43 @@ theorem results_InteriorFanDetsPos_of_mem_interior_no_pe
     P hsc hinj hq
 
 
+
+/-- OffBoundary lattice point of a vertex-fan ear is parent-interior, without
+`PrimitiveEdges` (not classical Pick). -/
+theorem results_mem_interiorLatticePoints_of_memClosedTriangle_off_fan_no_pe
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (i : ℕ) (hi : i < P.nVertices - 2) {p : ℤ × ℤ}
+    (hmem : EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      (EulersGem.Picks.LatticeFan.fanTriangle P i hi).a
+      (EulersGem.Picks.LatticeFan.fanTriangle P i hi).b
+      (EulersGem.Picks.LatticeFan.fanTriangle P i hi).c p)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary
+      (EulersGem.Picks.LatticeFan.fanTriangle P i hi).a
+      (EulersGem.Picks.LatticeFan.fanTriangle P i hi).b
+      (EulersGem.Picks.LatticeFan.fanTriangle P i hi).c p) :
+    p ∈ P.interiorLatticePoints :=
+  EulersGem.Picks.LatticeFan.InteriorFan.mem_interiorLatticePoints_of_memClosedTriangle_off_fan_no_pe
+    P hsc hinj i hi hmem hoff
+
+/-- Fan ear `trianglePolygon` is empty-interior when the parent is, without
+`PrimitiveEdges` (not classical Pick). -/
+theorem results_EmptyInterior_trianglePolygon_fanTriangle
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    EulersGem.Picks.LatticeFan.EmptyInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        (EulersGem.Picks.LatticeFan.fanTriangle P i hi).a
+        (EulersGem.Picks.LatticeFan.fanTriangle P i hi).b
+        (EulersGem.Picks.LatticeFan.fanTriangle P i hi).c) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.EmptyInterior_trianglePolygon_fanTriangle
+    P hsc hinj hI i hi
+
+
 /-! ### earOffInterior ↔ triangle interior + I = 4 (not classical Pick) -/
 
 /-- Closed-triangle Off points = `trianglePolygon` interior lattice points. -/

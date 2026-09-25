@@ -2454,3 +2454,42 @@ compose without PE. Classical Pick **still FAIL** (no rename).
 | Drop parent `PrimitiveEdges` (combinatorial + volume) | Open |
 | Discharge Finset finiteness of `I` | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (PE-free empty fan-ear EmptyInterior; still FAIL)
+
+Landed vertex-fan PE-free empty-ear substrate (no `PrimitiveEdges`):
+
+```lean
+lemma latticeDet_eq_zero_of_edge_dets_eq_zero
+theorem mem_interiorLatticePoints_of_memClosedTriangle_off_fan_no_pe
+theorem EmptyInterior_trianglePolygon_fanTriangle
+```
+
+Affine half-planes: OffBoundary fan-ear point has positive barycentric weights;
+ConvexCCW edge dets are nonnegative; if any parent edge-det vanished then the
+three fan vertices would be collinear (`latticeDet_eq_zero_of_edge_dets_eq_zero`),
+contradicting `FanDetsPos_of_strictlyConvexCCW`. Hence the point is parent-interior,
+so parent `EmptyInterior` ⇒ each fan ear `trianglePolygon` is empty-interior.
+Feeds empty PE-free triangle Pick on each ear.
+
+Results: `results_mem_interiorLatticePoints_of_memClosedTriangle_off_fan_no_pe`,
+`results_EmptyInterior_trianglePolygon_fanTriangle`.
+
+**Still open for PE-free parent Pick:** chord `edgeGcd = 1` under empty interior
+(open chord points ⇒ interior); B-telescoping `∑(Bᵢ/2−1) = B/2−1`; empty
+StrictlyConvexCCW shoelace without PE; then strong induction parent without PE;
+volume compose without PE. Classical Pick **still FAIL** (no rename).
+
+| Item | Status |
+|------|--------|
+| All-I triangle w/o PrimitiveEdges | **Green** |
+| `B = ∑ edgeGcd` under StrictlyConvexCCW | **Green** |
+| PE-free hbook / hspoke / hpart / coe_earOff | **Green** |
+| PE-free empty fan-ear `EmptyInterior` | **Green** |
+| Chord primitivity under empty interior | Open |
+| Empty-interior PE-free (StrictlyConvexCCW parent) | Open |
+| Drop parent `PrimitiveEdges` (combinatorial + volume) | Open |
+| Discharge Finset finiteness of `I` | Open |
+| Classical Pick | **Still FAIL** |
+
