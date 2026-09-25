@@ -2404,6 +2404,86 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one_triangle
     a b c hD S hS hcard
 
 
+/-! ### TwoInterior / I≤2 triangle Pick without PrimitiveEdges (not classical Pick)
+
+`|det|` induction via `edgeStep`: locate interiors in empty / UniqueInterior /
+TwoInterior halves (chord `edgeGcd ≤ 3`); reassemble to `2 + B/2 − 1`. I≤2 Finset
+packaging. Still not classical Pick (I=4 without spokes-empty / Haar / EP→planar open).
+-/
+
+theorem results_mem_interior_left_or_right_or_chord_of_mem_interior_edgeStep
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    {q : ℤ × ℤ}
+    (hq : q ∈ (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).interiorLatticePoints) :
+    q ∈ (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a
+          (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c).interiorLatticePoints ∨
+      q ∈ (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b c).interiorLatticePoints ∨
+        (q ∈ EulersGem.Picks.edgeLatticePoints
+            (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c ∧
+          q ≠ EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b ∧ q ≠ c) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.mem_interior_left_or_right_or_chord_of_mem_interior_edgeStep
+    a b c hD hd hq
+
+theorem results_edgeGcd_le_three_of_twoInterior_edgeStep
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    {q r : ℤ × ℤ}
+    (hT : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c) q r) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd
+      (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c ≤ 3 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_le_three_of_twoInterior_edgeStep
+    a b c hD hd hT
+
+theorem results_EmptyInterior_edgeStep_both_of_twoInterior_edgeGcd_eq_three
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    {q r : ℤ × ℤ}
+    (hT : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c) q r)
+    (hg : EulersGem.Picks.LatticeTriangle.edgeGcd
+      (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c = 3) :
+    EulersGem.Picks.LatticeFan.EmptyInterior
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a
+          (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c) ∧
+      EulersGem.Picks.LatticeFan.EmptyInterior
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b c) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.EmptyInterior_edgeStep_both_of_twoInterior_edgeGcd_eq_three
+    a b c hD hd hT hg
+
+theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_two_interior_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    {q r : ℤ × ℤ}
+    (hT : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c) q r) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace =
+      (2 : ℚ) + ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B : ℚ) / 2
+        - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_two_interior_triangle
+    a b c hD hT
+
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).interiorLatticePoints)
+    (hcard : S.card ≤ 2) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace =
+      (S.card : ℚ) +
+        ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two_triangle
+    a b c hD S hS hcard
+
+
+
 
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)

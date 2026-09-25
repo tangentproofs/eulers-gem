@@ -1845,3 +1845,54 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+
+## Update 2026-09-25 (TwoInterior / I≤2 triangle Pick w/o PrimitiveEdges; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem mem_interior_left_or_right_or_chord_of_mem_interior_edgeStep
+    -- any interior point lies in left half ∨ right half ∨ open chord
+
+theorem edgeGcd_le_three_of_twoInterior_edgeStep
+theorem EmptyInterior_edgeStep_both_of_twoInterior_edgeGcd_eq_three
+    -- g=3 ⇒ both halves empty (both interiors on open chord)
+
+theorem shoelace_eq_two_add_B_div_two_sub_one_of_two_interior_triangle
+    (0 < latticeDet a b c) (TwoInterior (trianglePolygon a b c) q r) :
+    shoelace = 2 + B/2 - 1
+    -- no PrimitiveEdges hyp; |det| induction via edgeStep
+    -- cases: g=1 empty/UniqueInterior/TwoInterior halves; g=2 UniqueInterior+Empty;
+    --        g=3 both Empty
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two_triangle
+    -- I∈{0,1,2} Finset packaging without PrimitiveEdges
+```
+
+Results exports: `results_mem_interior_left_or_right_or_chord_of_mem_interior_edgeStep`,
+`results_edgeGcd_le_three_of_twoInterior_edgeStep`,
+`results_EmptyInterior_edgeStep_both_of_twoInterior_edgeGcd_eq_three`,
+`results_shoelace_eq_two_add_B_div_two_sub_one_of_two_interior_triangle`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two_triangle`.
+
+**Prize progress:** TwoInterior triangle Pick-form drops `PrimitiveEdges`. Base reuses
+existing TwoInterior Pick under all-primitive edges; step splits a non-primitive edge
+at `edgeStep`, uses chord `edgeGcd ≤ 3`, locates both interiors in halves / open chord
+(g=1: (2,0)/(0,2)/(1,1); g=2: UniqueInterior+Empty; g=3: both Empty), applies empty /
+UniqueInterior / TwoInterior IH on strictly smaller `|det|`, and reassembles via
+shoelace/B additivity. I≤2 Finset packaging green. Still **not** classical Pick: I=4
+Finset without spokes-empty apex (ears may have non-primitive sides); Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Empty-interior triangle Pick w/o PrimitiveEdges | Green |
+| UniqueInterior triangle Pick w/o PrimitiveEdges | Green |
+| I≤1 triangle Pick w/o PrimitiveEdges | Green |
+| TwoInterior triangle Pick w/o PrimitiveEdges | **Green** |
+| I≤2 triangle Pick w/o PrimitiveEdges | **Green** |
+| I=4 without spokes-empty hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
