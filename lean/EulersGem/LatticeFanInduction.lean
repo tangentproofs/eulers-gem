@@ -16,8 +16,9 @@ with ear-uniqueness discharged from general OffBoundary cone arguments.
 
 **Honesty / not classical Pick:**
 Shoelace ≠ Haar/Lebesgue. EP→planar open. General I induction open.
-Same-ear Off occupation reuses I=2 on the ear triangle. On-spoke I=3 still open.
-Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
+Same-ear Off occupation reuses I=2 on the ear triangle. Unified Off I=3
+(two-ear ∨ same-ear) and Finset `card=3` under Off-apex hyp are green.
+On-spoke I=3 still open. Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 namespace EulersGem
@@ -919,6 +920,141 @@ theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_same_ear_offBou
           rw [this]
     _ = (P.nVertices : ℚ) / 2 + 2 := by push_cast; ring
     _ = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by rw [hB]; ring
+
+
+/-! ### Unified Off I = 3 (two-ear ∨ same-ear) + Finset packaging -/
+
+/-- **I = 3 shoelace Pick-form** under Off occupation of both non-apex interiors
+(not classical Pick).
+
+Hyps: `ThreeInterior` plus Off covering ears for `r` and `s` (indices may
+coincide). Case-split:
+* same ear ⇒ `shoelace_eq_three_…_same_ear_offBoundary` (`det=5` + empties)
+* distinct ears ⇒ exclusivity from `eq_of_mem_interiorFan_of_offBoundary`, then
+  `shoelace_eq_three_…_two_occupied_offBoundary` (`det=3` each + empties)
+
+Both paths give fan sum `n+4` and `shoelace = 3 + B/2 − 1`. On-spoke I=3 still
+open. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (i j : Fin P.nVertices)
+    (hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff_r : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) s)
+    (hoff_s : OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) s) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  by_cases hije : i = j
+  · subst hije
+    exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_same_ear_offBoundary
+      P hsc hinj hedge h i hr hoff_r hs hoff_s
+  · have hq := mem_interior_of_threeInterior_apex P h
+    have hs_not_i :
+        ¬ MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) s := by
+      intro hs_i
+      have : i = j :=
+        eq_of_mem_interiorFan_of_offBoundary P hsc hinj hedge hq j i hs hoff_s
+          hs_i
+      exact hije this
+    have hr_not_j :
+        ¬ MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r := by
+      intro hr_j
+      have : j = i :=
+        eq_of_mem_interiorFan_of_offBoundary P hsc hinj hedge hq i j hr hoff_r hr_j
+      exact hije this.symm
+    exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied_offBoundary
+      P hsc hinj hedge h i j hije hr hoff_r hs_not_i hs hoff_s hr_not_j
+
+/-- **I = 3 shoelace Pick-form** from existential Off coverings (not classical Pick). -/
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off_exists
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s)
+    (hr_off : ∃ i : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r ∧
+        OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs_off : ∃ j : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) s ∧
+        OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) s) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  obtain ⟨i, hr, hoff_r⟩ := hr_off
+  obtain ⟨j, hs, hoff_s⟩ := hs_off
+  exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off
+    P hsc hinj hedge h i j hr hoff_r hs hoff_s
+
+/-- **Finset `card = 3` shoelace Pick-form** under an Off-apex hyp
+(not classical Pick).
+
+Hyps: `↑S = interiorLatticePoints`, `S.card = 3`, injective vertices, primitive
+edges, `StrictlyConvexCCW`, and an apex `q ∈ S` such that every other interior
+point is `OffTriangleBoundary` in some fan ear from `q`. Covers all Off two-ear
+and same-ear configurations. On-spoke I=3 still open. Shoelace ≠ Haar.
+Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 3)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P)
+    (hoff : ∃ q ∈ S, ∀ r ∈ S, r ≠ q →
+      ∃ i : Fin P.nVertices,
+        MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r ∧
+          OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  obtain ⟨q₀, hq₀S, hcover⟩ := hoff
+  have herase : (S.erase q₀).card = 2 := by
+    rw [Finset.card_erase_of_mem hq₀S, hcard]
+  obtain ⟨a, b, hab, hEr⟩ := Finset.card_eq_two.mp herase
+  have ha_ne : a ≠ q₀ := by
+    have : a ∈ S.erase q₀ := by
+      rw [hEr]; exact Finset.mem_insert_self a {b}
+    exact (Finset.mem_erase.mp this).1
+  have hb_ne : b ≠ q₀ := by
+    have : b ∈ S.erase q₀ := by
+      rw [hEr]; exact Finset.mem_insert_of_mem (Finset.mem_singleton_self b)
+    exact (Finset.mem_erase.mp this).1
+  have haS : a ∈ S := by
+    have : a ∈ S.erase q₀ := by
+      rw [hEr]; exact Finset.mem_insert_self a {b}
+    exact (Finset.mem_erase.mp this).2
+  have hbS : b ∈ S := by
+    have : b ∈ S.erase q₀ := by
+      rw [hEr]; exact Finset.mem_insert_of_mem (Finset.mem_singleton_self b)
+    exact (Finset.mem_erase.mp this).2
+  have hSeq : S = {q₀, a, b} := by
+    ext x
+    constructor
+    · intro hx
+      by_cases hxq : x = q₀
+      · simp [hxq]
+      · have : x ∈ S.erase q₀ := Finset.mem_erase.mpr ⟨hxq, hx⟩
+        rw [hEr] at this
+        simp only [Finset.mem_insert, Finset.mem_singleton] at this
+        rcases this with hxa | hxb
+        · simp [hxa]
+        · simp [hxb]
+    · intro hx
+      simp only [Finset.mem_insert, Finset.mem_singleton] at hx
+      rcases hx with hxq | hxa | hxb
+      · simpa [hxq] using hq₀S
+      · simpa [hxa] using haS
+      · simpa [hxb] using hbS
+  have hThree : ThreeInterior P q₀ a b := by
+    refine ⟨ha_ne.symm, hb_ne.symm, hab, ?_⟩
+    rw [← hS, hSeq]
+    simp [Finset.coe_insert, Finset.coe_singleton]
+  have ha_off := hcover a haS ha_ne
+  have hb_off := hcover b hbS hb_ne
+  have harea :=
+    shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off_exists
+      P hsc hverts hedge hThree ha_off hb_off
+  calc
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := harea
+    _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by simp [hcard]
 
 end InteriorFan
 end LatticeFan

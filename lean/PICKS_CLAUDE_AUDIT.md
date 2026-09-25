@@ -1095,3 +1095,50 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (I=3 Off Finset unify; still FAIL for classical Pick)
+
+Landed in `EulersGem/OnSpoke.lean` + `EulersGem/LatticeFanInduction.lean`
+(honest names; **not** classical Pick):
+
+```lean
+theorem offBoundary_or_onSpoke_of_mem_interiorFan
+    (r ∈ interiorLatticePoints) (MemClosedTriangle earᵢ r) :
+    OffTriangleBoundary ∨ on-spoke   -- any I (TwoInterior specializes)
+
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off
+    (ThreeInterior) (Off ear for r) (Off ear for s) :  -- indices may coincide
+    P.shoelace = 3 + B/2 − 1   -- same-ear ∨ two-ear case-split
+
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off_exists
+    (ThreeInterior) (∃ Off covering r) (∃ Off covering s) :
+    P.shoelace = 3 + B/2 − 1
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
+    (↑S = interior) (S.card = 3) (StrictlyConvexCCW) (PrimitiveEdges)
+    (∃ q ∈ S, ∀ r ∈ S, r ≠ q → ∃ Off covering ear from q) :
+    P.shoelace = #S + B/2 − 1
+```
+
+Results exports: `results_offBoundary_or_onSpoke_of_mem_interiorFan`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off_exists`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three`
+(prior two-ear / same-ear forms retained).
+
+**Prize progress:** All Off I=3 configurations (two distinct Off ears + same-ear
+Off occupation) packaged as one Finset `card=3` statement under a single
+Off-apex hyp. Off vs on-spoke case-split generalized beyond `TwoInterior`.
+Still **not** classical Pick: on-spoke I=3; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| General Off/on-spoke case-split (any I) | **Green** |
+| Unified Off I=3 (same-ear ∨ two-ear) | **Green** |
+| Finset `card=3` under Off-apex hyp | **Green** |
+| On-spoke I=3 | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

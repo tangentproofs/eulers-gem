@@ -42,11 +42,12 @@ lemma not_mem_polygon_edge_of_mem_interior {p : ℤ × ℤ}
     (P.mem_boundaryLatticePoints_iff p).mpr ⟨i, hedge⟩
   exact hp.2 hbd
 
-/-- Covering ear for `r` is `OffTriangleBoundary` or on-spoke.
-Right-spoke uses edge orientation `(vᵢ₊₁, q)` matching `OffTriangleBoundary`. -/
-theorem offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior
+/-- Covering ear for an interior lattice point `r` is `OffTriangleBoundary` or
+on-spoke. Base edge is impossible for interior points. Right-spoke uses edge
+orientation `(vᵢ₊₁, q)` matching `OffTriangleBoundary`. -/
+theorem offBoundary_or_onSpoke_of_mem_interiorFan
     {q r : ℤ × ℤ}
-    (h : TwoInterior P q r) (i : Fin P.nVertices)
+    (hr_int : r ∈ P.interiorLatticePoints) (i : Fin P.nVertices)
     (_hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r) :
     OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r ∨
       r ∈ edgeLatticePoints q (P.vertex i) ∨
@@ -54,8 +55,7 @@ theorem offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior
   classical
   by_cases hoff : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r
   · exact Or.inl hoff
-  · have hr_int := mem_interior_of_twoInterior_right P h
-    have hbase :
+  · have hbase :
         r ∉ edgeLatticePoints (P.vertex i) (P.vertex (P.nextIdx i)) := by
       simpa [LatticePolygon.edgePair] using
         not_mem_polygon_edge_of_mem_interior P hr_int i
@@ -64,6 +64,17 @@ theorem offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior
     · exact Or.inr (Or.inl (not_not.mp h1))
     · exact absurd (not_not.mp h2) hbase
     · exact Or.inr (Or.inr (not_not.mp h3))
+
+/-- Specialization of `offBoundary_or_onSpoke_of_mem_interiorFan` under `TwoInterior`. -/
+theorem offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior
+    {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (i : Fin P.nVertices)
+    (hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r ∨
+      r ∈ edgeLatticePoints q (P.vertex i) ∨
+        r ∈ edgeLatticePoints (P.vertex (P.nextIdx i)) q :=
+  offBoundary_or_onSpoke_of_mem_interiorFan P
+    (mem_interior_of_twoInterior_right P h) i hr
 
 /-! ### Occupied spoke has edgeGcd = 2 under TwoInterior -/
 
