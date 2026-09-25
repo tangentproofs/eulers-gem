@@ -1759,3 +1759,49 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (UniqueInterior triangle substrate w/o PrimitiveEdges; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma B_add_of_edgeStep_of_gcd
+    -- B₁ + B₂ = B + 2·edgeGcd(edgeStep,c)
+
+theorem mem_interiorLatticePoints_of_strict_mem_edgeStep_chord
+    -- open chord lattice points are parent-interior
+
+theorem edgeGcd_le_two_of_uniqueInterior_edgeStep
+    -- UniqueInterior ⇒ edgeGcd(edgeStep,c) ≤ 2
+
+theorem UniqueInterior_trianglePolygon_of_edgeStep_{left,right}
+theorem EmptyInterior_edgeStep_{left,right}_of_uniqueInterior_{right,left}
+theorem EmptyInterior_edgeStep_both_of_uniqueInterior_edgeGcd_eq_two
+    -- g=2 ⇒ both halves empty (unique point on chord)
+```
+
+Results exports: `results_B_add_of_edgeStep_of_gcd`,
+`results_mem_interiorLatticePoints_of_strict_mem_edgeStep_chord`,
+`results_edgeGcd_le_two_of_uniqueInterior_edgeStep`,
+`results_UniqueInterior_trianglePolygon_of_edgeStep_{left,right}`,
+`results_EmptyInterior_edgeStep_both_of_uniqueInterior_edgeGcd_eq_two`.
+
+**Prize progress:** UniqueInterior edge-split substrate green (B-add for arbitrary
+chord gcd; chord points interior; gcd ≤ 2; half UniqueInterior/EmptyInterior
+inheritance; both-empty when chord gcd = 2). Still **not** classical Pick: full
+UniqueInterior triangle Pick without PrimitiveEdges (need g=1 locate-half +
+`|det|` induction reassembly); I ≤ 2 without PrimitiveEdges; I = 4 without
+spokes-empty; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Empty-interior triangle Pick w/o PrimitiveEdges | Green |
+| UniqueInterior edge-split substrate (B/chord/gcd≤2/inherit/g=2 empty) | **Green** |
+| UniqueInterior triangle Pick w/o PrimitiveEdges | Open (g=1 locate-half) |
+| I≤2 triangle Pick w/o PrimitiveEdges | Open |
+| I=4 without spokes-empty hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

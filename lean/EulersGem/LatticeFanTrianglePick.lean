@@ -13,8 +13,10 @@ import EulersGem.LatticeFanInduction
 `shoelace = B/2 − 1`. EmptyInterior inherits across edge-steps; new chord is
 primitive under parent-empty.
 
-Still open: I ≤ 2 triangle Pick without `PrimitiveEdges`; I = 4 Finset without
-spokes-empty apex. Shoelace ≠ Haar. Classical Pick FAIL. See
+UniqueInterior substrate without `PrimitiveEdges`: generalized B-add,
+chord-interior, `edgeGcd ≤ 2`, half-inheritance, and both-halves-empty when
+`edgeGcd(chord)=2`. Full UniqueInterior Pick (g=1 locate-half) / I≤2 / I=4
+without spokes-empty still open. Shoelace ≠ Haar. Classical Pick FAIL. See
 `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -896,6 +898,345 @@ theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_triangle
         (by simpa [← latticeDet_cyclic a b c] using ne_of_gt hD)
       rw [hs1, hs2, hB1, hB2]
       exact hpick
+
+
+
+
+/-! ## UniqueInterior triangle Pick without `PrimitiveEdges`
+
+`|det|` induction via `edgeStep`. Base: all-primitive edges reuse existing
+`UniqueInterior` Pick-form. Step: UniqueInterior ⇒ new chord `edgeGcd ≤ 2`.
+If `= 1`, unique interior sits in one half; if `= 2`, it lies on the chord and
+both halves are empty. Reassemble via shoelace / B additivity. Not classical Pick.
+-/
+
+/-- B-additivity across `edgeStep` for arbitrary new-chord gcd (not classical Pick). -/
+lemma B_add_of_edgeStep_of_gcd (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b) :
+    (trianglePolygon a (edgeStep a b) c).B + (trianglePolygon (edgeStep a b) b c).B =
+      (trianglePolygon a b c).B + 2 * edgeGcd (edgeStep a b) c := by
+  set p := edgeStep a b
+  set d := edgeGcd a b
+  set g := edgeGcd p c
+  have hD1 : latticeDet a p c ≠ 0 := ne_of_gt (latticeDet_edgeStep_pos a b c hD (by omega))
+  have hD2 : latticeDet p b c ≠ 0 := ne_of_gt (latticeDet_edgeStep_right_pos a b c hD hd)
+  have hD0 : latticeDet a b c ≠ 0 := ne_of_gt hD
+  have hB := B_trianglePolygon_eq_sum_edgeGcd a b c hD0
+  have hB1 := B_trianglePolygon_eq_sum_edgeGcd a p c hD1
+  have hB2 := B_trianglePolygon_eq_sum_edgeGcd p b c hD2
+  have hL := edgeGcd_edgeStep_left a b (by omega)
+  have hR := edgeGcd_edgeStep_right a b hd
+  have hgc : edgeGcd c p = g := by simp [g, edgeGcd_comm p c]
+  calc
+    (trianglePolygon a p c).B + (trianglePolygon p b c).B
+        = (edgeGcd a p + edgeGcd p c + edgeGcd c a) +
+            (edgeGcd p b + edgeGcd b c + edgeGcd c p) := by
+              rw [hB1, hB2]
+    _ = (1 + g + edgeGcd c a) + ((d - 1) + edgeGcd b c + g) := by
+          simp [p, d, g, hL, hR, hgc]
+    _ = d + edgeGcd b c + edgeGcd c a + 2 * g := by
+          have : 1 ≤ d := by omega
+          omega
+    _ = (edgeGcd a b + edgeGcd b c + edgeGcd c a) + 2 * g := by simp [d]
+    _ = (trianglePolygon a b c).B + 2 * g := by rw [hB]
+
+theorem mem_interiorLatticePoints_of_strict_mem_edgeStep_chord
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {r : ℤ × ℤ}
+    (hr : r ∈ edgeLatticePoints (edgeStep a b) c)
+    (hrne_p : r ≠ edgeStep a b) (hrne_c : r ≠ c) :
+    r ∈ (trianglePolygon a b c).interiorLatticePoints := by
+  classical
+  set p := edgeStep a b
+  have hp := edgeStep_mem_edgeLatticePoints a b (by omega)
+  have hp0 : latticeDet a b p = 0 := latticeDet_eq_zero_of_mem_edge_ab a b p hp
+  have hr_seg := mem_segment_of_mem_edgeLatticePoints p c r hr
+  have ⟨t, ht, hr_eq⟩ : ∃ t : ℝ, (0 ≤ t ∧ t ≤ 1) ∧
+      (1 - t) • toReal p + t • toReal c = toReal r := by
+    simpa [segment_eq_image] using hr_seg
+  have ht0 := ht.1
+  have ht1 := ht.2
+  have ht_pos : 0 < t := by
+    by_contra h
+    have ht' : t = 0 := le_antisymm (le_of_not_gt h) ht0
+    have : toReal r = toReal p := by simpa [ht'] using hr_eq.symm
+    exact hrne_p (toReal_injective this)
+  have ht_lt : t < 1 := by
+    by_contra h
+    have ht' : t = 1 := le_antisymm ht1 (le_of_not_gt h)
+    have : toReal r = toReal c := by simpa [ht'] using hr_eq.symm
+    exact hrne_c (toReal_injective this)
+  set S : Set (ℝ × ℝ) := {toReal a, toReal b, toReal c}
+  have hp_seg := mem_segment_of_mem_edgeLatticePoints a b p hp
+  have haS : toReal a ∈ S := by simp [S]
+  have hbS : toReal b ∈ S := by simp [S]
+  have hcS : toReal c ∈ S := by simp [S]
+  have hab_sub : segment ℝ (toReal a) (toReal b) ⊆ convexHull ℝ S :=
+    segment_subset_convexHull haS hbS
+  have hp_hull : toReal p ∈ convexHull ℝ S := hab_sub hp_seg
+  have hc_hull : toReal c ∈ convexHull ℝ S := subset_convexHull ℝ S hcS
+  have hpc_sub : segment ℝ (toReal p) (toReal c) ⊆ convexHull ℝ S :=
+    (convex_convexHull ℝ S).segment_subset hp_hull hc_hull
+  have hr_hull : toReal r ∈ convexHull ℝ S := hpc_sub hr_seg
+  have hnot_ab : r ∉ edgeLatticePoints a b := by
+    intro hab
+    have hr0 : latticeDet a b r = 0 := latticeDet_eq_zero_of_mem_edge_ab a b r hab
+    have hform := latticeDet_ab_of_segment_from_edge a b c p r t hp0 hr_eq
+    have : (0 : ℝ) = t * (latticeDet a b c : ℝ) := by simpa [hr0] using hform
+    have hDpos : (0 : ℝ) < latticeDet a b c := by exact_mod_cast hD
+    nlinarith
+  have hD2 : 0 < latticeDet p b c := latticeDet_edgeStep_right_pos a b c hD hd
+  have hnot_bc : r ∉ edgeLatticePoints b c := by
+    intro hbc
+    have hcp : r ∈ edgeLatticePoints c p := mem_edgeLatticePoints_comm hr
+    have := eq_of_mem_edgeLatticePoints_bc_ca p b c r (ne_of_gt hD2) hbc hcp
+    exact hrne_c this
+  have hD1 : 0 < latticeDet a p c := latticeDet_edgeStep_pos a b c hD (by omega)
+  have hnot_ca : r ∉ edgeLatticePoints c a := by
+    intro hca
+    have hpc : r ∈ edgeLatticePoints p c := hr
+    have := eq_of_mem_edgeLatticePoints_bc_ca a p c r (ne_of_gt hD1) hpc hca
+    exact hrne_c this
+  have hoff : OffTriangleBoundary a b c r := ⟨hnot_ab, hnot_bc, hnot_ca⟩
+  have hmem : MemClosedTriangle a b c r :=
+    memClosedTriangle_of_mem_convexHull a b c r (by simpa [S, trianglePolygon_convexHullRegion] using
+      (show toReal r ∈ (trianglePolygon a b c).convexHullRegion from by
+        simpa [trianglePolygon_convexHullRegion, S] using hr_hull))
+  have hint : r ∈ (trianglePolygon a b c).interiorLatticePoints :=
+    (mem_interiorLatticePoints_trianglePolygon_iff a b c r).mpr ⟨hmem, hoff⟩
+  exact hint
+
+
+/-- UniqueInterior ⇒ open chord after `edgeStep` has `edgeGcd ≤ 2`. -/
+theorem edgeGcd_le_two_of_uniqueInterior_edgeStep
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q) :
+    edgeGcd (edgeStep a b) c ≤ 2 := by
+  classical
+  set p := edgeStep a b
+  by_contra hgt
+  have hge : 3 ≤ edgeGcd p c := by omega
+  have hp_mem : p ∈ edgeLatticePoints p c := self_mem_edgeLatticePoints p c
+  have hc_mem : c ∈ edgeLatticePoints p c := other_mem_edgeLatticePoints p c
+  have hp_ne_c : p ≠ c := by
+    intro hpc
+    have hp := edgeStep_mem_edgeLatticePoints a b (by omega)
+    have : latticeDet a b c = 0 := by
+      simpa [hpc] using latticeDet_eq_zero_of_mem_edge_ab a b p hp
+    omega
+  have hcard0 : (edgeLatticePoints p c).card = edgeGcd p c + 1 :=
+    card_edgeLatticePoints p c
+  have hcard1 : ((edgeLatticePoints p c).erase p).card = edgeGcd p c := by
+    rw [Finset.card_erase_of_mem hp_mem, hcard0]; omega
+  have hc_mem' : c ∈ (edgeLatticePoints p c).erase p :=
+    Finset.mem_erase.mpr ⟨fun h => hp_ne_c h.symm, hc_mem⟩
+  have hcard2 : (((edgeLatticePoints p c).erase p).erase c).card = edgeGcd p c - 1 := by
+    rw [Finset.card_erase_of_mem hc_mem', hcard1]
+  have hcard_ge : 2 ≤ (((edgeLatticePoints p c).erase p).erase c).card := by omega
+  have hinter : (trianglePolygon a b c).interiorLatticePoints = {q} := by
+    ext x
+    constructor
+    · intro hx; exact hU.2 x hx
+    · intro hx
+      simp only [Set.mem_singleton_iff] at hx
+      exact hx ▸ hU.1
+  have hsub :
+      ((edgeLatticePoints p c).erase p).erase c ⊆ ({q} : Finset (ℤ × ℤ)) := by
+    intro r hr
+    have hr' := Finset.mem_erase.mp hr
+    have hr'' := Finset.mem_erase.mp hr'.2
+    have hint := mem_interiorLatticePoints_of_strict_mem_edgeStep_chord a b c hD hd
+      hr''.2 hr''.1 hr'.1
+    have hr_eq : r = q := by
+      have : r ∈ ({q} : Set (ℤ × ℤ)) := by
+        rw [← hinter]; exact hint
+      simpa using this
+    exact Finset.mem_singleton.mpr hr_eq
+  have hcard_le :
+      (((edgeLatticePoints p c).erase p).erase c).card ≤ ({q} : Finset (ℤ × ℤ)).card :=
+    Finset.card_le_card hsub
+  have : (((edgeLatticePoints p c).erase p).erase c).card ≤ 1 := by
+    simpa using hcard_le
+  omega
+
+
+
+/-! ### Inheritance and UniqueInterior Pick without `PrimitiveEdges` -/
+
+lemma mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_left
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {r : ℤ × ℤ}
+    (hr : r ∈ (trianglePolygon a (edgeStep a b) c).interiorLatticePoints) :
+    r ∈ (trianglePolygon a b c).interiorLatticePoints := by
+  set p := edgeStep a b
+  have hr' := (mem_interiorLatticePoints_trianglePolygon_iff a p c r).mp hr
+  have hmem := memClosedTriangle_of_memClosedTriangle_edgeStep_left a b c p r
+    (edgeStep_mem_edgeLatticePoints a b (by omega)) hr'.1
+  have hoff :=
+    OffTriangleBoundary_of_mem_interior_edgeStep_left a b c hD hd r hr'.1 hr'.2
+  exact (mem_interiorLatticePoints_trianglePolygon_iff a b c r).mpr ⟨hmem, hoff⟩
+
+lemma mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_right
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {r : ℤ × ℤ}
+    (hr : r ∈ (trianglePolygon (edgeStep a b) b c).interiorLatticePoints) :
+    r ∈ (trianglePolygon a b c).interiorLatticePoints := by
+  set p := edgeStep a b
+  have hr' := (mem_interiorLatticePoints_trianglePolygon_iff p b c r).mp hr
+  have hmem := memClosedTriangle_of_memClosedTriangle_edgeStep_right a b c p r
+    (edgeStep_mem_edgeLatticePoints a b (by omega)) hr'.1
+  have hoff :=
+    OffTriangleBoundary_of_mem_interior_edgeStep_right a b c hD hd r hr'.1 hr'.2
+  exact (mem_interiorLatticePoints_trianglePolygon_iff a b c r).mpr ⟨hmem, hoff⟩
+
+theorem UniqueInterior_trianglePolygon_of_edgeStep_left
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hq : q ∈ (trianglePolygon a (edgeStep a b) c).interiorLatticePoints) :
+    UniqueInterior (trianglePolygon a (edgeStep a b) c) q :=
+  ⟨hq, fun r hr => hU.2 r
+    (mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_left a b c hD hd hr)⟩
+
+theorem UniqueInterior_trianglePolygon_of_edgeStep_right
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hq : q ∈ (trianglePolygon (edgeStep a b) b c).interiorLatticePoints) :
+    UniqueInterior (trianglePolygon (edgeStep a b) b c) q :=
+  ⟨hq, fun r hr => hU.2 r
+    (mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_right a b c hD hd hr)⟩
+
+private lemma latticeDet_pqc_neg (p c q : ℤ × ℤ) :
+    latticeDet p q c = -latticeDet p c q := by
+  simp [latticeDet]; ring
+
+theorem EmptyInterior_edgeStep_right_of_uniqueInterior_left
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hq : q ∈ (trianglePolygon a (edgeStep a b) c).interiorLatticePoints) :
+    EmptyInterior (trianglePolygon (edgeStep a b) b c) := by
+  classical
+  set p := edgeStep a b
+  rw [EmptyInterior]
+  ext r
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hr
+  have hint :=
+    mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_right a b c hD hd hr
+  have rq : r = q := hU.2 r hint
+  have hqL := (mem_interiorLatticePoints_trianglePolygon_iff a p c q).mp hq
+  have hqR := (mem_interiorLatticePoints_trianglePolygon_iff p b c q).mp (rq ▸ hr)
+  have hD1 : 0 < latticeDet a p c := latticeDet_edgeStep_pos a b c hD (by omega)
+  have hD2 : 0 < latticeDet p b c := latticeDet_edgeStep_right_pos a b c hD hd
+  have hposL := latticeDet_pos_of_memClosedTriangle_offBoundary a p c q hqL.1 hD1 hqL.2
+  have hposR := latticeDet_pos_of_memClosedTriangle_offBoundary p b c q hqR.1 hD2 hqR.2
+  have h1 : 0 < latticeDet p c q := hposL.1
+  have h2 : 0 < latticeDet p q c := hposR.2.1
+  have hneg := latticeDet_pqc_neg p c q
+  omega
+
+theorem EmptyInterior_edgeStep_left_of_uniqueInterior_right
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hq : q ∈ (trianglePolygon (edgeStep a b) b c).interiorLatticePoints) :
+    EmptyInterior (trianglePolygon a (edgeStep a b) c) := by
+  classical
+  set p := edgeStep a b
+  rw [EmptyInterior]
+  ext r
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hr
+  have hint :=
+    mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_left a b c hD hd hr
+  have rq : r = q := hU.2 r hint
+  have hqR := (mem_interiorLatticePoints_trianglePolygon_iff p b c q).mp hq
+  have hqL := (mem_interiorLatticePoints_trianglePolygon_iff a p c q).mp (rq ▸ hr)
+  have hD1 : 0 < latticeDet a p c := latticeDet_edgeStep_pos a b c hD (by omega)
+  have hD2 : 0 < latticeDet p b c := latticeDet_edgeStep_right_pos a b c hD hd
+  have hposL := latticeDet_pos_of_memClosedTriangle_offBoundary a p c q hqL.1 hD1 hqL.2
+  have hposR := latticeDet_pos_of_memClosedTriangle_offBoundary p b c q hqR.1 hD2 hqR.2
+  have h1 : 0 < latticeDet p c q := hposL.1
+  have h2 : 0 < latticeDet p q c := hposR.2.1
+  have hneg := latticeDet_pqc_neg p c q
+  omega
+
+
+
+/-- Under UniqueInterior, if the unique point lies on the open `edgeStep` chord,
+the left sub-triangle is empty (not classical Pick). -/
+theorem EmptyInterior_edgeStep_left_of_uniqueInterior_on_chord
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hq : q ∈ edgeLatticePoints (edgeStep a b) c)
+    (_hqne_p : q ≠ edgeStep a b) (_hqne_c : q ≠ c) :
+    EmptyInterior (trianglePolygon a (edgeStep a b) c) := by
+  classical
+  set p := edgeStep a b
+  rw [EmptyInterior]
+  ext r
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hr
+  have hint :=
+    mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_left a b c hD hd hr
+  have rq : r = q := hU.2 r hint
+  have hqL := (mem_interiorLatticePoints_trianglePolygon_iff a p c q).mp (rq ▸ hr)
+  -- OffTriangleBoundary a p c q ⇒ q ∉ edgeLatticePoints p c
+  exact hqL.2.2.1 hq
+
+/-- Under UniqueInterior, if the unique point lies on the open `edgeStep` chord,
+the right sub-triangle is empty (not classical Pick). -/
+theorem EmptyInterior_edgeStep_right_of_uniqueInterior_on_chord
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hq : q ∈ edgeLatticePoints (edgeStep a b) c)
+    (_hqne_p : q ≠ edgeStep a b) (_hqne_c : q ≠ c) :
+    EmptyInterior (trianglePolygon (edgeStep a b) b c) := by
+  classical
+  set p := edgeStep a b
+  rw [EmptyInterior]
+  ext r
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hr
+  have hint :=
+    mem_interiorLatticePoints_parent_of_mem_interior_edgeStep_right a b c hD hd hr
+  have rq : r = q := hU.2 r hint
+  have hqR := (mem_interiorLatticePoints_trianglePolygon_iff p b c q).mp (rq ▸ hr)
+  -- OffTriangleBoundary p b c q ⇒ q ∉ edgeLatticePoints c p
+  have hcp : q ∈ edgeLatticePoints c p := mem_edgeLatticePoints_comm (by simpa [p] using hq)
+  exact hqR.2.2.2 hcp
+
+/-- UniqueInterior + `edgeGcd (edgeStep,c) = 2` ⇒ both halves empty (not classical Pick). -/
+theorem EmptyInterior_edgeStep_both_of_uniqueInterior_edgeGcd_eq_two
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c) (hd : 2 ≤ edgeGcd a b)
+    {q : ℤ × ℤ} (hU : UniqueInterior (trianglePolygon a b c) q)
+    (hg : edgeGcd (edgeStep a b) c = 2) :
+    EmptyInterior (trianglePolygon a (edgeStep a b) c) ∧
+      EmptyInterior (trianglePolygon (edgeStep a b) b c) := by
+  classical
+  set p := edgeStep a b
+  obtain ⟨r, hr, hrne_p, hrne_c⟩ :=
+    exists_strict_mem_edgeLatticePoints_of_edgeGcd_ge_two p c (by omega)
+  have hint := mem_interiorLatticePoints_of_strict_mem_edgeStep_chord a b c hD hd
+    hr hrne_p hrne_c
+  have rq : r = q := hU.2 r hint
+  -- avoid subst on implicit q: rewrite hypotheses
+  have hrq : q ∈ edgeLatticePoints p c := by simpa [rq.symm, p] using hr
+  have hpq : q ≠ p := by simpa [rq.symm, p] using hrne_p
+  have hcq : q ≠ c := by simpa [rq.symm] using hrne_c
+  exact ⟨
+    EmptyInterior_edgeStep_left_of_uniqueInterior_on_chord a b c hD hd hU hrq hpq hcq,
+    EmptyInterior_edgeStep_right_of_uniqueInterior_on_chord a b c hD hd hU hrq hpq hcq⟩
+
 
 end InteriorFan
 end LatticeFan
