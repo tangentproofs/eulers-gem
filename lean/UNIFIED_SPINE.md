@@ -35,10 +35,17 @@ incidence counts proved, and each obtaining `V−E+F=2` from `Euler_Poincare_ful
 | octahedron | `Octahedron.lean` | 6, 12, 8 | `{3,4}` |
 | cube | `Cube.lean` | 8, 12, 6 | `{4,3}` |
 
+`MetricRegular.lean` adds the first metric facts: the octahedron's and cube's vertices lie on a
+sphere and all their edges have equal length, and `Cube.regularTetra` is a genuinely **regular**
+tetrahedron (four pairwise-equidistant alternating cube corners) which is `{3,3}` with Euler
+from EP. `lean/scripts/audit-axioms.sh` mechanically checks that no Results declaration depends
+on a `native_decide` axiom or `sorryAx`.
+
 Still open on this lane: the dodecahedron `{5,3}` and icosahedron `{3,5}` (golden-ratio
-coordinates — the face lattice is not `decide`-able there); two *polytope facts* are still
-hypotheses of the general classification (every edge in two 2-faces, every edge with two
-vertices) though both are proved for all three solids; metric regularity and uniqueness up to
+coordinates — the face lattice is not `decide`-able there); **one** polytope fact is still a
+hypothesis of the general classification (the diamond property: every edge in two 2-faces),
+proved for all three solids — "every edge has two vertices" is now proved in general
+(`EdgeVertices.lean`); congruent-faces/flag-transitive regularity and uniqueness up to
 similarity are not formalized. Details and the naming verdict: `PLATONIC_CLAUDE_AUDIT.md`.
 
 ## Current gap

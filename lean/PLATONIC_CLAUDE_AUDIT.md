@@ -52,6 +52,8 @@ from EP inside `schlafli_pair_mem_of_regular_polytope`, never assumed at the top
 | cube incidence counts | `Cube.cube_incidence` | all four, from the face lattice |
 | cube is `{4,3}` | `Cube.cube_platonic` | double counting + Euler + Schläfli membership |
 | geometric simplex face counts | `Simplex.geometric_simplex_euler_poincare` | `C(n+1,d+1)` geometric `d`-faces in every dimension, and alternating sum `1` |
+| octahedron/cube are equilateral | `MetricRegular.Octahedron.edges_equilateral`, `MetricRegular.Cube.edges_equilateral` | all edges the same length; all vertices on a sphere |
+| a **regular** tetrahedron | `MetricRegular.Cube.regularTetra`, `regularTetra_platonic` | four alternating cube corners, pairwise equidistant, affinely independent ⇒ `AffineBasis` ⇒ `{3,3}` with Euler from EP |
 | every edge has two vertices | `EdgeVertices.ncard_vertices_of_edge` | a 1-dimensional face is a segment: a supporting functional along its direction is *injective* on it, so the extreme points are its argmin and argmax, and they differ |
 
 Axiom check: run `lean/scripts/audit-axioms.sh`, which `#print axioms`-es every declaration in
@@ -89,9 +91,11 @@ proved** in general: `EdgeVertices.ncard_vertices_of_edge`.
    those are explicitly **not** geometric constructions. They need golden-ratio coordinates,
    where the face lattice cannot be settled by `decide`, and are not attempted here.
 2. **Regularity itself.** `hface_edges`/`hvert_edges` state *combinatorial* regularity of
-   the face lattice. Metric regularity (congruent regular faces, equal solid angles, the
-   symmetry group acting transitively on flags) is not formalized anywhere here, and no
-   theorem in this repo should be read as classifying *metrically* regular polyhedra.
+   the face lattice. `MetricRegular.lean` adds genuine metric content for the three solids —
+   all vertices on a sphere, all edges of equal length, and a *regular* tetrahedron (four
+   pairwise-equidistant points) — but the rest of metric regularity (congruent regular faces,
+   equal solid angles, a flag-transitive symmetry group) is **not** formalized, and no theorem
+   here should be read as classifying *metrically* regular polyhedra.
 3. **Uniqueness.** "Exactly five" in the sense of *five Schläfli pairs* is proved; "exactly
    five solids up to similarity" is not — that needs uniqueness of the realization for each
    pair, which is not attempted.
