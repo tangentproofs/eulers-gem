@@ -24,6 +24,7 @@ import EulersGem.FanDisk
 import EulersGem.LatticeFan
 import EulersGem.LatticeFanInterior
 import EulersGem.EarUniqueness
+import EulersGem.OnSpoke
 import EulersGem.LatticeTriangleEmpty
 
 /-!
@@ -896,7 +897,8 @@ theorem results_eq_of_mem_interiorFan_of_twoInterior_offBoundary
     P hsc hinj hedge h i j hri hoff hrj
 
 /-- **I = 2 shoelace Pick-form** with ear-uniqueness discharged from
-`OffTriangleBoundary` (not classical Pick). On-spoke I=2 still open. -/
+`OffTriangleBoundary` (not classical Pick). On-spoke det bookkeeping still open;
+case-split Off/onSpoke and `edgeGcd=2` green. -/
 theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
     (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
     (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
@@ -911,6 +913,36 @@ theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_of
     P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
     P hsc hinj hedge h i hr hoff
+
+/-- Covering ear for the second interior point is `OffTriangleBoundary` or on-spoke
+(base ruled out by interior; not classical Pick). -/
+theorem results_offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r) :
+    EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+        (P.vertex i) (P.vertex (P.nextIdx i)) r ∨
+      r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex i) ∨
+        r ∈ EulersGem.Picks.edgeLatticePoints (P.vertex (P.nextIdx i)) q :=
+  EulersGem.Picks.LatticeFan.InteriorFan.offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior
+    P h i hr
+
+/-- Under `TwoInterior`, a strict on-spoke second interior point forces
+`edgeGcd = 2` on that spoke (not classical Pick). -/
+theorem results_edgeGcd_eq_two_of_twoInterior_onSpoke
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) = 2 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_two_of_twoInterior_onSpoke
+    P hsc hinj hedge h k hs hne_q hne_v
 
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)

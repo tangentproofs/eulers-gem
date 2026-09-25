@@ -871,3 +871,40 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | On-spoke I=2 configurations | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (on-spoke case-split + edgeGcd=2; still FAIL for classical Pick)
+
+Landed in `EulersGem/OnSpoke.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior
+    (TwoInterior P q r) (MemClosedTriangle earᵢ r) :
+    OffTriangleBoundary earᵢ r ∨
+      r ∈ edgeLatticePoints q vᵢ ∨
+        r ∈ edgeLatticePoints vᵢ₊₁ q
+
+theorem edgeGcd_eq_two_of_twoInterior_onSpoke
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (TwoInterior P q r) (r ∈ edgeLatticePoints q vₖ) (r ≠ q) (r ≠ vₖ) :
+    edgeGcd q vₖ = 2
+```
+
+Results exports: `results_offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior`,
+`results_edgeGcd_eq_two_of_twoInterior_onSpoke`.
+
+**Prize progress:** covering ear for I=2 is OffTriangleBoundary (already has
+Pick-form) or on-spoke; occupied spoke has exactly one strict intermediate
+(`edgeGcd=2`). Still **not** classical Pick: on-spoke det bookkeeping
+(adjacent ears `det=2`, others `det=1`, sum `n+2`) and unified
+`TwoInterior => shoelace = 2+B/2-1` open; Haar; EP→planar. Claude Platonic /
+Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| I=2 Pick-form under OffTriangleBoundary (no uniq hyp) | Green |
+| Case-split Off vs on-spoke | **Green** |
+| Occupied spoke `edgeGcd=2` | **Green** |
+| On-spoke det bookkeeping / unified I=2 Pick-form | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

@@ -1771,7 +1771,7 @@ ear with `OffTriangleBoundary`, and `∀ j, MemClosedTriangle earⱼ r → j = i
 Empty ears ⇒ `det=1`; occupied ⇒ `det=3`; fan sum `n+2`; `B=n` ⇒
 `shoelace = 2 + B/2 − 1`.
 
-Ear-uniqueness discharge (cone disjointness) and on-spoke I=2 remain open.
+Ear-uniqueness discharged under OffTriangleBoundary; on-spoke det bookkeeping open.
 Shoelace ≠ Haar. Classical Pick FAIL. -/
 theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied
     (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
@@ -1857,8 +1857,11 @@ Still open on this spine (classical Pick FAIL):
 5. ~~Discharge ear-uniqueness from `OffTriangleBoundary`~~: **green**
    (`EulersGem.EarUniqueness`: `eq_of_mem_interiorFan_of_twoInterior_offBoundary`,
    `shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary`).
-6. On-spoke second-interior configurations: open.
-7. Shoelace = Haar/Lebesgue; EP → planar Euler.
+6. ~~Case-split OffTriangleBoundary vs on-spoke + occupied-spoke `edgeGcd=2`~~:
+   **green** (`EulersGem.OnSpoke`).
+7. On-spoke det bookkeeping (`det=2` on adjacent ears) / unified I=2 Pick-form:
+   open.
+8. Shoelace = Haar/Lebesgue; EP → planar Euler.
 -/
 
 end InteriorFan

@@ -22,6 +22,7 @@ import EulersGem.FanDisk
 import EulersGem.LatticeFan
 import EulersGem.LatticeFanInterior
 import EulersGem.EarUniqueness
+import EulersGem.OnSpoke
 import EulersGem.PolytopeFaces
 import EulersGem.PlatonicOfEuler
 import EulersGem.SimplexFaces
