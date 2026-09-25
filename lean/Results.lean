@@ -14,6 +14,7 @@ import EulersGem.PolytopeFaces
 import EulersGem.SimplexFaces
 import EulersGem.GeometricPlatonic
 import EulersGem.Octahedron
+import EulersGem.Cube
 import EulersGem.Picks
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
@@ -731,6 +732,91 @@ theorem results_two_geometric_platonic_solids
   ⟨EulersGem.Simplex.tetrahedron_euler_relation b hE,
     EulersGem.Octahedron.octahedron_euler_relation o,
     by decide, by decide⟩
+
+
+/-! ### The geometric cube
+
+`EulersGem.Cube.body b` is the convex hull of the `2^3` sign vectors `∑ ±b i` of an
+orthonormal basis — a geometric cube. Its face lattice is the *subcube* lattice; the hard
+direction (every face is a subcube) is `Cube.eq_face_of_isFaceOf`, proved by coordinate
+transfer. All hypotheses below are discharged.
+-/
+
+/-- **Geometric cube face counts: `V = 8`, `E = 12`, `F = 6`.** -/
+theorem results_cube_face_counts
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) :
+    (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 0).ncard = 8 ∧
+      (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 1).ncard = 12 ∧
+      (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 2).ncard = 6 :=
+  EulersGem.Cube.cube_face_counts b
+
+/-- **`V − E + F = 2` for a geometric cube, from Euler–Poincaré.** -/
+theorem results_cube_euler_relation
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) :
+    ((EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 2).ncard = 2 :=
+  EulersGem.Cube.cube_euler_relation b
+
+/-- **A geometric cube is Platonic `{4,3}` on the Euler–Poincaré spine.** -/
+theorem results_cube_platonic
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) :
+    4 * (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 2).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 1).ncard ∧
+      3 * (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 0).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 1).ncard ∧
+      ((EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body b) 2).ncard = 2 ∧
+      ((4 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
+  obtain ⟨h1, h2, h3, -⟩ := EulersGem.Cube.cube_platonic b
+  exact ⟨h1, h2, h3, by decide⟩
+
+/-- **Three of the five Platonic solids, geometrically, with Euler from EP.**
+
+For any 3-dimensional real inner product space: the tetrahedron on an affine basis, and the
+octahedron and cube on an orthonormal basis, each have their *geometric* face counts
+computed, satisfy `V − E + F = 2` obtained from `Euler_Poincare_full`, and realize the
+Schläfli pairs `{3,3}`, `{3,4}`, `{4,3}` respectively.
+
+**Not** a classification of geometric solids: `{3,5}` (icosahedron) and `{5,3}`
+(dodecahedron) have no geometric construction in this development, and metric regularity is
+not formalized. See `PLATONIC_CLAUDE_AUDIT.md`. -/
+theorem results_three_geometric_platonic_solids
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E] (hE : Module.finrank ℝ E = 3)
+    (t : AffineBasis (Fin 4) ℝ E) (o : OrthonormalBasis (Fin 3) ℝ E) :
+    ((EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body t) 0).ncard = 4 ∧
+        (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body t) 1).ncard = 6 ∧
+        (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body t) 2).ncard = 4) ∧
+      ((EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 0).ncard = 6 ∧
+        (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 1).ncard = 12 ∧
+        (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 2).ncard = 8) ∧
+      ((EulersGem.Platonic.facesOfDim (EulersGem.Cube.body o) 0).ncard = 8 ∧
+        (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body o) 1).ncard = 12 ∧
+        (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body o) 2).ncard = 6) ∧
+      (((EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body t) 0).ncard : ℤ)
+          - (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body t) 1).ncard
+          + (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body t) 2).ncard = 2) ∧
+      (((EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 0).ncard : ℤ)
+          - (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 1).ncard
+          + (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 2).ncard = 2) ∧
+      (((EulersGem.Platonic.facesOfDim (EulersGem.Cube.body o) 0).ncard : ℤ)
+          - (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body o) 1).ncard
+          + (EulersGem.Platonic.facesOfDim (EulersGem.Cube.body o) 2).ncard = 2) ∧
+      (((3 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) ∧
+        ((3 : ℕ), (4 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) ∧
+        ((4 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ))) :=
+  ⟨EulersGem.Simplex.tetrahedron_face_counts t,
+    EulersGem.Octahedron.octahedron_face_counts o,
+    EulersGem.Cube.cube_face_counts o,
+    EulersGem.Simplex.tetrahedron_euler_relation t hE,
+    EulersGem.Octahedron.octahedron_euler_relation o,
+    EulersGem.Cube.cube_euler_relation o,
+    ⟨by decide, by decide, by decide⟩⟩
 
 
 end Results
