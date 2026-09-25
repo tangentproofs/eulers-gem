@@ -23,6 +23,7 @@ Pick-form green; same-spoke `edgeGcd=3` + adjacent `det=3` + Pick-form green;
 Off-adj-left/right + two-spoke-nonadjacent + adjacent-two-spoke (vacuous under
 `PrimitiveEdges`: shared base `edgeGcd ≥ 2`) green; unified Finset card=3 under
 covered hyp green. Off-free Finset card=3 discharged from ThreeInteriorCovered_of_threeInterior.
+I≤3 Finset unify + general-I fan-ear induction scaffold (conditional ear IH) green.
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -5086,6 +5087,263 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
   exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
     P S hS hcard hverts hedge hsc
     ⟨q, r, s, hSeq, ThreeInteriorCovered_of_threeInterior P hsc hverts hedge hThree⟩
+
+
+/-! ## I ≤ 3 Finset unification (not classical Pick) -/
+
+/-- **I ∈ {0,1,2,3} shoelace Pick-form** (not classical Pick).
+
+Hyps: `↑S = interiorLatticePoints`, `S.card ≤ 3`, injective vertices, primitive
+edges, `StrictlyConvexCCW`. Concludes `shoelace = #S + B/2 − 1`.
+
+* `#S ≤ 2` ⇒ `shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two`
+* `#S = 3` ⇒ geometric `shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three`
+
+Still shoelace ≠ Haar; classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 3)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  by_cases hle2 : S.card ≤ 2
+  · exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two
+      P S hS hle2 hverts hedge hsc
+  · have h3 : S.card = 3 := by omega
+    exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
+      P S hS h3 hverts hedge hsc
+
+/-! ## General-I fan-ear induction scaffold (not classical Pick)
+
+Pick apex `q ∈ S`, fan into ears `△(q, vᵢ, vᵢ₊₁)`. Remaining interior points
+partition into Off-ear interiors (strictly smaller card) and spoke interiors.
+Conditional induction step: if every ear `trianglePolygon` satisfies Pick-form
+for its Off-interior Finset, and the natural B/I bookkeeping holds, conclude
+polygon Pick-form. Shoelace ≠ Haar. Classical Pick FAIL.
+-/
+
+/-- Off-interior points of `S` strictly inside fan ear `i` (not on ear edges). -/
+noncomputable def earOffInterior (q : ℤ × ℤ) (i : Fin P.nVertices) (S : Finset (ℤ × ℤ)) :
+    Finset (ℤ × ℤ) := by
+  classical
+  exact S.filter (fun p =>
+    p ≠ q ∧
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p ∧
+        OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) p)
+
+/-- Spoke-interior points of `S` on the open segment `q -- vertex k`. -/
+noncomputable def spokeInterior (q : ℤ × ℤ) (k : Fin P.nVertices) (S : Finset (ℤ × ℤ)) :
+    Finset (ℤ × ℤ) := by
+  classical
+  exact S.filter (fun p =>
+    p ≠ q ∧ p ≠ P.vertex k ∧ p ∈ edgeLatticePoints q (P.vertex k))
+
+/-- Ear Off-interior is a subset of `S`. -/
+lemma earOffInterior_subset (q : ℤ × ℤ) (i : Fin P.nVertices) (S : Finset (ℤ × ℤ)) :
+    earOffInterior P q i S ⊆ S := by
+  classical
+  intro p hp
+  simpa [earOffInterior] using (Finset.mem_filter.mp hp).1
+
+/-- Spoke interior is a subset of `S`. -/
+lemma spokeInterior_subset (q : ℤ × ℤ) (k : Fin P.nVertices) (S : Finset (ℤ × ℤ)) :
+    spokeInterior P q k S ⊆ S := by
+  classical
+  intro p hp
+  simpa [spokeInterior] using (Finset.mem_filter.mp hp).1
+
+/-- Apex is excluded from every ear Off-interior. -/
+lemma not_mem_earOffInterior_apex (q : ℤ × ℤ) (i : Fin P.nVertices)
+    (S : Finset (ℤ × ℤ)) : q ∉ earOffInterior P q i S := by
+  classical
+  intro hq
+  have := (Finset.mem_filter.mp hq).2.1
+  exact this rfl
+
+/-- **Strict card decrease for ear Off-interiors** (induction fuel).
+
+If `q ∈ S` then `#(earOffInterior q i S) < #S`. -/
+theorem card_earOffInterior_lt (q : ℤ × ℤ) (i : Fin P.nVertices)
+    (S : Finset (ℤ × ℤ)) (hq : q ∈ S) :
+    (earOffInterior P q i S).card < S.card := by
+  classical
+  refine Finset.card_lt_card ?_
+  refine ⟨earOffInterior_subset P q i S, ?_⟩
+  intro hsub
+  have : q ∈ earOffInterior P q i S := hsub hq
+  exact not_mem_earOffInterior_apex P q i S this
+
+/-- Covering ear for any non-apex interior point: Off or on-spoke. -/
+theorem exists_offBoundary_or_onSpoke_covering_of_mem_interior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q p : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (hp : p ∈ P.interiorLatticePoints)
+    (_hne : p ≠ q) :
+    ∃ i : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p ∧
+        (OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) p ∨
+          p ∈ edgeLatticePoints q (P.vertex i) ∨
+            p ∈ edgeLatticePoints (P.vertex (P.nextIdx i)) q) := by
+  classical
+  have hpos := InteriorFanDetsPos_of_mem_interior P hsc hinj hedge hq
+  obtain ⟨i, hmem⟩ :=
+    exists_mem_interiorFanTriangle_of_mem_hull P hsc hpos hp.1
+  refine ⟨i, hmem, ?_⟩
+  exact offBoundary_or_onSpoke_of_mem_interiorFan P hp i hmem
+
+/-- Finset form: every non-apex point of `S` has an Off/on-spoke covering ear. -/
+theorem exists_offBoundary_or_onSpoke_covering_of_mem_finset
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q p : ℤ × ℤ}
+    (hq : q ∈ S) (hp : p ∈ S) (hne : p ≠ q) :
+    ∃ i : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) p ∧
+        (OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) p ∨
+          p ∈ edgeLatticePoints q (P.vertex i) ∨
+            p ∈ edgeLatticePoints (P.vertex (P.nextIdx i)) q) := by
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hpI : p ∈ P.interiorLatticePoints := by
+    have : p ∈ (S : Set (ℤ × ℤ)) := hp
+    rwa [hS] at this
+  exact exists_offBoundary_or_onSpoke_covering_of_mem_interior
+    P hsc hinj hedge hqI hpI hne
+
+/-- Triangle-polygon shoelace equals `|latticeDet|/2`. -/
+lemma shoelace_trianglePolygon_eq_half_natAbs_det (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).shoelace =
+      (Int.natAbs (latticeDet a b c) : ℚ) / 2 := by
+  simp [LatticePolygon.shoelace, shoelaceSum_trianglePolygon]
+
+/-- **Fan ear areas sum to polygon shoelace** under positive interior-fan dets.
+
+`∑ᵢ (trianglePolygon q vᵢ vᵢ₊₁).shoelace = P.shoelace`. Not classical Pick. -/
+theorem sum_ear_shoelace_eq_shoelace
+    {q : ℤ × ℤ} (hpos : InteriorFanDetsPos P q) :
+    (∑ i : Fin P.nVertices,
+        (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace) =
+      P.shoelace := by
+  classical
+  have hsum_det := sum_interiorFanDet_eq_shoelaceSum P q
+  have hnn : 0 ≤ P.shoelaceSum := by
+    have hnonneg : 0 ≤ ∑ i : Fin P.nVertices, interiorFanDet P q i :=
+      Finset.sum_nonneg fun i _ => le_of_lt (hpos i)
+    rwa [hsum_det] at hnonneg
+  have hterm : ∀ i : Fin P.nVertices,
+      (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+        (Int.natAbs (interiorFanDet P q i) : ℚ) / 2 := by
+    intro i
+    simp [shoelace_trianglePolygon_eq_half_natAbs_det, interiorFanDet,
+      interiorFanTriangle, Triangle.det]
+  have hcast_i : ∀ i : Fin P.nVertices,
+      (Int.natAbs (interiorFanDet P q i) : ℚ) = (interiorFanDet P q i : ℚ) := by
+    intro i
+    have hnn_i : 0 ≤ interiorFanDet P q i := le_of_lt (hpos i)
+    rw [← Int.cast_natCast (R := ℚ), Int.natAbs_of_nonneg hnn_i]
+  have hcast_sum : (Int.natAbs P.shoelaceSum : ℚ) = (P.shoelaceSum : ℚ) := by
+    rw [← Int.cast_natCast (R := ℚ), Int.natAbs_of_nonneg hnn]
+  calc
+    (∑ i : Fin P.nVertices,
+        (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace)
+        = ∑ i : Fin P.nVertices, (Int.natAbs (interiorFanDet P q i) : ℚ) / 2 := by
+          simp only [hterm]
+    _ = ∑ i : Fin P.nVertices, (interiorFanDet P q i : ℚ) / 2 := by
+          simp only [hcast_i]
+    _ = (∑ i : Fin P.nVertices, (interiorFanDet P q i : ℚ)) / 2 := by
+          rw [← Finset.sum_div]
+    _ = ((∑ i : Fin P.nVertices, interiorFanDet P q i : ℤ) : ℚ) / 2 := by
+          simp only [Int.cast_sum]
+    _ = (P.shoelaceSum : ℚ) / 2 := by rw [hsum_det]
+    _ = (Int.natAbs P.shoelaceSum : ℚ) / 2 := by rw [hcast_sum]
+    _ = P.shoelace := by rfl
+
+/-- Pure ℚ bookkeeping for the fan induction step.
+
+If each ear contributes `Iᵢ + Bᵢ/2 − 1` and the sum of those contributions equals
+`#S + B/2 − 1`, the polygon Pick-form follows from area additivity alone. -/
+theorem pick_form_of_sum_ear_pick_forms
+    (S : Finset (ℤ × ℤ)) (q : ℤ × ℤ)
+    (hsum : (∑ i : Fin P.nVertices,
+        (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace) =
+      P.shoelace)
+    (hIH : ∀ i : Fin P.nVertices,
+      (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+        ((earOffInterior P q i S).card : ℚ) +
+          ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)
+    (hbook :
+      (∑ i : Fin P.nVertices,
+          (((earOffInterior P q i S).card : ℚ) +
+            ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+        (S.card : ℚ) + (P.B : ℚ) / 2 - 1) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  calc
+    P.shoelace
+        = ∑ i : Fin P.nVertices,
+            (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace :=
+              hsum.symm
+    _ = ∑ i : Fin P.nVertices,
+          (((earOffInterior P q i S).card : ℚ) +
+            ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1) := by
+          simp only [hIH]
+    _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := hbook
+
+/-- **Conditional fan-ear induction step** (not classical Pick).
+
+Hyps: geometric polygon (`StrictlyConvexCCW`, injective, `PrimitiveEdges`), interior
+Finset `S` with apex `q ∈ S`, every fan ear satisfies shoelace Pick-form for its
+`earOffInterior` (strictly smaller card — induction fuel), and the B/I
+bookkeeping identity `∑ᵢ (Iᵢ + Bᵢ/2 − 1) = #S + B/2 − 1`.
+
+Concludes `P.shoelace = #S + B/2 − 1`. Discharging `hIH` for general ears and
+proving `hbook` from spoke/gcd arithmetic are the remaining induction gaps.
+Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (q : ℤ × ℤ) (hq : q ∈ S)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P)
+    (hIH : ∀ i : Fin P.nVertices,
+      (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+        ((earOffInterior P q i S).card : ℚ) +
+          ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)
+    (hbook :
+      (∑ i : Fin P.nVertices,
+          (((earOffInterior P q i S).card : ℚ) +
+            ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+        (S.card : ℚ) + (P.B : ℚ) / 2 - 1) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hpos := InteriorFanDetsPos_of_mem_interior P hsc hverts hedge hqI
+  have hsum := sum_ear_shoelace_eq_shoelace P hpos
+  exact pick_form_of_sum_ear_pick_forms P S q hsum hIH hbook
+
+/-- **I ≤ 3 as base of fan-ear induction** (not classical Pick).
+
+Specializes the geometric Finset Pick-form to `card ≤ 3`, the largest range
+already discharged without ear IH. For `card ≥ 4`, apply
+`shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH` with IH on smaller ears.
+Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three_induction_base
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 3)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+    P S hS hcard hverts hedge hsc
 
 end InteriorFan
 end LatticeFan
