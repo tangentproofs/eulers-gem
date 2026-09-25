@@ -670,6 +670,93 @@ theorem results_mem_convexHull_of_memClosedTriangle
           EulersGem.Picks.LatticeTriangle.toReal c} : Set (ℝ × ℝ)) :=
   EulersGem.Picks.LatticeTriangle.mem_convexHull_of_memClosedTriangle a b c p h
 
+
+/-! ### I=2 empty-ear discharge (not classical Pick)
+
+Under `TwoInterior`, lattice points of a fan ear from `q` are among `{q,vᵢ,vᵢ₊₁,r}`.
+Ears that do not contain `r` are det-primitive with determinant exactly `1`.
+Occupied-ear `trianglePolygon` substrate is available; UniqueInterior inheritance /
+B-bookkeeping / full `shoelace = 2 + B/2 − 1` still open. Classical Pick FAIL.
+-/
+
+/-- Lattice points of an interior-fan ear under `TwoInterior` are among the three
+ear vertices and the other interior point `r` (not classical Pick). -/
+theorem results_eq_vertices_or_r_of_mem_interiorFan_of_twoInterior
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices) (p : ℤ × ℤ)
+    (hp : EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).a
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).b
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).c p) :
+    p = q ∨ p = P.vertex i ∨ p = P.vertex (P.nextIdx i) ∨ p = r :=
+  EulersGem.Picks.LatticeFan.InteriorFan.eq_vertices_or_r_of_mem_interiorFan_of_twoInterior
+    P hsc hinj hedge h i hp
+
+/-- Ears that do not contain the second interior point meet lattice points only at
+their three vertices (not classical Pick). -/
+theorem results_eq_vertices_of_mem_interiorFan_of_twoInterior_of_not_mem_r
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).a
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).b
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).c r)
+    (p : ℤ × ℤ)
+    (hp : EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).a
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).b
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).c p) :
+    p = q ∨ p = P.vertex i ∨ p = P.vertex (P.nextIdx i) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.eq_vertices_of_mem_interiorFan_of_twoInterior_of_not_mem_r
+    P hsc hinj hedge h i hr hp
+
+/-- Empty (of `r`) interior-fan ears are det-primitive under `TwoInterior`
+(not classical Pick). -/
+theorem results_IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).a
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).b
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).c r) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).IsDetPrimitive :=
+  EulersGem.Picks.LatticeFan.InteriorFan.IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r
+    P hsc hinj hedge h i hr
+
+/-- Empty (of `r`) interior-fan ears have determinant exactly `1` under `TwoInterior`
+(not classical Pick). -/
+theorem results_interiorFanDet_eq_one_of_twoInterior_of_not_mem_r
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).a
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).b
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).c r) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q i = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_one_of_twoInterior_of_not_mem_r
+    P hsc hinj hedge h i hr
+
+/-- Three-vertex lattice polygon substrate for occupied-ear inheritance
+(not classical Pick). -/
+def results_trianglePolygon (a b c : ℤ × ℤ) : EulersGem.Picks.LatticePolygon :=
+  EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane

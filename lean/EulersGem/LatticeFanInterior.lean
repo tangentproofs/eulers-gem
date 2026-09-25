@@ -38,7 +38,9 @@ interior into one Finset statement (`card ≤ 1`).
 
 **I = 2 scaffold:** `TwoInterior`, fan positivity from either apex.
 Fan covering of the second interior point + `InteriorFanTrianglesEmpty` failure
-for I=2 are green. Ear inheritance / B-bookkeeping still open.
+for I=2 are green. Ear lattice classification + empty-ear `|det|=1` green.
+Occupied-ear `trianglePolygon` substrate green. UniqueInterior inheritance /
+B-bookkeeping still open.
 
 **Honesty / not classical Pick:**
 Shoelace ≠ Haar/Lebesgue. General I > 1 triangulation existence open. EP→planar open.
@@ -897,7 +899,8 @@ Any hull lattice point lies in some closed interior-fan ear from an apex with
 positive fan dets: sector sign-change around the apex + edge half-plane from
 `ConvexCCW`. Specializes to the second point of `TwoInterior`. Consequently
 `InteriorFanTrianglesEmpty` fails for `I = 2` (expected — the other interior
-point sits in an ear). Ear inheritance / B-bookkeeping still open.
+point sits in an ear). Empty-ear `|det|=1` green; occupied-ear UniqueInterior /
+B-bookkeeping still open.
 -/
 
 lemma latticeDet_area_sum (q v w p : ℤ × ℤ) :
@@ -1177,6 +1180,206 @@ theorem not_InteriorFanTrianglesEmpty_of_twoInterior
   · exact hr_not_bd (by simpa [interiorFanTriangle, h2] using hv_bd i)
   · exact hr_not_bd (by simpa [interiorFanTriangle, h3] using hv_bd (P.nextIdx i))
 
+/-! ### Ear lattice points under TwoInterior (not classical Pick)
+
+Under `TwoInterior q r`, every lattice point of a fan ear from `q` is among
+`{q, vᵢ, vᵢ₊₁, r}`. Ears that do not contain `r` are therefore empty of extra
+lattice points, hence det-primitive (`|det|=1`). Occupied-ear triangle polygon /
+UniqueInterior inheritance and B-bookkeeping remain for the next slice.
+-/
+
+/-- Lattice points of an interior-fan ear under `TwoInterior` are among the three
+ear vertices and the other interior point `r`. -/
+theorem eq_vertices_or_r_of_mem_interiorFan_of_twoInterior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (i : Fin P.nVertices) {p : ℤ × ℤ}
+    (hp : MemClosedTriangle (interiorFanTriangle P q i).a
+      (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c p) :
+    p = q ∨ p = P.vertex i ∨ p = P.vertex (P.nextIdx i) ∨ p = r := by
+  classical
+  by_cases hbd : p ∈ P.boundaryLatticePoints
+  · -- Boundary: constructive boundary = vertex set under primitivity.
+    have hbound := boundaryLatticePoints_eq_vertexFinset P hedge hinj
+    have hpV : p ∈ P.vertexFinset := by simpa [hbound] using hbd
+    have hpV' : p ∈ (Finset.univ : Finset (Fin P.nVertices)).image P.vertex := by
+      rwa [← vertexFinset_eq_univ_image P]
+    obtain ⟨j, _, hj⟩ := Finset.mem_image.mp hpV'
+    subst hj
+    by_cases hBi : P.vertex j = P.vertex i
+    · exact Or.inr (Or.inl (by simpa [interiorFanTriangle] using hBi))
+    · by_cases hCi : P.vertex j = P.vertex (P.nextIdx i)
+      · exact Or.inr (Or.inr (Or.inl (by simpa [interiorFanTriangle] using hCi)))
+      · -- Foreign vertex in △(q, vᵢ, vᵢ₊₁): supporting half-plane contradiction.
+        exfalso
+        obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+        set A := toReal (P.vertex (P.prevIdx j))
+        set B := toReal (P.vertex j)
+        have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+        have hφq : 0 < detR A B (toReal q) := by
+          simpa [A, B] using detR_prev_apex_pos_of_InteriorFanDetsPos P hpos j
+        have hφvi : 0 ≤ detR A B (toReal (P.vertex i)) := by
+          simpa [A, B] using detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j i
+        have hφvn : 0 ≤ detR A B (toReal (P.vertex (P.nextIdx i))) := by
+          simpa [A, B] using
+            detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j (P.nextIdx i)
+        have hφj : detR A B (toReal (P.vertex j)) = 0 := by
+          simpa [A, B] using detR_prev_vertex_eq_zero P j
+        have hcomb :
+            detR A B (toReal (P.vertex j)) =
+              α * detR A B (toReal q) +
+                β * detR A B (toReal (P.vertex i)) +
+                  γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+          have heq' :
+              toReal (P.vertex j) =
+                α • toReal q + β • toReal (P.vertex i) +
+                  γ • toReal (P.vertex (P.nextIdx i)) := by
+            simpa [interiorFanTriangle] using heq.symm
+          have haff := detR_affine_combination3 A B
+            (toReal q) (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i)))
+            α β γ hsum
+          rw [heq', haff]
+        have hα0 : α = 0 := by
+          have hge :
+              α * detR A B (toReal q) ≤
+                α * detR A B (toReal q) +
+                  β * detR A B (toReal (P.vertex i)) +
+                    γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+            have h1 : 0 ≤ β * detR A B (toReal (P.vertex i)) :=
+              mul_nonneg hβ hφvi
+            have h2 : 0 ≤ γ * detR A B (toReal (P.vertex (P.nextIdx i))) :=
+              mul_nonneg hγ hφvn
+            linarith
+          have hαφ : α * detR A B (toReal q) ≤ 0 := by
+            have : α * detR A B (toReal q) +
+                  β * detR A B (toReal (P.vertex i)) +
+                    γ * detR A B (toReal (P.vertex (P.nextIdx i))) = 0 := by
+              simpa [hφj] using hcomb.symm
+            linarith
+          have hαφ' : 0 ≤ α * detR A B (toReal q) :=
+            mul_nonneg hα (le_of_lt hφq)
+          have hαφ0 : α * detR A B (toReal q) = 0 := le_antisymm hαφ hαφ'
+          exact (mul_eq_zero.mp hαφ0).resolve_right (ne_of_gt hφq)
+        have hseg :
+            toReal (P.vertex j) ∈
+              segment ℝ (toReal (P.vertex i))
+                (toReal (P.vertex (P.nextIdx i))) := by
+          refine ⟨β, γ, hβ, hγ, ?_, ?_⟩
+          · linarith [hsum, hα0]
+          · have heq' :
+                α • toReal (interiorFanTriangle P q i).a +
+                    β • toReal (interiorFanTriangle P q i).b +
+                      γ • toReal (interiorFanTriangle P q i).c =
+                  toReal (P.vertex j) := heq
+            simp only [interiorFanTriangle] at heq'
+            simpa [hα0, zero_smul, zero_add] using heq'
+        have hprim : edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) = 1 := by
+          simpa [LatticePolygon.edgePair] using hedge i
+        have hend := eq_endpoints_of_mem_segment_of_edgeGcd_eq_one
+          (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j) hprim hseg
+        exact hend.elim (fun h => hBi h) (fun h => hCi h)
+  · -- Non-boundary ⇒ interior of P ⇒ q or r by TwoInterior.
+    have hq_hull : toReal q ∈ P.convexHullRegion :=
+      (mem_interior_of_twoInterior_left P h).1
+    have hhull :=
+      mem_convexHullRegion_of_memClosedTriangle_interiorFan P hq_hull i hp
+    have hint : p ∈ P.interiorLatticePoints := by
+      refine ⟨?_, hbd⟩
+      simpa [LatticePolygon.convexHullRegion,
+        show (toReal : ℤ × ℤ → ℝ × ℝ) = Picks.toReal from rfl] using hhull
+    have hpset : p ∈ ({q, r} : Set (ℤ × ℤ)) := by
+      rw [← h.2]; exact hint
+    rcases (Set.mem_insert_iff.mp hpset) with hpq | hpr
+    · exact Or.inl hpq
+    · exact Or.inr (Or.inr (Or.inr (Set.mem_singleton_iff.mp hpr)))
+
+/-- Ears that do not contain the second interior point are empty of extra lattice
+points (only the three ear vertices). -/
+theorem eq_vertices_of_mem_interiorFan_of_twoInterior_of_not_mem_r
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (i : Fin P.nVertices)
+    (hr : ¬ MemClosedTriangle (interiorFanTriangle P q i).a
+      (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c r)
+    {p : ℤ × ℤ}
+    (hp : MemClosedTriangle (interiorFanTriangle P q i).a
+      (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c p) :
+    p = q ∨ p = P.vertex i ∨ p = P.vertex (P.nextIdx i) := by
+  rcases eq_vertices_or_r_of_mem_interiorFan_of_twoInterior P hsc hinj hedge h i hp with
+    h1 | h2 | h3 | h4
+  · exact Or.inl h1
+  · exact Or.inr (Or.inl h2)
+  · exact Or.inr (Or.inr h3)
+  · exact (hr (by simpa [h4] using hp)).elim
+
+/-- Empty (of `r`) interior-fan ears are det-primitive under `TwoInterior`. -/
+theorem IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (i : Fin P.nVertices)
+    (hr : ¬ MemClosedTriangle (interiorFanTriangle P q i).a
+      (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c r) :
+    (interiorFanTriangle P q i).IsDetPrimitive := by
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  refine IsDetPrimitive_of_memClosedTriangle_eq_vertices
+    (interiorFanTriangle P q i) (ne_of_gt (hpos i)) ?_
+  intro p hp
+  simpa [interiorFanTriangle] using
+    eq_vertices_of_mem_interiorFan_of_twoInterior_of_not_mem_r
+      P hsc hinj hedge h i hr hp
+
+/-- Empty (of `r`) interior-fan ears have determinant exactly `1` (positive
+orientation from `TwoInterior`). -/
+theorem interiorFanDet_eq_one_of_twoInterior_of_not_mem_r
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (i : Fin P.nVertices)
+    (hr : ¬ MemClosedTriangle (interiorFanTriangle P q i).a
+      (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c r) :
+    interiorFanDet P q i = 1 := by
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hprim :=
+    IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r P hsc hinj hedge h i hr
+  have hnat : Int.natAbs (interiorFanDet P q i) = 1 := hprim
+  have hnn : 0 ≤ interiorFanDet P q i := le_of_lt (hpos i)
+  have hz : interiorFanDet P q i = (Int.natAbs (interiorFanDet P q i) : ℤ) :=
+    (Int.natAbs_of_nonneg hnn).symm
+  rw [hz, hnat]; norm_num
+
+/-! ### Occupied-ear substrate (not classical Pick)
+
+`trianglePolygon` builds a 3-vertex `LatticePolygon` for an occupied fan ear.
+`UniqueInterior` inheritance for that triangle (when `r` is off the ear boundary),
+triangle `StrictlyConvexCCW` / `PrimitiveEdges`, and global B-bookkeeping remain.
+-/
+
+/-- Three-vertex lattice polygon on vertices `a, b, c` (cyclic). -/
+def trianglePolygon (a b c : ℤ × ℤ) : LatticePolygon where
+  vertices := [a, b, c]
+  length_ge := by simp
+
+@[simp] lemma trianglePolygon_nVertices (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).nVertices = 3 := rfl
+
+lemma trianglePolygon_vertex_zero (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).vertex ⟨0, by simp [trianglePolygon_nVertices]⟩ = a :=
+  rfl
+
+lemma trianglePolygon_vertex_one (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).vertex ⟨1, by simp [trianglePolygon_nVertices]⟩ = b :=
+  rfl
+
+lemma trianglePolygon_vertex_two (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).vertex ⟨2, by simp [trianglePolygon_nVertices]⟩ = c :=
+  rfl
+
+/-- Convex hull of a triangle polygon equals the convex hull of its three vertices. -/
+lemma trianglePolygon_convexHullRegion (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).convexHullRegion =
+      convexHull ℝ ({toReal a, toReal b, toReal c} : Set (ℝ × ℝ)) := by
+  classical
+  simp [LatticePolygon.convexHullRegion, trianglePolygon, LatticePolygon.vertexFinset]
+
 /-! ### Remaining I > 1 checklist (honest)
 
 Still open on this spine (classical Pick FAIL):
@@ -1184,12 +1387,16 @@ Still open on this spine (classical Pick FAIL):
 1. ~~Fan covering~~: **green** — `exists_mem_interiorFanTriangle_of_mem_hull` /
    `exists_mem_interiorFanTriangle_of_twoInterior`; also
    `not_InteriorFanTrianglesEmpty_of_twoInterior`.
-2. Ear inheritance: an ear triangle `(q, vᵢ, vᵢ₊₁)` carrying exactly one leftover
-   interior point is a `LatticePolygon` with `UniqueInterior` / `StrictlyConvexCCW`
-   / primitive ear edges, so I=1 applies; empty ears are det-primitive.
-3. Bookkeeping: sum of ear shoelaces = polygon shoelace (already have the det-sum
-   identity); convert ear `B` counts on shared apex-spokes into global `B`.
-4. Shoelace = Haar/Lebesgue; EP → planar Euler.
+2. ~~Ear lattice classification / empty-ear `|det|=1`~~: **green** —
+   `eq_vertices_or_r_of_mem_interiorFan_of_twoInterior`,
+   `IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r`,
+   `interiorFanDet_eq_one_of_twoInterior_of_not_mem_r`.
+3. Occupied ear: `trianglePolygon` substrate green; still need `UniqueInterior r` for
+   the ear triangle (when `r` is off the ear boundary), then discharge triangle
+   `StrictlyConvexCCW` / `PrimitiveEdges` and apply I=1.
+4. Bookkeeping: sum of ear dets = polygon shoelace (have det-sum identity); convert
+   ear `B` on shared apex-spokes into global `B` → `shoelace = 2 + B/2 − 1`.
+5. Shoelace = Haar/Lebesgue; EP → planar Euler.
 
 The Finset `I ≤ 1` theorem above is the base of that induction.
 -/

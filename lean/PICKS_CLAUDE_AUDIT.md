@@ -696,3 +696,53 @@ untouched.
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (I=2 empty-ear |det|=1 + trianglePolygon; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem eq_vertices_or_r_of_mem_interiorFan_of_twoInterior
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (TwoInterior P q r) (i) (MemClosedTriangle ear p) :
+    p = q ∨ p = vᵢ ∨ p = vᵢ₊₁ ∨ p = r
+
+theorem eq_vertices_of_mem_interiorFan_of_twoInterior_of_not_mem_r
+    … ( ¬ MemClosedTriangle ear r) … :
+    p = q ∨ p = vᵢ ∨ p = vᵢ₊₁
+
+theorem IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r … :
+    (interiorFanTriangle P q i).IsDetPrimitive
+
+theorem interiorFanDet_eq_one_of_twoInterior_of_not_mem_r … :
+    interiorFanDet P q i = 1
+
+def trianglePolygon (a b c : ℤ × ℤ) : LatticePolygon
+```
+
+Results exports: `results_eq_vertices_or_r_of_mem_interiorFan_of_twoInterior`,
+`results_eq_vertices_of_mem_interiorFan_of_twoInterior_of_not_mem_r`,
+`results_IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r`,
+`results_interiorFanDet_eq_one_of_twoInterior_of_not_mem_r`,
+`results_trianglePolygon`.
+
+**Prize progress:** under `TwoInterior`, fan ears from `q` meet lattice points only
+among `{q, vᵢ, vᵢ₊₁, r}`. Ears that do not contain `r` are empty of extras ⇒
+`|det|=1`. Occupied-ear `trianglePolygon` substrate landed; UniqueInterior
+inheritance for the occupied ear, triangle StrictlyConvexCCW/PrimitiveEdges,
+and B-bookkeeping to reach `shoelace = 2 + B/2 − 1` still open. Still **not**
+classical Pick: Haar; EP→planar; full I=2 Pick-form open. Claude Platonic /
+Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Fan covering of second interior point | Green |
+| `InteriorFanTrianglesEmpty` fails for I=2 | Green (expected) |
+| Ear lattice points ⊆ `{q,vᵢ,vᵢ₊₁,r}` | **Green** |
+| Empty (of `r`) ears ⇒ `|det|=1` | **Green** |
+| Occupied-ear `trianglePolygon` substrate | **Green** |
+| Occupied-ear UniqueInterior / I=1 inheritance | Open |
+| B-bookkeeping → `shoelace = 2 + B/2 − 1` | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+
