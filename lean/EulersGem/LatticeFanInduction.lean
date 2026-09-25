@@ -24,6 +24,7 @@ Off-adj-left/right + two-spoke-nonadjacent + adjacent-two-spoke (vacuous under
 `PrimitiveEdges`: shared base `edgeGcd ≥ 2`) green; unified Finset card=3 under
 covered hyp green. Off-free Finset card=3 discharged from ThreeInteriorCovered_of_threeInterior.
 I≤3 Finset unify + general-I fan-ear induction scaffold (conditional ear IH) green.
+Triangle B=∑edgeGcd + conditional hbook from partition/spoke-gcd (discharge of partition + spoke cards still open).
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -5344,6 +5345,369 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three_induction_base
     P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
   shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
     P S hS hcard hverts hedge hsc
+
+/-! ## hbook B-arithmetic substrate (not classical Pick)
+
+Relate `∑ᵢ (Iᵢ + Bᵢ/2 − 1)` to `#S + B/2 − 1` via ear/spoke partition and
+spoke `edgeGcd`s. Triangle `B = ∑ edgeGcd` under nondegeneracy. Classical Pick
+FAIL; shoelace ≠ Haar.
+-/
+
+/-- 2D cross-product: if `w ≠ 0` and both `u`, `v` are parallel to `w`, then
+`u` is parallel to `v`. -/
+lemma cross_eq_zero_of_cross_eq_zero_both
+    (u v w : ℤ × ℤ)
+    (hu : u.1 * w.2 - u.2 * w.1 = 0)
+    (hv : v.1 * w.2 - v.2 * w.1 = 0)
+    (hw : w ≠ 0) :
+    u.1 * v.2 - u.2 * v.1 = 0 := by
+  have hw1_mul : w.1 * (u.1 * v.2 - u.2 * v.1) = 0 := by
+    linear_combination (v.1 : ℤ) * hu - (u.1 : ℤ) * hv
+  have hw2_mul : w.2 * (u.1 * v.2 - u.2 * v.1) = 0 := by
+    linear_combination (v.2 : ℤ) * hu - (u.2 : ℤ) * hv
+  by_cases hw1 : w.1 = 0
+  · by_cases hw2 : w.2 = 0
+    · exact False.elim (hw (Prod.ext hw1 hw2))
+    · exact (mul_eq_zero.mp hw2_mul).resolve_left hw2
+  · exact (mul_eq_zero.mp hw1_mul).resolve_left hw1
+
+/-- Adjacent closed edges of a nondegenerate triangle meet only at the shared
+vertex. -/
+lemma eq_of_mem_edgeLatticePoints_ab_bc
+    (a b c p : ℤ × ℤ) (hne : latticeDet a b c ≠ 0)
+    (hab : p ∈ edgeLatticePoints a b) (hbc : p ∈ edgeLatticePoints b c) :
+    p = b := by
+  classical
+  by_contra hp
+  have hab0 : latticeDet a b p = 0 := latticeDet_eq_zero_of_mem_edge_ab a b p hab
+  have hbc0 : latticeDet b c p = 0 := latticeDet_eq_zero_of_mem_edge_ab b c p hbc
+  have h_ab_pb :
+      (b.1 - a.1) * (p.2 - b.2) - (b.2 - a.2) * (p.1 - b.1) = 0 := by
+    have hab0' : (b.1 - a.1) * (p.2 - a.2) - (b.2 - a.2) * (p.1 - a.1) = 0 := by
+      simpa [latticeDet] using hab0
+    linarith
+  have h_cb_pb :
+      (c.1 - b.1) * (p.2 - b.2) - (c.2 - b.2) * (p.1 - b.1) = 0 := by
+    simpa [latticeDet] using hbc0
+  have hpb : (p.1 - b.1, p.2 - b.2) ≠ (0, 0) := by
+    intro h
+    apply hp
+    exact Prod.ext (by have := congrArg Prod.fst h; linarith)
+      (by have := congrArg Prod.snd h; linarith)
+  have hpar :=
+    cross_eq_zero_of_cross_eq_zero_both
+      (b.1 - a.1, b.2 - a.2) (c.1 - b.1, c.2 - b.2) (p.1 - b.1, p.2 - b.2)
+      h_ab_pb h_cb_pb hpb
+  have hdet :
+      latticeDet a b c =
+        (b.1 - a.1) * (c.2 - b.2) - (b.2 - a.2) * (c.1 - b.1) := by
+    unfold latticeDet; ring
+  exact hne (by rw [hdet]; simpa using hpar)
+
+lemma eq_of_mem_edgeLatticePoints_bc_ca
+    (a b c p : ℤ × ℤ) (hne : latticeDet a b c ≠ 0)
+    (hbc : p ∈ edgeLatticePoints b c) (hca : p ∈ edgeLatticePoints c a) :
+    p = c := by
+  have hne' : latticeDet b c a ≠ 0 := by
+    have : latticeDet b c a = latticeDet a b c := by unfold latticeDet; ring
+    rwa [this]
+  exact eq_of_mem_edgeLatticePoints_ab_bc b c a p hne' hbc hca
+
+lemma eq_of_mem_edgeLatticePoints_ca_ab
+    (a b c p : ℤ × ℤ) (hne : latticeDet a b c ≠ 0)
+    (hca : p ∈ edgeLatticePoints c a) (hab : p ∈ edgeLatticePoints a b) :
+    p = a := by
+  have hne' : latticeDet c a b ≠ 0 := by
+    have : latticeDet c a b = latticeDet a b c := by unfold latticeDet; ring
+    rwa [this]
+  exact eq_of_mem_edgeLatticePoints_ab_bc c a b p hne' hca hab
+
+/-- Boundary of `trianglePolygon` is the union of its three edge lattice sets. -/
+lemma boundaryLatticePoints_trianglePolygon (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).boundaryLatticePoints =
+      edgeLatticePoints a b ∪ edgeLatticePoints b c ∪ edgeLatticePoints c a := by
+  classical
+  ext p
+  constructor
+  · intro hp
+    obtain ⟨k, hk⟩ := (mem_boundaryLatticePoints_iff (trianglePolygon a b c) p).mp hp
+    fin_cases k
+    · simp [LatticePolygon.edgePair, LatticePolygon.vertex, LatticePolygon.nextIdx,
+        trianglePolygon, LatticePolygon.nVertices] at hk
+      exact Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inl hk)))
+    · simp [LatticePolygon.edgePair, LatticePolygon.vertex, LatticePolygon.nextIdx,
+        trianglePolygon, LatticePolygon.nVertices] at hk
+      exact Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inr hk)))
+    · simp [LatticePolygon.edgePair, LatticePolygon.vertex, LatticePolygon.nextIdx,
+        trianglePolygon, LatticePolygon.nVertices] at hk
+      exact Finset.mem_union.mpr (Or.inr hk)
+  · intro hp
+    refine (mem_boundaryLatticePoints_iff (trianglePolygon a b c) p).mpr ?_
+    have hp' : p ∈ edgeLatticePoints a b ∨ p ∈ edgeLatticePoints b c ∨
+        p ∈ edgeLatticePoints c a := by
+      simpa [Finset.mem_union, or_assoc] using hp
+    rcases hp' with h | h | h
+    · refine ⟨⟨0, by simp [trianglePolygon_nVertices]⟩, ?_⟩
+      simpa [LatticePolygon.edgePair, LatticePolygon.vertex, LatticePolygon.nextIdx,
+        trianglePolygon, LatticePolygon.nVertices] using h
+    · refine ⟨⟨1, by simp [trianglePolygon_nVertices]⟩, ?_⟩
+      simpa [LatticePolygon.edgePair, LatticePolygon.vertex, LatticePolygon.nextIdx,
+        trianglePolygon, LatticePolygon.nVertices] using h
+    · refine ⟨⟨2, by simp [trianglePolygon_nVertices]⟩, ?_⟩
+      simpa [LatticePolygon.edgePair, LatticePolygon.vertex, LatticePolygon.nextIdx,
+        trianglePolygon, LatticePolygon.nVertices] using h
+
+lemma edgeLatticePoints_ab_inter_bc
+    (a b c : ℤ × ℤ) (hne : latticeDet a b c ≠ 0) :
+    edgeLatticePoints a b ∩ edgeLatticePoints b c = {b} := by
+  classical
+  ext p
+  constructor
+  · intro hp
+    have hab := (Finset.mem_inter.mp hp).1
+    have hbc := (Finset.mem_inter.mp hp).2
+    exact Finset.mem_singleton.mpr
+      (eq_of_mem_edgeLatticePoints_ab_bc a b c p hne hab hbc)
+  · intro hp
+    have hp' : p = b := Finset.mem_singleton.mp hp
+    refine Finset.mem_inter.mpr ?_
+    constructor
+    · rw [hp']; exact other_mem_edgeLatticePoints a b
+    · rw [hp']; exact self_mem_edgeLatticePoints b c
+
+lemma edgeLatticePoints_bc_inter_ca
+    (a b c : ℤ × ℤ) (hne : latticeDet a b c ≠ 0) :
+    edgeLatticePoints b c ∩ edgeLatticePoints c a = {c} := by
+  classical
+  ext p
+  constructor
+  · intro hp
+    exact Finset.mem_singleton.mpr
+      (eq_of_mem_edgeLatticePoints_bc_ca a b c p hne
+        (Finset.mem_inter.mp hp).1 (Finset.mem_inter.mp hp).2)
+  · intro hp
+    have hp' : p = c := Finset.mem_singleton.mp hp
+    refine Finset.mem_inter.mpr ⟨?_, ?_⟩
+    · rw [hp']; exact other_mem_edgeLatticePoints b c
+    · rw [hp']; exact self_mem_edgeLatticePoints c a
+
+lemma edgeLatticePoints_ca_inter_ab
+    (a b c : ℤ × ℤ) (hne : latticeDet a b c ≠ 0) :
+    edgeLatticePoints c a ∩ edgeLatticePoints a b = {a} := by
+  classical
+  ext p
+  constructor
+  · intro hp
+    exact Finset.mem_singleton.mpr
+      (eq_of_mem_edgeLatticePoints_ca_ab a b c p hne
+        (Finset.mem_inter.mp hp).1 (Finset.mem_inter.mp hp).2)
+  · intro hp
+    have hp' : p = a := Finset.mem_singleton.mp hp
+    refine Finset.mem_inter.mpr ⟨?_, ?_⟩
+    · rw [hp']; exact other_mem_edgeLatticePoints c a
+    · rw [hp']; exact self_mem_edgeLatticePoints a b
+
+/-- **Triangle B = sum of edge gcds** (not classical Pick). -/
+theorem B_trianglePolygon_eq_sum_edgeGcd
+    (a b c : ℤ × ℤ) (hne : latticeDet a b c ≠ 0) :
+    (trianglePolygon a b c).B =
+      edgeGcd a b + edgeGcd b c + edgeGcd c a := by
+  classical
+  set A := edgeLatticePoints a b
+  set B := edgeLatticePoints b c
+  set C := edgeLatticePoints c a
+  have hbdry : (trianglePolygon a b c).boundaryLatticePoints = A ∪ B ∪ C :=
+    boundaryLatticePoints_trianglePolygon a b c
+  have hab : A ∩ B = {b} := edgeLatticePoints_ab_inter_bc a b c hne
+  have hbc : B ∩ C = {c} := edgeLatticePoints_bc_inter_ca a b c hne
+  have hca : C ∩ A = {a} := by
+    simpa [Finset.inter_comm, A, C] using edgeLatticePoints_ca_inter_ab a b c hne
+  have hcardA : A.card = edgeGcd a b + 1 := card_edgeLatticePoints a b
+  have hcardB : B.card = edgeGcd b c + 1 := card_edgeLatticePoints b c
+  have hcardC : C.card = edgeGcd c a + 1 := card_edgeLatticePoints c a
+  have hABcard : (A ∪ B).card = edgeGcd a b + edgeGcd b c + 1 := by
+    have h := Finset.card_union_add_card_inter A B
+    -- |A∪B| + |A∩B| = |A|+|B|
+    have : (A ∪ B).card + (A ∩ B).card = A.card + B.card := h
+    rw [hab, Finset.card_singleton, hcardA, hcardB] at this
+    omega
+  have hinter : ((A ∪ B) ∩ C).card = 2 := by
+    have hrewrite : (A ∪ B) ∩ C = (A ∩ C) ∪ (B ∩ C) := by
+      ext x; simp [or_and_right]
+    have hAC : A ∩ C = {a} := by simpa [Finset.inter_comm] using hca
+    have hdisj : Disjoint ({a} : Finset (ℤ × ℤ)) {c} := by
+      simp
+      intro hac
+      exact hne (by simp [latticeDet, hac])
+    rw [hrewrite, hAC, hbc, Finset.card_union_of_disjoint hdisj]
+    simp
+  have hunion : (A ∪ B ∪ C).card = edgeGcd a b + edgeGcd b c + edgeGcd c a := by
+    have h := Finset.card_union_add_card_inter (A ∪ B) C
+    have : (A ∪ B ∪ C).card + ((A ∪ B) ∩ C).card = (A ∪ B).card + C.card := by
+      simpa [Finset.union_assoc] using h
+    rw [hinter, hABcard, hcardC] at this
+    omega
+  calc
+    (trianglePolygon a b c).B
+        = (trianglePolygon a b c).boundaryLatticePoints.card := rfl
+    _ = (A ∪ B ∪ C).card := by rw [hbdry]
+    _ = edgeGcd a b + edgeGcd b c + edgeGcd c a := hunion
+
+/-- Ear triangle B under parent `PrimitiveEdges`:
+`B = edgeGcd(q,vᵢ) + edgeGcd(vᵢ₊₁,q) + 1`. -/
+theorem B_trianglePolygon_ear_of_primitive_base
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) (q : ℤ × ℤ)
+    (hq : q ∈ P.interiorLatticePoints) (i : Fin P.nVertices) :
+    (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B =
+      edgeGcd q (P.vertex i) + edgeGcd (P.vertex (P.nextIdx i)) q + 1 := by
+  classical
+  have hpos := InteriorFanDetsPos_of_mem_interior P hsc hinj hedge hq
+  have hD : latticeDet q (P.vertex i) (P.vertex (P.nextIdx i)) ≠ 0 :=
+    ne_of_gt (hpos i)
+  have hbase : edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) = 1 := hedge i
+  have hB :=
+    B_trianglePolygon_eq_sum_edgeGcd q (P.vertex i) (P.vertex (P.nextIdx i)) hD
+  calc
+    (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B
+        = edgeGcd q (P.vertex i) + edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) +
+            edgeGcd (P.vertex (P.nextIdx i)) q := hB
+    _ = edgeGcd q (P.vertex i) + 1 + edgeGcd (P.vertex (P.nextIdx i)) q := by
+          rw [hbase]
+    _ = edgeGcd q (P.vertex i) + edgeGcd (P.vertex (P.nextIdx i)) q + 1 := by
+          ring
+
+private lemma nextIdx_bijective :
+    Function.Bijective (P.nextIdx) :=
+  ⟨fun i j hij => by
+      have := congrArg P.prevIdx hij
+      simpa [prevIdx_nextIdx] using this,
+    fun j => ⟨P.prevIdx j, nextIdx_prevIdx P j⟩⟩
+
+/-- Pure ℚ identity: partition + spoke-gcd cards + ear B formula + primitive
+`B = n` imply the fan-ear hbook equation. -/
+theorem hbook_of_partition_and_spokeGcd
+    (S : Finset (ℤ × ℤ)) (q : ℤ × ℤ)
+    (hedge : PrimitiveEdges P) (hinj : Function.Injective P.vertex)
+    (hpart :
+      (S.card : ℚ) =
+        1 + (∑ i : Fin P.nVertices, ((earOffInterior P q i S).card : ℚ)) +
+          (∑ k : Fin P.nVertices, ((spokeInterior P q k S).card : ℚ)))
+    (hspoke :
+      ∀ k : Fin P.nVertices,
+        ((spokeInterior P q k S).card : ℚ) = (edgeGcd q (P.vertex k) : ℚ) - 1)
+    (hBear :
+      ∀ i : Fin P.nVertices,
+        ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) =
+          (edgeGcd q (P.vertex i) : ℚ) +
+            (edgeGcd q (P.vertex (P.nextIdx i)) : ℚ) + 1) :
+    (∑ i : Fin P.nVertices,
+        (((earOffInterior P q i S).card : ℚ) +
+          ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 -
+            1)) =
+      (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hBn : (P.B : ℚ) = (P.nVertices : ℚ) := by
+    have := B_eq_nVertices_of_primitive_edges P hedge hinj
+    exact_mod_cast this
+  have hsumB :
+      (∑ i : Fin P.nVertices,
+          ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ)) =
+        2 * (∑ k : Fin P.nVertices, (edgeGcd q (P.vertex k) : ℚ)) +
+          (P.nVertices : ℚ) := by
+    calc
+      (∑ i, ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ))
+          = ∑ i, ((edgeGcd q (P.vertex i) : ℚ) +
+              (edgeGcd q (P.vertex (P.nextIdx i)) : ℚ) + 1) := by
+            simp only [hBear]
+      _ = (∑ i, (edgeGcd q (P.vertex i) : ℚ)) +
+            (∑ i, (edgeGcd q (P.vertex (P.nextIdx i)) : ℚ)) +
+            (∑ _i : Fin P.nVertices, (1 : ℚ)) := by
+          simp [Finset.sum_add_distrib]
+      _ = 2 * (∑ k, (edgeGcd q (P.vertex k) : ℚ)) + (P.nVertices : ℚ) := by
+          have hreindex :
+              (∑ i : Fin P.nVertices, (edgeGcd q (P.vertex (P.nextIdx i)) : ℚ)) =
+                ∑ i : Fin P.nVertices, (edgeGcd q (P.vertex i) : ℚ) :=
+            Function.Bijective.sum_comp (nextIdx_bijective P)
+              (fun i => (edgeGcd q (P.vertex i) : ℚ))
+          have hones : (∑ _i : Fin P.nVertices, (1 : ℚ)) = (P.nVertices : ℚ) := by
+            simp [Finset.sum_const, nsmul_eq_mul, Fintype.card_fin]
+          rw [hreindex, hones]; ring
+  have hsumSpoke :
+      (∑ k : Fin P.nVertices, ((spokeInterior P q k S).card : ℚ)) =
+        (∑ k : Fin P.nVertices, (edgeGcd q (P.vertex k) : ℚ)) -
+          (P.nVertices : ℚ) := by
+    have : ∑ k, ((spokeInterior P q k S).card : ℚ) =
+        ∑ k, ((edgeGcd q (P.vertex k) : ℚ) - 1) := by
+      simp only [hspoke]
+    rw [this, Finset.sum_sub_distrib]
+    simp [Finset.sum_const, nsmul_eq_mul, Fintype.card_fin]
+  calc
+    (∑ i, (((earOffInterior P q i S).card : ℚ) +
+        ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1))
+        = (∑ i, ((earOffInterior P q i S).card : ℚ)) +
+            (∑ i, ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) /
+              2) -
+            (∑ _i : Fin P.nVertices, (1 : ℚ)) := by
+          simp [Finset.sum_add_distrib, Finset.sum_sub_distrib]
+    _ = (∑ i, ((earOffInterior P q i S).card : ℚ)) +
+            (∑ i, ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ)) /
+              2 -
+            (P.nVertices : ℚ) := by
+          rw [← Finset.sum_div]
+          simp [Finset.sum_const, nsmul_eq_mul, Fintype.card_fin]
+    _ = (∑ i, ((earOffInterior P q i S).card : ℚ)) +
+            (2 * (∑ k, (edgeGcd q (P.vertex k) : ℚ)) + (P.nVertices : ℚ)) / 2 -
+            (P.nVertices : ℚ) := by rw [hsumB]
+    _ = (∑ i, ((earOffInterior P q i S).card : ℚ)) +
+            (∑ k, (edgeGcd q (P.vertex k) : ℚ)) + (P.nVertices : ℚ) / 2 -
+            (P.nVertices : ℚ) := by ring
+    _ = (∑ i, ((earOffInterior P q i S).card : ℚ)) +
+            ((∑ k, ((spokeInterior P q k S).card : ℚ)) + (P.nVertices : ℚ)) +
+            (P.nVertices : ℚ) / 2 - (P.nVertices : ℚ) := by
+          have : (∑ k, (edgeGcd q (P.vertex k) : ℚ)) =
+              (∑ k, ((spokeInterior P q k S).card : ℚ)) + (P.nVertices : ℚ) := by
+            linarith [hsumSpoke]
+          rw [this]
+    _ = (S.card : ℚ) - 1 + (P.nVertices : ℚ) / 2 := by
+          have : (∑ i, ((earOffInterior P q i S).card : ℚ)) +
+              (∑ k, ((spokeInterior P q k S).card : ℚ)) = (S.card : ℚ) - 1 := by
+            linarith [hpart]
+          linarith
+    _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+          rw [hBn]; ring
+
+/-- **Conditional hbook** from geometric ear B + partition + spoke cards
+(not classical Pick). -/
+theorem hbook_of_fan_ear_partition
+    (S : Finset (ℤ × ℤ)) (q : ℤ × ℤ)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) (hq : q ∈ P.interiorLatticePoints)
+    (hpart :
+      (S.card : ℚ) =
+        1 + (∑ i : Fin P.nVertices, ((earOffInterior P q i S).card : ℚ)) +
+          (∑ k : Fin P.nVertices, ((spokeInterior P q k S).card : ℚ)))
+    (hspoke :
+      ∀ k : Fin P.nVertices,
+        ((spokeInterior P q k S).card : ℚ) = (edgeGcd q (P.vertex k) : ℚ) - 1) :
+    (∑ i : Fin P.nVertices,
+        (((earOffInterior P q i S).card : ℚ) +
+          ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 -
+            1)) =
+      (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  refine hbook_of_partition_and_spokeGcd P S q hedge hinj hpart hspoke ?_
+  intro i
+  have hB := B_trianglePolygon_ear_of_primitive_base P hsc hinj hedge q hq i
+  have hcomm : edgeGcd (P.vertex (P.nextIdx i)) q = edgeGcd q (P.vertex (P.nextIdx i)) :=
+    edgeGcd_comm _ _
+  calc
+    ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ)
+        = (edgeGcd q (P.vertex i) + edgeGcd (P.vertex (P.nextIdx i)) q + 1 : ℕ) := by
+          exact_mod_cast hB
+    _ = (edgeGcd q (P.vertex i) : ℚ) + (edgeGcd (P.vertex (P.nextIdx i)) q : ℚ) + 1 := by
+          push_cast; rfl
+    _ = (edgeGcd q (P.vertex i) : ℚ) + (edgeGcd q (P.vertex (P.nextIdx i)) : ℚ) + 1 := by
+          rw [hcomm]
 
 end InteriorFan
 end LatticeFan

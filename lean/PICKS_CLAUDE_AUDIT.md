@@ -1547,3 +1547,48 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (hbook B-arithmetic substrate; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma cross_eq_zero_of_cross_eq_zero_both
+lemma eq_of_mem_edgeLatticePoints_ab_bc
+lemma eq_of_mem_edgeLatticePoints_bc_ca
+lemma eq_of_mem_edgeLatticePoints_ca_ab
+lemma boundaryLatticePoints_trianglePolygon
+lemma edgeLatticePoints_ab_inter_bc / bc_inter_ca / ca_inter_ab
+theorem B_trianglePolygon_eq_sum_edgeGcd
+    -- nondeg triangle: B = edgeGcd(ab)+edgeGcd(bc)+edgeGcd(ca)
+theorem B_trianglePolygon_ear_of_primitive_base
+    -- parent PrimitiveEdges ⇒ ear B = gcd(q,vᵢ)+gcd(vᵢ₊₁,q)+1
+theorem hbook_of_partition_and_spokeGcd
+    -- pure ℚ: partition + spoke cards = gcd−1 + ear B formula ⇒ hbook
+theorem hbook_of_fan_ear_partition
+    -- geometric: discharges ear B from PrimitiveEdges + InteriorFanDetsPos
+```
+
+Results exports: `results_B_trianglePolygon_eq_sum_edgeGcd`,
+`results_B_trianglePolygon_ear_of_primitive_base`,
+`results_hbook_of_partition_and_spokeGcd`,
+`results_hbook_of_fan_ear_partition`.
+
+**Prize progress:** Triangle B-arithmetic and conditional hbook identity green.
+Still **not** classical Pick: discharge `hpart` (earOff⊔spoke partition of `S\\{q}`)
+and `hspoke` (`#(spokeInterior)=edgeGcd−1`); ear IH for general I / I=4;
+Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Conditional fan-ear IH Pick-form | Green (hyps: ear IH + hbook) |
+| Triangle `B = ∑ edgeGcd` | **Green** |
+| Ear B under parent PrimitiveEdges | **Green** |
+| Conditional hbook (partition + spoke gcd cards) | **Green** |
+| Discharge partition / spoke cards | Open |
+| I=4 geometric Finset Pick-form | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

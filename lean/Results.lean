@@ -1887,6 +1887,89 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
     P S hS q hq hverts hedge hsc hIH hbook
 
+
+/-! ### hbook B-arithmetic substrate (not classical Pick) -/
+
+/-- **Triangle B = sum of edge gcds** (not classical Pick). -/
+theorem results_B_trianglePolygon_eq_sum_edgeGcd
+    (a b c : ℤ × ℤ) (hne : EulersGem.Picks.LatticeTriangle.latticeDet a b c ≠ 0) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B =
+      EulersGem.Picks.LatticeTriangle.edgeGcd a b + EulersGem.Picks.LatticeTriangle.edgeGcd b c +
+        EulersGem.Picks.LatticeTriangle.edgeGcd c a :=
+  EulersGem.Picks.LatticeFan.InteriorFan.B_trianglePolygon_eq_sum_edgeGcd a b c hne
+
+/-- Ear triangle B under parent `PrimitiveEdges` (not classical Pick). -/
+theorem results_B_trianglePolygon_ear_of_primitive_base
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (q : ℤ × ℤ) (hq : q ∈ P.interiorLatticePoints) (i : Fin P.nVertices) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        q (P.vertex i) (P.vertex (P.nextIdx i))).B =
+      EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex i) +
+        EulersGem.Picks.LatticeTriangle.edgeGcd (P.vertex (P.nextIdx i)) q + 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.B_trianglePolygon_ear_of_primitive_base
+    P hsc hinj hedge q hq i
+
+/-- Pure ℚ hbook identity from partition + spoke-gcd cards + ear B formula
+(not classical Pick). -/
+theorem results_hbook_of_partition_and_spokeGcd
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ)) (q : ℤ × ℤ)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hinj : Function.Injective P.vertex)
+    (hpart :
+      (S.card : ℚ) =
+        1 + (∑ i : Fin P.nVertices,
+              ((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ)) +
+          (∑ k : Fin P.nVertices,
+              ((EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S).card : ℚ)))
+    (hspoke :
+      ∀ k : Fin P.nVertices,
+        ((EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S).card : ℚ) =
+          (EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) : ℚ) - 1)
+    (hBear :
+      ∀ i : Fin P.nVertices,
+        ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) =
+          (EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex i) : ℚ) +
+            (EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex (P.nextIdx i)) : ℚ) + 1) :
+    (∑ i : Fin P.nVertices,
+        (((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+          ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+      (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.hbook_of_partition_and_spokeGcd
+    P S q hedge hinj hpart hspoke hBear
+
+/-- **Conditional geometric hbook** from ear B + partition + spoke cards
+(not classical Pick). Discharge of `hpart` / `hspoke` still open. -/
+theorem results_hbook_of_fan_ear_partition
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ)) (q : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hq : q ∈ P.interiorLatticePoints)
+    (hpart :
+      (S.card : ℚ) =
+        1 + (∑ i : Fin P.nVertices,
+              ((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ)) +
+          (∑ k : Fin P.nVertices,
+              ((EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S).card : ℚ)))
+    (hspoke :
+      ∀ k : Fin P.nVertices,
+        ((EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S).card : ℚ) =
+          (EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) : ℚ) - 1) :
+    (∑ i : Fin P.nVertices,
+        (((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+          ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+            q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1)) =
+      (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.hbook_of_fan_ear_partition
+    P S q hsc hinj hedge hq hpart hspoke
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane
