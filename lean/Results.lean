@@ -9,6 +9,10 @@ import EulersGem.EulerPoincare
 import EulersGem.ConeSlice
 import EulersGem.Embed
 import EulersGem.Platonic
+import EulersGem.PlatonicOfEuler
+import EulersGem.PolytopeFaces
+import EulersGem.SimplexFaces
+import EulersGem.GeometricPlatonic
 import EulersGem.Picks
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
@@ -389,5 +393,153 @@ theorem results_euler_relation_convex_3polytope
       ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 1}.ncard : ℤ) +
       ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 2}.ncard : ℤ) = 2 :=
   EulersGem.euler_relation_convex_3polytope hH hp hP hdim hE
+
+/-! ## Geometric Platonic on the Euler–Poincaré spine
+
+Unlike `results_platonic_schlafli_classification` above (which takes Euler as a bare `ℤ`
+hypothesis), the theorems in this section obtain `V − E + F = 2` from
+`EulersGem.Euler_Poincare_full` via `euler_relation_convex_3polytope`, and prove the
+double-counting identities from face-lattice incidence. Statements use the `EulersGem`
+polytope/face API that Mathlib lacks (see `MATHLIB_SURVEY.md`).
+
+Honesty: `results_platonic_schlafli_geometric` still assumes two *polytope facts* as
+incidence hypotheses — every edge lies in two 2-faces, every edge has two 0-faces — on top
+of the genuine regularity hypotheses. Both are **proved** for the geometric tetrahedron in
+`results_tetrahedron_platonic`, so the hypotheses are not vacuous. Four of the five solids
+still have no geometric construction. See `PLATONIC_CLAUDE_AUDIT.md`.
+-/
+
+/-- A polytope has finitely many faces (`F ↦ V ∩ F` is injective on faces). -/
+theorem results_polytope_faces_finite
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    {p : Set E} (hP : EulersGem.IsPolytope p) :
+    {f : Set E | EulersGem.IsFaceOf p f}.Finite :=
+  EulersGem.faces_finite_of_isPolytope hP
+
+/-- A face of a V-polytope is the convex hull of the generators it contains. -/
+theorem results_face_eq_convexHull_inter
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    {V F : Set E} (hF : EulersGem.IsFaceOf (convexHull ℝ V) F) :
+    F = convexHull ℝ (V ∩ F) :=
+  EulersGem.face_eq_convexHull_inter hF
+
+/-- **Platonic count equations for a geometric regular convex 3-polytope, Euler from EP.**
+`s·F = 2·E` and `m·V = 2·E` are proved by double counting over face incidence; `V − E + F = 2`
+is discharged from `euler_relation_convex_3polytope`. No bare Euler hypothesis. -/
+theorem results_platonic_counts_geometric
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    {H : Set (EulersGem.Hyperplane E)} {p : Set E} {s m : ℕ}
+    (hH : H.Finite)
+    (hp : p = ⋂ h ∈ H, EulersGem.closedHalfspace h.1 h.2)
+    (hP : EulersGem.IsPolytope p)
+    (hdim : EulersGem.affDim p = 3)
+    (hEdim : Module.finrank ℝ E = 3)
+    (hface_edges : ∀ f ∈ EulersGem.Platonic.facesOfDim p 2,
+      {e ∈ EulersGem.Platonic.facesOfDim p 1 | e ⊆ f}.ncard = s)
+    (hedge_faces : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
+      {f ∈ EulersGem.Platonic.facesOfDim p 2 | e ⊆ f}.ncard = 2)
+    (hvert_edges : ∀ v ∈ EulersGem.Platonic.facesOfDim p 0,
+      {e ∈ EulersGem.Platonic.facesOfDim p 1 | v ⊆ e}.ncard = m)
+    (hedge_verts : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
+      {v ∈ EulersGem.Platonic.facesOfDim p 0 | v ⊆ e}.ncard = 2) :
+    s * (EulersGem.Platonic.facesOfDim p 2).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim p 1).ncard ∧
+      m * (EulersGem.Platonic.facesOfDim p 0).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim p 1).ncard ∧
+      ((EulersGem.Platonic.facesOfDim p 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim p 1).ncard
+        + (EulersGem.Platonic.facesOfDim p 2).ncard = 2 :=
+  EulersGem.Platonic.regular_polytope_counts hH hp hP hdim hEdim
+    hface_edges hedge_faces hvert_edges hedge_verts
+
+/-- **Schläfli classification with Euler discharged from Euler–Poincaré.**
+A combinatorially regular convex 3-polytope (every 2-face an `s`-gon, `m` edges at each
+vertex, `s,m ≥ 3`) has `(s,m)` among the five classical pairs — and Euler's relation is
+*not* assumed here, it comes from `Euler_Poincare_full`. `0 < E` is derived too.
+
+Not a claim about metrically regular solids, and not a classification of geometric solids:
+see `PLATONIC_CLAUDE_AUDIT.md`. -/
+theorem results_platonic_schlafli_geometric
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    {H : Set (EulersGem.Hyperplane E)} {p : Set E} {s m : ℕ}
+    (hH : H.Finite)
+    (hp : p = ⋂ h ∈ H, EulersGem.closedHalfspace h.1 h.2)
+    (hP : EulersGem.IsPolytope p)
+    (hdim : EulersGem.affDim p = 3)
+    (hEdim : Module.finrank ℝ E = 3)
+    (hs : 3 ≤ s) (hm : 3 ≤ m)
+    (hface_edges : ∀ f ∈ EulersGem.Platonic.facesOfDim p 2,
+      {e ∈ EulersGem.Platonic.facesOfDim p 1 | e ⊆ f}.ncard = s)
+    (hedge_faces : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
+      {f ∈ EulersGem.Platonic.facesOfDim p 2 | e ⊆ f}.ncard = 2)
+    (hvert_edges : ∀ v ∈ EulersGem.Platonic.facesOfDim p 0,
+      {e ∈ EulersGem.Platonic.facesOfDim p 1 | v ⊆ e}.ncard = m)
+    (hedge_verts : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
+      {v ∈ EulersGem.Platonic.facesOfDim p 0 | v ⊆ e}.ncard = 2) :
+    (s, m) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
+  simpa [EulersGem.Platonic.schlafliPairs] using
+    EulersGem.Platonic.schlafli_pair_mem_of_regular_polytope hH hp hP hdim hEdim hs hm
+      hface_edges hedge_faces hvert_edges hedge_verts
+
+/-! ### The geometric tetrahedron
+
+`EulersGem.Simplex.body b` is the convex hull of the four affinely independent points of an
+affine basis `b : AffineBasis (Fin 4) ℝ E` — i.e. an arbitrary geometric tetrahedron in an
+arbitrary 3-dimensional real inner product space. Its face lattice is computed in
+`SimplexFaces.lean`, so all hypotheses below are discharged.
+-/
+
+/-- **Geometric tetrahedron face counts: `V = 4`, `E = 6`, `F = 4`.**
+These count geometric faces (`IsFaceOf` + `affDim`), computed from the simplex face lattice. -/
+theorem results_tetrahedron_face_counts
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    (b : AffineBasis (Fin 4) ℝ E) :
+    (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 0).ncard = 4 ∧
+      (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 1).ncard = 6 ∧
+      (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 2).ncard = 4 :=
+  EulersGem.Simplex.tetrahedron_face_counts b
+
+/-- **`V − E + F = 2` for a geometric tetrahedron, from Euler–Poincaré.**
+Discharged: no Euler hypothesis, no assumed face counts, no assumed incidence. -/
+theorem results_tetrahedron_euler_relation
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    (b : AffineBasis (Fin 4) ℝ E) (hE : Module.finrank ℝ E = 3) :
+    ((EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 2).ncard = 2 :=
+  EulersGem.Simplex.tetrahedron_euler_relation b hE
+
+/-- **A geometric tetrahedron is Platonic `{3,3}` on the Euler–Poincaré spine.**
+Double-counting identities from face incidence, Euler from `Euler_Poincare_full`, and
+`(3,3)` among the five Schläfli pairs. Every hypothesis of the general classification is
+discharged for this solid, which is what makes those hypotheses non-vacuous. -/
+theorem results_tetrahedron_platonic
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    (b : AffineBasis (Fin 4) ℝ E) (hE : Module.finrank ℝ E = 3) :
+    3 * (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 2).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 1).ncard ∧
+      3 * (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 0).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 1).ncard ∧
+      ((EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 2).ncard = 2 ∧
+      ((3 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
+  obtain ⟨h1, h2, h3, h4⟩ := EulersGem.Simplex.tetrahedron_platonic b hE
+  refine ⟨h1, h2, h3, ?_⟩
+  simpa [EulersGem.Platonic.schlafliPairs] using h4
+
+/-- Every 3-dimensional real inner product space contains a geometric tetrahedron, so the
+statements above are not about an empty class. -/
+theorem results_exists_tetrahedron
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] (hE : Module.finrank ℝ E = 3) :
+    Nonempty (AffineBasis (Fin 4) ℝ E) :=
+  EulersGem.Simplex.exists_tetrahedron hE
+
 
 end Results
