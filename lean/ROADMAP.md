@@ -14,9 +14,10 @@
 7. **Phase B (#1535) in progress:** combinatorial Platonic classification + five Schläfli
    constructions done; Pick on **EP spine** — count identities + lattice polygon I/B +
    `|det|=1` emptiness + witness-conditional shoelace Pick-form + combinatorial handshaking +
-   unit-square witness↔disk with planar Euler discharged + fan existence for `n≤5`
-   (not classical Pick). Still open: general triangulation existence, general EP→planar
-   from `Euler_Poincare_full`, Haar/shoelace=measure. See `PHASE_B_PLAN.md`,
+   unit-square witness↔disk with planar Euler discharged + fan existence for all `n≥3`
+   + geometric fan shoelace / empty-interior Pick-form under primitivity hyps
+   (not classical Pick). Still open: `empty⇒|det|=1`, general triangulation existence,
+   general EP→planar from `Euler_Poincare_full`, Haar/shoelace=measure. See `PHASE_B_PLAN.md`,
    `PICKS_CLAUDE_AUDIT.md`. Platonic geometric regularity: separate lane.
 
 Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
