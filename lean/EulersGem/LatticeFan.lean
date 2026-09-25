@@ -6,6 +6,7 @@ Authors: Michal Wallace, Grok Bot
 import Mathlib.Tactic
 import Mathlib.Data.Rat.Defs
 import Mathlib.Analysis.Convex.Combination
+import Mathlib.Analysis.Convex.Segment
 import EulersGem.LatticeTriangle
 import EulersGem.LatticeTriangleEmpty
 import EulersGem.LatticePolygon
@@ -22,7 +23,7 @@ primitivity / primitive edges.
 * `FanTrianglesEmpty` from polygon `I=∅` + primitive edges + extreme vertices.
 * `VerticesExtreme` discharged from `StrictlyConvexCCW` (edge half-planes + local CCW turns).
 * Shoelace ≠ Haar/Lebesgue.
-* Consistent orientation is a hyp (`FanDetsPos`) or follows from CCW convexity for nonnegativity.
+* `FanDetsPos` discharged from `StrictlyConvexCCW` + injective vertices (nonneg from `ConvexCCW`; ≠0 via extremality).
 * General lattice-polygon triangulation existence still open.
 * See `PICKS_CLAUDE_AUDIT.md`.
 -/
@@ -863,16 +864,179 @@ theorem FanDetsNonneg_of_ConvexCCW (h : ConvexCCW P) : FanDetsNonneg P := by
   -- fanDet = Triangle.det = latticeDet a b c
   simpa [fanDet, fanTriangle, Triangle.det, hcyc] using hge
 
-/-- Empty-interior shoelace Pick-form with `VerticesExtreme` discharged from
-`StrictlyConvexCCW` (not classical Pick). -/
+/-! ## Discharge `FanDetsPos` from strict CCW convexity -/
+
+/-- Three distinct collinear points in `ℝ × ℝ`: one lies on the segment of the other two. -/
+lemma exists_mem_segment_of_detR_eq_zero
+    (A B C : ℝ × ℝ) (hAB : A ≠ B) (hAC : A ≠ C) (hBC : B ≠ C)
+    (hdet : detR A B C = 0) :
+    C ∈ segment ℝ A B ∨ A ∈ segment ℝ B C ∨ B ∈ segment ℝ A C := by
+  set u : ℝ × ℝ := B - A
+  have hu : u ≠ 0 := sub_ne_zero.mpr hAB.symm
+  have hcross : u.1 * (C - A).2 - u.2 * (C - A).1 = 0 := by
+    change (B.1 - A.1) * (C.2 - A.2) - (B.2 - A.2) * (C.1 - A.1) = 0 at hdet
+    simpa [u, Prod.sub_def] using hdet
+  obtain ⟨t, ht⟩ := exists_smul_of_cross_eq_zero u (C - A) hu hcross
+  have hC : C = (1 - t) • A + t • B := by
+    calc
+      C = A + (C - A) := by abel
+      _ = A + t • u := by rw [ht]
+      _ = A + t • (B - A) := by rfl
+      _ = A + (t • B - t • A) := by rw [smul_sub]
+      _ = (1 - t) • A + t • B := by module
+  rcases le_total 0 t with ht0 | ht0
+  · rcases le_total t 1 with ht1 | ht1
+    · exact Or.inl ⟨1 - t, t, by linarith, ht0, by ring, hC.symm⟩
+    · have htne : t ≠ 1 := by
+        intro h
+        apply hBC
+        calc B = (1 - t) • A + t • B := by simp [h]
+             _ = C := hC.symm
+      have htgt : 1 < t := lt_of_le_of_ne ht1 htne.symm
+      have htpos : 0 < t := by linarith
+      have hinv_pos : 0 < t⁻¹ := inv_pos.mpr htpos
+      have hB : B = (1 - t⁻¹) • A + t⁻¹ • C := by
+        have hCA : C - A = t • (B - A) := by simpa [u] using ht
+        have hscale : B - A = t⁻¹ • (C - A) := by
+          rw [hCA, smul_smul, inv_mul_cancel₀ (ne_of_gt htpos), one_smul]
+        calc
+          B = A + (B - A) := by abel
+          _ = A + t⁻¹ • (C - A) := by rw [hscale]
+          _ = A + (t⁻¹ • C - t⁻¹ • A) := by rw [smul_sub]
+          _ = (1 - t⁻¹) • A + t⁻¹ • C := by module
+      refine Or.inr (Or.inr ⟨1 - t⁻¹, t⁻¹, ?_, le_of_lt hinv_pos, by ring, hB.symm⟩)
+      have : t⁻¹ ≤ 1 := inv_le_one_of_one_le₀ (le_of_lt htgt)
+      linarith
+  · have htne : t ≠ 0 := by
+      intro h
+      apply hAC
+      calc A = (1 - t) • A + t • B := by simp [h]
+           _ = C := hC.symm
+    have htlt : t < 0 := lt_of_le_of_ne ht0 htne
+    have h1t : 0 < 1 - t := by linarith
+    have hne : (1 - t : ℝ) ≠ 0 := ne_of_gt h1t
+    set aB : ℝ := -t / (1 - t)
+    set aC : ℝ := (1 - t)⁻¹
+    have haB0 : 0 ≤ aB :=
+      div_nonneg (neg_nonneg.mpr (le_of_lt htlt)) (le_of_lt h1t)
+    have haC0 : 0 ≤ aC := inv_nonneg.mpr (le_of_lt h1t)
+    have hsum : aB + aC = 1 := by
+      dsimp [aB, aC]; field_simp; ring
+    have hlhs : (1 - t) • A = C - t • B := by
+      have hx := congrArg (fun z : ℝ × ℝ => z - t • B) hC
+      -- C - t•B = ((1-t)•A + t•B) - t•B
+      simpa [sub_eq_add_neg, add_assoc, add_left_comm, add_comm] using hx.symm
+    have hcoef : (1 - t)⁻¹ * t = -aB := by
+      dsimp [aB]; field_simp
+    have hA : A = aB • B + aC • C := by
+      have h1 : A = (1 - t)⁻¹ • ((1 - t) • A) := by
+        rw [smul_smul, inv_mul_cancel₀ hne, one_smul]
+      have h2 : (1 - t)⁻¹ • ((1 - t) • A) = (1 - t)⁻¹ • (C - t • B) := by rw [hlhs]
+      have h3 : (1 - t)⁻¹ • (C - t • B) =
+          (1 - t)⁻¹ • C - ((1 - t)⁻¹ * t) • B := by
+        rw [smul_sub, smul_smul]
+      have h4 : (1 - t)⁻¹ • C - ((1 - t)⁻¹ * t) • B = aB • B + aC • C := by
+        dsimp [aC]
+        rw [hcoef, sub_eq_add_neg, neg_smul, neg_neg]
+        abel
+      calc
+        A = (1 - t)⁻¹ • ((1 - t) • A) := h1
+        _ = (1 - t)⁻¹ • (C - t • B) := h2
+        _ = (1 - t)⁻¹ • C - ((1 - t)⁻¹ * t) • B := h3
+        _ = aB • B + aC • C := h4
+    exact Or.inr (Or.inl ⟨aB, aC, haB0, haC0, hsum, hA.symm⟩)
+
+/-- Distinct collinear listed vertices contradict `VerticesExtreme`. -/
+theorem not_collinear_of_VerticesExtreme
+    (hext : VerticesExtreme P) (hinj : Function.Injective P.vertex)
+    (i j k : Fin P.nVertices)
+    (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k)
+    (hdet : latticeDet (P.vertex i) (P.vertex j) (P.vertex k) = 0) :
+    False := by
+  classical
+  set A := toReal (P.vertex i)
+  set B := toReal (P.vertex j)
+  set C := toReal (P.vertex k)
+  have hAB : A ≠ B := fun h => hij (hinj (toReal_injective h))
+  have hAC : A ≠ C := fun h => hik (hinj (toReal_injective h))
+  have hBC : B ≠ C := fun h => hjk (hinj (toReal_injective h))
+  have hdetR : detR A B C = 0 := by
+    simpa [A, B, C, detR_toReal] using congrArg (fun z : ℤ => (z : ℝ)) hdet
+  have hmem := exists_mem_segment_of_detR_eq_zero A B C hAB hAC hBC hdetR
+  have hvi : P.vertex i ∈ P.vertexFinset := by
+    rw [vertexFinset_eq_univ_image]; exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+  have hvj : P.vertex j ∈ P.vertexFinset := by
+    rw [vertexFinset_eq_univ_image]; exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+  have hvk : P.vertex k ∈ P.vertexFinset := by
+    rw [vertexFinset_eq_univ_image]; exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+  have hvi_ne_k : P.vertex i ≠ P.vertex k := fun h => hik (hinj h)
+  have hvj_ne_k : P.vertex j ≠ P.vertex k := fun h => hjk (hinj h)
+  have hvi_ne_j : P.vertex i ≠ P.vertex j := fun h => hij (hinj h)
+  rcases hmem with hC | hA | hB
+  · have hpair : C ∈ convexHull ℝ ({A, B} : Set (ℝ × ℝ)) := by
+      simpa [convexHull_pair] using hC
+    have hsub : ({A, B} : Set (ℝ × ℝ)) ⊆
+        toReal '' ((P.vertexFinset.erase (P.vertex k) : Set (ℤ × ℤ))) := by
+      intro x hx
+      simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+      rcases hx with rfl | rfl
+      · exact Set.mem_image_of_mem _ (Finset.mem_erase.mpr ⟨hvi_ne_k, hvi⟩)
+      · exact Set.mem_image_of_mem _ (Finset.mem_erase.mpr ⟨hvj_ne_k, hvj⟩)
+    exact hext k (convexHull_mono hsub hpair)
+  · have hpair : A ∈ convexHull ℝ ({B, C} : Set (ℝ × ℝ)) := by
+      simpa [convexHull_pair] using hA
+    have hsub : ({B, C} : Set (ℝ × ℝ)) ⊆
+        toReal '' ((P.vertexFinset.erase (P.vertex i) : Set (ℤ × ℤ))) := by
+      intro x hx
+      simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+      rcases hx with rfl | rfl
+      · exact Set.mem_image_of_mem _ (Finset.mem_erase.mpr ⟨hvi_ne_j.symm, hvj⟩)
+      · exact Set.mem_image_of_mem _ (Finset.mem_erase.mpr ⟨hvi_ne_k.symm, hvk⟩)
+    exact hext i (convexHull_mono hsub hpair)
+  · have hpair : B ∈ convexHull ℝ ({A, C} : Set (ℝ × ℝ)) := by
+      simpa [convexHull_pair] using hB
+    have hsub : ({A, C} : Set (ℝ × ℝ)) ⊆
+        toReal '' ((P.vertexFinset.erase (P.vertex j) : Set (ℤ × ℤ))) := by
+      intro x hx
+      simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+      rcases hx with rfl | rfl
+      · exact Set.mem_image_of_mem _ (Finset.mem_erase.mpr ⟨hvi_ne_j, hvi⟩)
+      · exact Set.mem_image_of_mem _ (Finset.mem_erase.mpr ⟨hvj_ne_k.symm, hvk⟩)
+    exact hext j (convexHull_mono hsub hpair)
+
+/-- **Discharge:** strict CCW convexity + injective vertices ⇒ positively oriented fan. -/
+theorem FanDetsPos_of_strictlyConvexCCW
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex) :
+    FanDetsPos P := by
+  intro i hi
+  have hnn := FanDetsNonneg_of_ConvexCCW P hsc.1 i hi
+  refine lt_of_le_of_ne hnn ?_
+  intro h0
+  have hidx1 : i + 1 < P.nVertices := by have := P.length_ge; omega
+  have hidx2 : i + 2 < P.nVertices := by have := P.length_ge; omega
+  have hdet : latticeDet (P.vertex ⟨0, P.nVertices_pos⟩)
+      (P.vertex ⟨i + 1, hidx1⟩) (P.vertex ⟨i + 2, hidx2⟩) = 0 := by
+    simpa [fanDet, fanTriangle, Triangle.det] using h0.symm
+  have hij : (⟨0, P.nVertices_pos⟩ : Fin P.nVertices) ≠ ⟨i + 1, hidx1⟩ := by
+    intro h; exact (by omega : (0 : ℕ) ≠ i + 1) (congrArg Fin.val h)
+  have hik : (⟨0, P.nVertices_pos⟩ : Fin P.nVertices) ≠ ⟨i + 2, hidx2⟩ := by
+    intro h; exact (by omega : (0 : ℕ) ≠ i + 2) (congrArg Fin.val h)
+  have hjk : (⟨i + 1, hidx1⟩ : Fin P.nVertices) ≠ ⟨i + 2, hidx2⟩ := by
+    intro h; exact (by omega : i + 1 ≠ i + 2) (congrArg Fin.val h)
+  exact not_collinear_of_VerticesExtreme P
+    (VerticesExtreme_of_strictlyConvexCCW P hsc hinj) hinj
+    ⟨0, P.nVertices_pos⟩ ⟨i + 1, hidx1⟩ ⟨i + 2, hidx2⟩ hij hik hjk hdet
+
+/-- Empty-interior shoelace Pick-form with `VerticesExtreme` and `FanDetsPos`
+discharged from `StrictlyConvexCCW` (not classical Pick). -/
 theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
     (hverts : Function.Injective P.vertex)
     (hedge : PrimitiveEdges P)
-    (hpos : FanDetsPos P)
     (hI : EmptyInterior P)
     (hsc : StrictlyConvexCCW P) :
     P.shoelace = (P.B : ℚ) / 2 - 1 :=
-  shoelace_eq_B_div_two_sub_one_of_empty_interior P hverts hedge hpos hI
+  shoelace_eq_B_div_two_sub_one_of_empty_interior P hverts hedge
+    (FanDetsPos_of_strictlyConvexCCW P hsc hverts) hI
     (VerticesExtreme_of_strictlyConvexCCW P hsc hverts)
 
 

@@ -61,6 +61,7 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
   - [x] Nondegenerate empty closed triangle ⇒ `|det|=1` (`LatticeTriangleEmpty.lean`); `FanDetPrimitive` from empty fan ears + `FanDetsPos`
   - [x] `FanTrianglesEmpty` from polygon `I=∅` + primitive edges + `VerticesExtreme` (`LatticeFan.lean`; not classical Pick)
   - [x] Discharge `VerticesExtreme` from `StrictlyConvexCCW` (`LatticeFan.lean`; not classical Pick)
-  - [ ] Triangulation existence without emptiness hyp; discharge `FanDetsPos` from strict convexity
+  - [x] Discharge `FanDetsPos` from `StrictlyConvexCCW` + injective vertices (`FanDetsPos_of_strictlyConvexCCW`)
+  - [ ] Triangulation existence without emptiness hyp; I>0 / ear-clipping / Haar
   - [ ] Discharge `hEuler_planar` from `Euler_Poincare_full` for general planar disks
   - [ ] Shoelace = Haar/Lebesgue; Claude audit PASS before any Pick-named Results claim

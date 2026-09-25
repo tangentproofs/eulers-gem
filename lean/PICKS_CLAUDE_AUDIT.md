@@ -435,3 +435,46 @@ existence; EP→planar open. Claude Cube / Octahedron / Platonic / Embed untouch
 | Discharge `FanDetsPos` from strict convexity | Open (nonneg from `ConvexCCW`) |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (FanDetsPos from StrictlyConvexCCW; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFan.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma exists_mem_segment_of_detR_eq_zero
+    (A B C : ℝ × ℝ) (A ≠ B) (A ≠ C) (B ≠ C) (detR A B C = 0) :
+    C ∈ segment ℝ A B ∨ A ∈ segment ℝ B C ∨ B ∈ segment ℝ A C
+
+theorem not_collinear_of_VerticesExtreme
+    (VerticesExtreme P) (Injective P.vertex) (i j k) (distinct) (latticeDet = 0) :
+    False
+
+theorem FanDetsPos_of_strictlyConvexCCW
+    (StrictlyConvexCCW P) (Injective P.vertex) :
+    FanDetsPos P
+
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
+    (Injective P.vertex) (PrimitiveEdges P)
+    (EmptyInterior P) (StrictlyConvexCCW P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_FanDetsPos_of_strictlyConvexCCW`,
+`results_shoelace_eq_B_div_two_sub_one_of_empty_interior_convex` (no `FanDetsPos` hyp).
+
+**Prize progress:** `FanDetsPos` discharged from `StrictlyConvexCCW` + injective
+vertices: nonnegativity from `ConvexCCW`; vanishing would make a fan triple collinear,
+hence one vertex lies on the segment of the other two, contradicting `VerticesExtreme`
+(already discharged from the same convexity predicate). Empty-interior Pick-form now
+takes only injective vertices + primitive edges + empty interior + `StrictlyConvexCCW`.
+Still **not** classical Pick: Haar/Lebesgue equality; general triangulation existence;
+EP→planar open. Claude Cube / Octahedron / Platonic / Embed / EdgeVertices untouched
+in this commit.
+
+| Item | Status |
+|------|--------|
+| Discharge `VerticesExtreme` from `StrictlyConvexCCW` | Green |
+| Discharge `FanDetsPos` from `StrictlyConvexCCW` + injective | **Green** |
+| Empty-interior shoelace with both discharged | **Green** |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
