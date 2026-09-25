@@ -2205,3 +2205,178 @@ Results exports: `results_pairwise_AEDisjoint_fanTriangleRegion`,
 
 Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 Classical Pick **FAIL** — no rename.
+
+## Gate audit 2026-09-25 (tip `a3942b9`) — statement vs classical Pick
+
+**Auditor:** careful Lean reading of `LatticeArea` / `InteriorFan` / `Results`
+(Claude CLI in tmux `eulers` was occupied on a different lane; second-opinion
+interactive pass deferred). Standing policy: do **not** rename Results to
+classical Pick until this gate PASSes.
+
+**Verdict: FAIL** — not classical Pick's theorem.
+
+---
+
+### Exact theorems located
+
+| Role | Name | File |
+|------|------|------|
+| Main geometric form | `LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one` | `lean/EulersGem/LatticeArea.lean` ~1396 |
+| Haar = shoelace | `LatticeArea.volume_convexHullRegion_eq_ofReal_shoelace` | same ~1340 |
+| AEDisjoint fan ears | `LatticeArea.pairwise_AEDisjoint_fanTriangleRegion` | same ~1259 |
+| Combinatorial spine | `InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one` | `lean/EulersGem/LatticeFanTrianglePick.lean` ~3625 |
+| Results export | `results_volume_eq_ofReal_cardI_add_B_div_two_sub_one` | `lean/Results.lean` ~2911 |
+
+Exact Lean type (Results):
+
+```lean
+theorem results_volume_eq_ofReal_cardI_add_B_div_two_sub_one
+    (P : LatticePolygon) (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    MeasureTheory.volume P.convexHullRegion =
+      ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1)
+```
+
+Supporting hyps (definitions):
+
+* `StrictlyConvexCCW P` := `ConvexCCW P ∧ LocalCCWTurns P`
+  (`∀` edge half-plane nonneg on all vertices + strict local left turn).
+* `PrimitiveEdges P` := `∀ i, edgeGcd(vᵢ, vᵢ₊₁) = 1` (no strict intermediate
+  lattice points on any listed edge).
+* `P.B` := `#boundaryLatticePoints` (union of edge lattice points on the cycle).
+* `P.interiorLatticePoints` := lattice points in `convexHullRegion` not on that
+  cyclic boundary (**hull-relative I**, not filled-region I for non-convex).
+* `P.convexHullRegion` := `convexHull ℝ (toReal '' vertexFinset)`.
+* `volume` := Mathlib Lebesgue/`addHaar` on `ℝ × ℝ`.
+* `S : Finset` with `↑S = interiorLatticePoints` (finiteness is a **hypothesis**,
+  not a proved theorem that the interior set is finite).
+
+Compose path: Haar(hull) = ∑ Haar(fan ears) [AEDisjoint] = ofReal(shoelace)
+[per-ear det↔Haar] ; shoelace = `#S + B/2 − 1` [InteriorFan strong induction
+under PE + StrictlyConvexCCW] ⇒ volume form.
+
+---
+
+### What classical Pick says
+
+**Classical Pick's theorem** (standard elementary form):
+
+> Let \(P \subset \mathbb{R}^2\) be a **simple** lattice polygon (Jordan polygon
+> whose vertices lie in \(\mathbb{Z}^2\); edges may contain intermediate lattice
+> points; the filled region is the bounded component of the complement of the
+> polygonal cycle). Let \(I\) be the number of lattice points in the
+> **interior of the filled region**, and \(B\) the number of lattice points on
+> the **boundary cycle**. Then the Euclidean area \(A\) of the filled region
+> satisfies
+> \[
+> A = I + \frac{B}{2} - 1.
+> \]
+
+Standard remarks (what “classical” includes / excludes):
+
+* **Includes:** non-convex simple polygons; non-primitive edges; collinear
+  consecutive vertices only if the polygon remains simple (usually stated with
+  non-degenerate edges); area = Lebesgue measure of the filled disk region.
+* **Usually excludes holes** in the elementary statement (with holes one gets
+  \(A = I + B/2 - \chi\), \(\chi\) the Euler characteristic of the region).
+* **Does not require** strict convexity, nor that every edge be primitive, nor
+  that the region equal the convex hull of the vertices.
+* Existence of a triangulation of a simple polygon into lattice triangles is
+  classically available (and is one common proof route via Euler), but the
+  *statement* of Pick does not mention triangulation.
+
+---
+
+### What we proved (honest restatement)
+
+Under all of:
+
+1. `P` is a `LatticePolygon` (cyclic vertex list, length ≥ 3),
+2. vertices injective,
+3. `StrictlyConvexCCW P` (strictly convex, positively oriented),
+4. `PrimitiveEdges P`,
+5. a Finset witness `S` with `↑S = P.interiorLatticePoints`,
+
+we have
+
+\[
+\mathrm{vol}\bigl(\mathrm{conv}(V(P))\bigr)
+  = \mathrm{ofReal}\Bigl(#S + \tfrac{P.B}{2} - 1\Bigr),
+\]
+
+where `vol` is Lebesgue measure on \(\mathbb{R}^2\), `I` is hull-interior lattice
+cardinality, and `B` is cyclic-boundary lattice cardinality.
+
+This is a **genuine geometric Pick-shaped identity** for that restricted class
+(Lebesgue area, geometric I/B, arithmetic form \(I+B/2-1\)). It is **not** the
+classical unrestricted statement.
+
+---
+
+### Gaps (precise reasons for FAIL)
+
+| Gap | Classical? | Ours | Why it blocks PASS |
+|-----|------------|------|--------------------|
+| **Simple non-strictly-convex** | yes (incl. weakly convex / collinear runs, depending on statement) | requires `StrictlyConvexCCW` (strict local turns) | statement strictly stronger hyp than classical |
+| **Non-convex simple polygons** | yes | **no** — region is `convexHullRegion`; docstring admits hull ≠ filled region for non-convex | classical `I`/`A` are for the Jordan interior, not the hull |
+| **Holes** | elementary classical: no; extended: \(A=I+B/2-\chi\) | not treated | not required for elementary PASS, but must not overclaim the extended form |
+| **Non-primitive edges** | yes (`B` counts intermediates) | parent hyp `PrimitiveEdges` | classical allows `edgeGcd ≥ 2` on boundary edges |
+| **Filled region vs hull** | filled Jordan region | Lebesgue on `convexHullRegion` | coincides under convexity; fails classically for concave simple polygons |
+| **Finiteness of `I`** | automatic (bounded) | `S : Finset` hyp `↑S = interior` | classical statement does not take finiteness as an extra assumption; preferably discharge `Finite interiorLatticePoints` |
+| **EP spine discharge** | common proof uses planar Euler; not part of *statement* | fan-ear induction spine (no free `ℤ` Euler); general `Euler_Poincare_full` → planar still open | does **not** by itself force FAIL on the *statement* gate if the geometric statement were classical; recorded as architecture open item |
+| **Triangulation of non-convex** | classical existence | apex-`v₀` fan under `StrictlyConvexCCW` only | blocks extending beyond strict convexity |
+
+**Not gaps anymore (relative to tip `a3942b9`):** Haar↔shoelace for StrictlyConvexCCW polygons; AEDisjoint fan ears; combinatorial Finset Pick-form for all `#I` under PE + StrictlyConvexCCW; Results export with honest “not classical Pick” docstring.
+
+---
+
+### Verdict
+
+**FAIL** for presenting as classical Pick's theorem.
+
+Reasons (concise):
+
+1. Hyps force **strict CCW convexity** — classical Pick is for **simple** lattice polygons, including non-convex.
+2. Hyps force **primitive edges** — classical Pick allows intermediate boundary lattice points on edges.
+3. Area / interior are measured on the **convex hull**, which is the wrong region for non-convex simple polygons.
+4. Interior finiteness is an external **Finset witness**, not discharged.
+
+Do **not** rename `results_volume_eq_ofReal_cardI_add_B_div_two_sub_one` (or any sibling) to a classical-Pick identifier until a later audit PASSes.
+
+---
+
+### Minimal remaining work to PASS
+
+Ordered by dependence; each item is necessary for a statement-level PASS against classical Pick as stated above:
+
+1. **Drop / discharge `PrimitiveEdges` on the parent polygon.**
+   Reduce non-primitive edges by edge-splitting (insert intermediate lattice points as vertices) *or* generalize the fan/combinatorial B-arithmetic so parent edges may have `edgeGcd ≥ 2`, while keeping Lebesgue additivity. (Triangle-level PE-free Pick already exists; lift to parent.)
+
+2. **Identify the classical filled region for simple polygons.**
+   Define the Jordan / polygonal disk region (not merely `convexHullRegion`), prove its Lebesgue measure equals shoelace for simple lattice polygons, and define `I`/`B` relative to that region.
+
+3. **Weaken `StrictlyConvexCCW` to simple (possibly non-convex) lattice polygons.**
+   Requires (2) plus a triangulation (or other dissection) existence theorem for simple lattice polygons, with AEDisjoint area additivity across pieces. Fan-from-`v₀` is insufficient once convexity fails.
+
+4. **Discharge Finset finiteness** of interior lattice points for the chosen region (bounded discrete subset of \(\mathbb{Z}^2\)), so the statement need not take `S` as an extra witness hyp.
+
+5. *(Optional for elementary classical, required for extended)* holes / Euler characteristic form \(A = I + B/2 - \chi\).
+
+6. *(Architecture, not strictly statement)* if the project insists on EP-spine provenance: discharge planar disk Euler from `Euler_Poincare_full` for the triangulation used in (3). The present fan induction already avoids free `ℤ` Euler; this is a provenance preference, not a classical-statement blocker once (1)–(4) land.
+
+**Out of scope for this commit:** no classical rename; audit update only.
+
+| Item | Status after tip `a3942b9` |
+|------|----------------------------|
+| Haar = shoelace under `StrictlyConvexCCW` + injective | **Green** |
+| AEDisjoint fan ears ⇒ `volume(P)=∑ears` | **Green** |
+| Combinatorial `#I+B/2−1` under PE + StrictlyConvexCCW (all `#I`) | **Green** |
+| Results volume Pick-form export (honest name) | **Green** |
+| Drop parent `PrimitiveEdges` | Open |
+| Simple non-convex / filled region ≠ hull | Open |
+| Discharge Finset finiteness of `I` | Open |
+| EP → planar via `Euler_Poincare_full` | Open (architecture) |
+| Classical Pick | **Still FAIL** |
