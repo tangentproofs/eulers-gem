@@ -1505,6 +1505,64 @@ theorem results_interiorFanDet_eq_three_of_threeInterior_sameSpoke_right
     P hsc hinj hedge h k hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
 
 
+/-- Same-spoke `r` occupies only adjacent fan ears (foreign-ear exclusion). -/
+theorem results_eq_of_mem_interiorFan_of_threeInterior_sameSpoke
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k j : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex k)
+    (hne_rs : r ≠ s)
+    (hrj : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex j)
+      (P.vertex (P.nextIdx j)) r) :
+    j = k ∨ j = P.prevIdx k :=
+  EulersGem.Picks.LatticeFan.InteriorFan.eq_of_mem_interiorFan_of_threeInterior_sameSpoke
+    P hsc hinj hedge h k j hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hrj
+
+/-- Foreign same-spoke ears have `interiorFanDet = 1`. -/
+theorem results_interiorFanDet_eq_one_of_threeInterior_sameSpoke_not_adjacent
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k j : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex k)
+    (hne_rs : r ≠ s)
+    (hne_k : j ≠ k) (hne_prev : j ≠ P.prevIdx k) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q j = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_one_of_threeInterior_sameSpoke_not_adjacent
+    P hsc hinj hedge h k j hr hs hne_rq hne_rv hne_sq hne_sv hne_rs hne_k hne_prev
+
+/-- **I = 3 same-spoke shoelace Pick-form** (not classical Pick).
+
+Adjacent `det = 3`, foreign `det = 1`, fan sum `n + 4` ⇒ `shoelace = 3 + B/2 − 1`.
+Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpoke
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (k : Fin P.nVertices)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hs : s ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_rq : r ≠ q) (hne_rv : r ≠ P.vertex k)
+    (hne_sq : s ≠ q) (hne_sv : s ≠ P.vertex k)
+    (hne_rs : r ≠ s) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpoke
+    P hsc hinj hedge h k hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
+
+
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 

@@ -1220,3 +1220,45 @@ EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+
+## Update 2026-09-25 (I=3 same-spoke foreign-ear exclusion + Pick-form; still FAIL for classical Pick)
+
+Landed in `EulersGem/OnSpoke.lean` + `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma eq_vertex_of_mem_edgeLatticePoints_of_edgeGcd_eq_three
+lemma OffTriangleBoundary_of_mem_interiorFan_of_threeInterior_sameSpoke_ne_adjacent
+theorem eq_of_mem_interiorFan_of_threeInterior_sameSpoke
+    -- foreign ears (not k, not prevIdx k) contain neither r nor s
+theorem interiorFanDet_eq_one_of_threeInterior_sameSpoke_not_adjacent
+    -- empty ⇒ det = 1
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpoke
+    (ThreeInterior) (r,s both on spoke k) :
+    P.shoelace = 3 + B/2 − 1   -- fan sum n+4 = 3+3+(n-2)
+```
+
+Results exports: `results_eq_of_mem_interiorFan_of_threeInterior_sameSpoke`,
+`results_interiorFanDet_eq_one_of_threeInterior_sameSpoke_not_adjacent`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpoke`
+(prior edgeGcd=3 / adjacent det=3 retained).
+
+**Prize progress:** Same-spoke I=3 closed: foreign-ear exclusion via Off+uniqueness
+(gcd=3 endpoint uniqueness; mixed gcd=2/3 forces vertex=interior contradiction or
+edgeGcd=4); empty foreign ⇒ det=1; adjacent det=3 ⇒ shoelace Pick-form.
+Still **not** classical Pick: Off-adjacent (det=4); two-spoke; Off-free Finset
+card=3; Haar; EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Same-spoke `edgeGcd=3` | **Green** |
+| Same-spoke adjacent `det=3` | **Green** |
+| Same-spoke foreign-ear exclusion | **Green** |
+| Same-spoke Pick-form (fan sum n+4) | **Green** |
+| Off-adjacent (det=4 bookkeeping) | Open |
+| Two different spokes | Open |
+| Finset card=3 without Off-apex hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

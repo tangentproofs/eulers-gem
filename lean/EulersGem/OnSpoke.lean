@@ -1240,6 +1240,89 @@ lemma latticeDet_eq_zero_step_one_step_two_of_edgeGcd_eq_three
   rw [hx2, hy2]; ring
 
 
+/-- Spoke endpoints agree when they share the same two strict intermediate lattice
+points with `edgeGcd = 3`. -/
+lemma eq_vertex_of_mem_edgeLatticePoints_of_edgeGcd_eq_three
+    (a b c r s : ℤ × ℤ) (hdb : edgeGcd a b = 3) (hdc : edgeGcd a c = 3)
+    (hrb : r ∈ edgeLatticePoints a b) (hsb : s ∈ edgeLatticePoints a b)
+    (hrc : r ∈ edgeLatticePoints a c) (hsc : s ∈ edgeLatticePoints a c)
+    (hne_ra : r ≠ a) (hne_rb : r ≠ b) (hne_sa : s ≠ a) (hne_sb : s ≠ b)
+    (hne_rc : r ≠ c) (hne_sc : s ≠ c) (hne_rs : r ≠ s) :
+    b = c := by
+  classical
+  set p1b : ℤ × ℤ := (a.1 + (b.1 - a.1) / 3, a.2 + (b.2 - a.2) / 3)
+  set p2b : ℤ × ℤ := (a.1 + 2 * ((b.1 - a.1) / 3), a.2 + 2 * ((b.2 - a.2) / 3))
+  set p1c : ℤ × ℤ := (a.1 + (c.1 - a.1) / 3, a.2 + (c.2 - a.2) / 3)
+  set p2c : ℤ × ℤ := (a.1 + 2 * ((c.1 - a.1) / 3), a.2 + 2 * ((c.2 - a.2) / 3))
+  have hb : (r = p1b ∧ s = p2b) ∨ (r = p2b ∧ s = p1b) := by
+    simpa [p1b, p2b] using
+      eq_steps_of_mem_edgeLatticePoints_of_edgeGcd_eq_three a b r s hdb hrb hsb
+        hne_ra hne_rb hne_sa hne_sb hne_rs
+  have hc : (r = p1c ∧ s = p2c) ∨ (r = p2c ∧ s = p1c) := by
+    simpa [p1c, p2c] using
+      eq_steps_of_mem_edgeLatticePoints_of_edgeGcd_eq_three a c r s hdc hrc hsc
+        hne_ra hne_rc hne_sa hne_sc hne_rs
+  obtain ⟨hxb, hyb⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a b hdb
+  obtain ⟨hxc, hyc⟩ := three_mul_sub_step_one_of_edgeGcd_eq_three a c hdc
+  have hxb' : b.1 - a.1 = 3 * (p1b.1 - a.1) := by simpa [p1b] using hxb.symm
+  have hyb' : b.2 - a.2 = 3 * (p1b.2 - a.2) := by simpa [p1b] using hyb.symm
+  have hxc' : c.1 - a.1 = 3 * (p1c.1 - a.1) := by simpa [p1c] using hxc.symm
+  have hyc' : c.2 - a.2 = 3 * (p1c.2 - a.2) := by simpa [p1c] using hyc.symm
+  have hp2b_x : p2b.1 - a.1 = 2 * (p1b.1 - a.1) := by simp [p1b, p2b]
+  have hp2b_y : p2b.2 - a.2 = 2 * (p1b.2 - a.2) := by simp [p1b, p2b]
+  have hp2c_x : p2c.1 - a.1 = 2 * (p1c.1 - a.1) := by simp [p1c, p2c]
+  have hp2c_y : p2c.2 - a.2 = 2 * (p1c.2 - a.2) := by simp [p1c, p2c]
+  rcases hb with ⟨hr1b, hs2b⟩ | ⟨hr2b, hs1b⟩
+  · rcases hc with ⟨hr1c, hs2c⟩ | ⟨hr2c, hs1c⟩
+    · -- matching: r = p1b = p1c
+      have hp : p1b = p1c := hr1b.symm.trans hr1c
+      apply Prod.ext
+      · have := congrArg Prod.fst hp; linarith
+      · have := congrArg Prod.snd hp; linarith
+    · -- crossed: r = p1b = p2c, s = p2b = p1c
+      have hrp : p1b = p2c := hr1b.symm.trans hr2c
+      have hsp : p2b = p1c := hs2b.symm.trans hs1c
+      -- p2c - a = 2*(p1c - a) = 2*(p2b - a) = 4*(p1b - a), but p2c = p1b
+      have hx : p1b.1 - a.1 = 4 * (p1b.1 - a.1) := by
+        have h1 := congrArg Prod.fst hrp
+        have h2 := congrArg Prod.fst hsp
+        linarith [hp2c_x, hp2b_x, h1, h2]
+      have hy : p1b.2 - a.2 = 4 * (p1b.2 - a.2) := by
+        have h1 := congrArg Prod.snd hrp
+        have h2 := congrArg Prod.snd hsp
+        linarith [hp2c_y, hp2b_y, h1, h2]
+      have hx0 : p1b.1 - a.1 = 0 := by omega
+      have hy0 : p1b.2 - a.2 = 0 := by omega
+      have : r = a := by
+        apply Prod.ext
+        · simp [hr1b]; linarith [hx0]
+        · simp [hr1b]; linarith [hy0]
+      exact (hne_ra this).elim
+  · rcases hc with ⟨hr1c, hs2c⟩ | ⟨hr2c, hs1c⟩
+    · -- crossed: r = p2b = p1c, s = p1b = p2c
+      have hrp : p2b = p1c := hr2b.symm.trans hr1c
+      have hsp : p1b = p2c := hs1b.symm.trans hs2c
+      have hx : p1b.1 - a.1 = 4 * (p1b.1 - a.1) := by
+        have h1 := congrArg Prod.fst hsp
+        have h2 := congrArg Prod.fst hrp
+        linarith [hp2c_x, hp2b_x, h1, h2]
+      have hy : p1b.2 - a.2 = 4 * (p1b.2 - a.2) := by
+        have h1 := congrArg Prod.snd hsp
+        have h2 := congrArg Prod.snd hrp
+        linarith [hp2c_y, hp2b_y, h1, h2]
+      have hx0 : p1b.1 - a.1 = 0 := by omega
+      have hy0 : p1b.2 - a.2 = 0 := by omega
+      have : s = a := by
+        apply Prod.ext
+        · simp [hs1b]; linarith [hx0]
+        · simp [hs1b]; linarith [hy0]
+      exact (hne_sa this).elim
+    · -- matching: s = p1b = p1c
+      have hp : p1b = p1c := hs1b.symm.trans hs1c
+      apply Prod.ext
+      · have := congrArg Prod.fst hp; linarith
+      · have := congrArg Prod.snd hp; linarith
+
 end InteriorFan
 end LatticeFan
 end Picks
