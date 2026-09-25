@@ -47,7 +47,7 @@ This file is the gate: no Results/README claim that classical Pick is proved unt
 | Results exports | `results_funkenbusch_identity`, `results_triangulation_count_identity` |
 | README / site / ROADMAP | Explicit **not Pick**; ROADMAP unchecked |
 | Classical Pick in Results | **Not claimed** (gate) |
-| Geometric substrate | `LatticeTriangle.lean` shoelace/`|det|=1`/Cramer green — **not** Haar, **not** Pick |
+| Geometric substrate | `LatticeTriangle.lean`: shoelace/`|det|=1`/Cramer/integer-barycentric/shoelace-sum green — **not** Haar, **not** Pick |
 
 ## Candidate for a future PASS (do not promote until re-audited)
 
@@ -77,6 +77,10 @@ theorem results_triangulation_count_identity
 theorem triangleShoelace_eq_half_of_natAbs_det_eq_one
     (a b c : ℤ × ℤ) (h : Int.natAbs (latticeDet a b c) = 1) :
     triangleShoelace a b c = 1 / 2
+
+theorem sum_shoelace_eq_card_div_two
+    (S : Finset Triangle) (h : ∀ t ∈ S, t.IsDetPrimitive) :
+    (∑ t ∈ S, t.shoelace) = (S.card : ℚ) / 2
 ```
 File: `lean/EulersGem/LatticeTriangle.lean`. Not exported in Results as Pick.
 

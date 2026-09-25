@@ -19,6 +19,8 @@ Defines the corner determinant and the **shoelace rational**
 * `triangleShoelace_eq_half_of_natAbs_det_eq_one`: if `|det|=1` then shoelace `= 1/2`.
 * Edge gcds divide the determinant; hence `|det|=1` ⇒ each `edgeGcd = 1`.
 * Cramer: if `|det(u,v)|=1` then every `p : ℤ×ℤ` is an integer combination of `u,v`.
+* Integer barycentric cells with `α,β ≥ 0`, `α+β ≤ 1` are only `(0,0),(1,0),(0,1)`.
+* Sum of shoelaces over a finite set of `|det|=1` triangles equals `#/2`.
 
 **Explicitly not proved here (Claude audit):**
 
@@ -184,6 +186,62 @@ lemma coords_unique_of_natAbs_det_eq_one
   have δα0 : δα = 0 := (mul_eq_zero.mp hδα).resolve_left hd
   have δβ0 : δβ = 0 := (mul_eq_zero.mp hδβ).resolve_left hd
   exact ⟨sub_eq_zero.mp δα0, sub_eq_zero.mp δβ0⟩
+
+
+
+/-! ## Integer barycentric cells (algebraic half of “no extra lattice points”) -/
+
+/-- Nonnegative integer barycentric coordinates with sum at most 1 (origin triangle). -/
+def IsIntegerBarycentric (α β : ℤ) : Prop :=
+  0 ≤ α ∧ 0 ≤ β ∧ α + β ≤ 1
+
+/-- The only integer barycentric cells in the origin triangle are the three vertices.
+Together with Cramer uniqueness, this is the algebraic half of “`|det|=1` ⇒ no
+other lattice points”; the remaining half is identifying geometric convex-hull
+membership with these coordinates (still open here — not Haar / not Pick). -/
+theorem integerBarycentric_eq_vertices {α β : ℤ}
+    (h : IsIntegerBarycentric α β) :
+    (α = 0 ∧ β = 0) ∨ (α = 1 ∧ β = 0) ∨ (α = 0 ∧ β = 1) := by
+  rcases h with ⟨hα, hβ, hsum⟩
+  omega
+
+/-! ## Bundled triangle + shoelace sum -/
+
+/-- Three lattice vertices. -/
+structure Triangle where
+  a : ℤ × ℤ
+  b : ℤ × ℤ
+  c : ℤ × ℤ
+
+namespace Triangle
+
+def det (t : Triangle) : ℤ := latticeDet t.a t.b t.c
+
+def shoelace (t : Triangle) : ℚ := triangleShoelace t.a t.b t.c
+
+def IsDetPrimitive (t : Triangle) : Prop := Int.natAbs t.det = 1
+
+theorem shoelace_eq_half_of_isDetPrimitive (t : Triangle) (h : t.IsDetPrimitive) :
+    t.shoelace = 1 / 2 :=
+  triangleShoelace_eq_half_of_natAbs_det_eq_one t.a t.b t.c h
+
+end Triangle
+
+/-- Sum of shoelaces of det-primitive triangles equals `#triangles / 2`.
+
+Does **not** prove area additivity of a geometric polygon — only the rational
+sum identity for the shoelace values on the listed triangles. -/
+theorem sum_shoelace_eq_card_div_two
+    (S : Finset Triangle) (h : ∀ t ∈ S, t.IsDetPrimitive) :
+    (∑ t ∈ S, t.shoelace) = (S.card : ℚ) / 2 := by
+  have hsum : ∑ t ∈ S, t.shoelace = ∑ t ∈ S, (1 / 2 : ℚ) := by
+    apply Finset.sum_congr rfl
+    intro t ht
+    exact Triangle.shoelace_eq_half_of_isDetPrimitive t (h t ht)
+  have hcard : ∑ t ∈ S, (1 / 2 : ℚ) = (S.card : ℚ) / 2 := by
+    simp [Finset.sum_const, nsmul_eq_mul]
+    ring
+  exact hsum.trans hcard
 
 end LatticeTriangle
 end Picks
