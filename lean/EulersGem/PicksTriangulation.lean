@@ -34,7 +34,9 @@ This file provides:
 
 * Existence of a triangulation for an arbitrary simple lattice polygon
   (combinatorial fan existence for `n ≥ 3` landed in `FanDiskTriangulation`;
-  geometric existence for general convex lattice polygons still open).
+  geometric fan + algebraic shoelace identity + empty-interior Pick-form under
+  fan-primitivity hyps landed in `LatticeFan.lean`; general existence /
+  `empty⇒|det|=1` still open).
 * Discharge of handshaking `2E = 3T + B` from a *geometric* incidence structure
   (combinatorial discharge landed in `PlanarTriangulation.lean` —
   `CombinatorialDiskTriangulation.two_E_eq_three_T_add_B`; unit-square witness

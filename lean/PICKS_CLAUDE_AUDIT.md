@@ -250,3 +250,50 @@ open). Claude `SimplexFaces.lean` / Embed / Platonic untouched.
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-24 (geometric fan + empty-interior Pick-form; still FAIL)
+
+Landed in `EulersGem/LatticeFan.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem fan_shoelace_identity (n : ℕ) (hn : 3 ≤ n) (v : ℕ → ℤ × ℤ) :
+    ∑ i ∈ range n, cross (v i) (v ((i+1)%n)) =
+      ∑ i ∈ range (n-2), latDet (v 0) (v (i+1)) (v (i+2))
+
+theorem shoelaceSum_eq_sumFanDet (P : LatticePolygon) :
+    P.shoelaceSum = sumFanDet P
+
+theorem B_eq_nVertices_of_primitive_edges
+    (P) (PrimitiveEdges P) (Injective P.vertex) :
+    P.B = P.nVertices
+
+theorem shoelace_eq_B_div_two_sub_one_of_primitive_fan
+    (P) (Injective P.vertex) (PrimitiveEdges P)
+    (FanDetsNonneg P) (FanDetPrimitive P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_fan_shoelace_identity`,
+`results_shoelaceSum_eq_sumFanDet`,
+`results_B_eq_nVertices_of_primitive_edges`,
+`results_shoelace_eq_B_div_two_sub_one_of_primitive_fan`.
+
+Geometric fan triangles `(v₀,v_{i+1},v_{i+2})` + algebraic shoelace additivity
+(oriented). Empty-interior Pick-form discharges under **fan-primitivity hyps**
+(not `empty⇒|det|=1`). Claude Embed / Platonic / SimplexFaces / Octahedron
+untouched.
+
+| Item | Status |
+|------|--------|
+| Handshaking from incidence | Green |
+| Planar Euler from disk-count axioms | Green |
+| Fan existence (`∀ n ≥ 3`) combinatorial | Green |
+| Algebraic geometric fan shoelace identity | **Green** |
+| `B = n` for primitive edges | **Green** |
+| Empty-interior shoelace `= B/2−1` (fan-primitivity hyps) | **Green** |
+| `empty ⇒ \|det\|=1` | Open |
+| General EP → planar via `Euler_Poincare_full` | Open |
+| Geometric triangulation existence (no primitivity hyp) | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+

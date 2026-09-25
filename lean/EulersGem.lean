@@ -19,6 +19,7 @@ import EulersGem.LatticePolygon
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
 import EulersGem.FanDisk
+import EulersGem.LatticeFan
 import EulersGem.PolytopeFaces
 import EulersGem.PlatonicOfEuler
 import EulersGem.SimplexFaces

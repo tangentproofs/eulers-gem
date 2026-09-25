@@ -53,8 +53,9 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
   - [x] `|det|=1` ⇒ closed triangle has only vertex lattice points
   - [x] `PrimitiveLatticeTriangulationWitness` + shoelace Pick-form **conditional on witness + `hEuler_planar`** (not classical Pick)
   - [x] Combinatorial handshaking `2E=3T+B` from disk incidence (`PlanarTriangulation`)
-  - [x] Unit-square witness ↔ combinatorial disk; planar Euler **proved** for unit square + fan `n≤5` (general EP→planar still open)
-  - [x] Fan combinatorial triangulation existence for `3 ≤ n ≤ 5` (`FanDiskTriangulation`)
-  - [ ] Triangulation existence for arbitrary simple / convex lattice polygons
+  - [x] Unit-square witness ↔ combinatorial disk; planar Euler **proved** for unit square + fan disks (general EP→planar still open)
+  - [x] Fan combinatorial triangulation existence for **all** `n ≥ 3` (`FanDiskTriangulation`)
+  - [x] Geometric fan shoelace identity + empty-interior `shoelace = B/2−1` under fan-primitivity hyps (`LatticeFan.lean`; not classical Pick)
+  - [ ] Triangulation existence for arbitrary simple / convex lattice polygons (no primitivity hyp; `empty⇒|det|=1` open)
   - [ ] Discharge `hEuler_planar` from `Euler_Poincare_full` for general planar disks
   - [ ] Shoelace = Haar/Lebesgue; Claude audit PASS before any Pick-named Results claim

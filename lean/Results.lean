@@ -17,6 +17,7 @@ import EulersGem.Picks
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
 import EulersGem.FanDisk
+import EulersGem.LatticeFan
 
 /-!
 # Paper-facing results
@@ -328,6 +329,43 @@ theorem results_shoelace_pick_form_of_unit_square :
       (EulersGem.Picks.UnitSquareWitness.witness.I : ℚ) +
         (EulersGem.Picks.UnitSquareWitness.witness.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.shoelace_pick_form_of_unit_square
+
+
+/-- **Algebraic fan shoelace identity** (Nat-indexed; not Pick). -/
+theorem results_fan_shoelace_identity (n : ℕ) (hn : 3 ≤ n) (v : ℕ → ℤ × ℤ) :
+    ∑ i ∈ Finset.range n,
+        EulersGem.Picks.LatticeFan.cross (v i) (v ((i + 1) % n)) =
+      ∑ i ∈ Finset.range (n - 2),
+        EulersGem.Picks.LatticeFan.latDet (v 0) (v (i + 1)) (v (i + 2)) :=
+  EulersGem.Picks.LatticeFan.fan_shoelace_identity n hn v
+
+/-- Polygon shoelace sum equals sum of oriented fan-triangle dets. -/
+theorem results_shoelaceSum_eq_sumFanDet (P : EulersGem.Picks.LatticePolygon) :
+    P.shoelaceSum = EulersGem.Picks.LatticeFan.sumFanDet P :=
+  EulersGem.Picks.LatticeFan.shoelaceSum_eq_sumFanDet P
+
+/-- Primitive boundary edges + distinct vertices ⇒ `B = n`. -/
+theorem results_B_eq_nVertices_of_primitive_edges
+    (P : EulersGem.Picks.LatticePolygon)
+    (hprim : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hverts : Function.Injective P.vertex) :
+    P.B = P.nVertices :=
+  EulersGem.Picks.LatticeFan.B_eq_nVertices_of_primitive_edges P hprim hverts
+
+/-- **Empty-interior shoelace Pick-form of a primitive fan** (not classical Pick).
+
+Given distinct vertices, primitive edges, CCW fan orientation, and det-primitive
+fan triangles: `shoelace = B/2 − 1`. Does **not** prove `empty⇒|det|=1`, Haar
+equality, or triangulation existence for arbitrary polygons. -/
+theorem results_shoelace_eq_B_div_two_sub_one_of_primitive_fan
+    (P : EulersGem.Picks.LatticePolygon)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hnn : EulersGem.Picks.LatticeFan.FanDetsNonneg P)
+    (hprim : EulersGem.Picks.LatticeFan.FanDetPrimitive P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_primitive_fan
+    P hverts hedge hnn hprim
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
