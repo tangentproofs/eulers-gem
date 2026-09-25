@@ -500,5 +500,155 @@ theorem affDim_face (c : Fin n → Option Bool) :
   omega
 
 
+/-! ## Every face is a subcube
+
+The key is `mem_of_transfer`: if two corners lie in a face, so does the corner obtained by
+transferring one coordinate between them, because transferring a coordinate leaves the sum of
+the two corners unchanged, so the midpoint is the same and extremeness applies.
+-/
+
+/-- Transferring one coordinate between two corners preserves their sum. -/
+lemma corner_add_corner_update (σ τ : Fin n → Bool) (j : Fin n) :
+    corner b σ + corner b τ
+      = corner b (Function.update σ j (τ j)) + corner b (Function.update τ j (σ j)) := by
+  rw [corner, corner, corner, corner, ← Finset.sum_add_distrib, ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  by_cases hij : i = j
+  · subst hij
+    rw [Function.update_self, Function.update_self]
+    exact add_comm _ _
+  · rw [Function.update_of_ne hij, Function.update_of_ne hij]
+
+/-- **Coordinate transfer.** A face containing two corners contains the corner obtained by
+copying one coordinate from the second into the first. -/
+lemma mem_of_transfer {F : Set E} (hF : IsFaceOf (body b) F) {σ τ : Fin n → Bool}
+    (hσ : corner b σ ∈ F) (hτ : corner b τ ∈ F) (j : Fin n) :
+    corner b (Function.update σ j (τ j)) ∈ F := by
+  have hmid : (1 / 2 : ℝ) • corner b (Function.update σ j (τ j))
+      + (1 / 2 : ℝ) • corner b (Function.update τ j (σ j)) ∈ F := by
+    have h := hF.convex hσ hτ (by norm_num : (0:ℝ) ≤ 1/2) (by norm_num : (0:ℝ) ≤ 1/2)
+      (by norm_num)
+    have heq : (1 / 2 : ℝ) • corner b σ + (1 / 2 : ℝ) • corner b τ
+        = (1 / 2 : ℝ) • corner b (Function.update σ j (τ j))
+          + (1 / 2 : ℝ) • corner b (Function.update τ j (σ j)) := by
+      rw [← smul_add, ← smul_add, corner_add_corner_update]
+    rwa [heq] at h
+  have hseg : (1 / 2 : ℝ) • corner b (Function.update σ j (τ j))
+      + (1 / 2 : ℝ) • corner b (Function.update τ j (σ j))
+      ∈ openSegment ℝ (corner b (Function.update σ j (τ j)))
+          (corner b (Function.update τ j (σ j))) :=
+    ⟨1 / 2, 1 / 2, by norm_num, by norm_num, by norm_num, rfl⟩
+  exact hF.isExtreme.left_mem_of_mem_openSegment (corner_mem_body b _) (corner_mem_body b _)
+    hmid hseg
+
+/-- Corners lying in a given set. -/
+noncomputable def cornersIn (F : Set E) : Finset (Fin n → Bool) :=
+  open Classical in Finset.univ.filter fun σ => corner b σ ∈ F
+
+lemma mem_cornersIn {F : Set E} {σ : Fin n → Bool} :
+    σ ∈ cornersIn b F ↔ corner b σ ∈ F := by
+  classical simp [cornersIn]
+
+lemma range_inter_eq_image_cornersIn {F : Set E} :
+    Set.range (corner b) ∩ F = corner b '' ↑(cornersIn b F) := by
+  ext y
+  constructor
+  · rintro ⟨⟨σ, rfl⟩, hyF⟩
+    exact ⟨σ, Finset.mem_coe.mpr ((mem_cornersIn b).mpr hyF), rfl⟩
+  · rintro ⟨σ, hσ, rfl⟩
+    exact ⟨⟨σ, rfl⟩, (mem_cornersIn b).mp (Finset.mem_coe.mp hσ)⟩
+
+/-- Mixing corners of a face along a set of coordinates stays in the face. -/
+lemma cornersIn_mix {F : Set E} (hF : IsFaceOf (body b) F) {τ₀ : Fin n → Bool}
+    (hτ₀ : τ₀ ∈ cornersIn b F) (σ : Fin n → Bool) (J : Finset (Fin n))
+    (hJ : ∀ i ∈ J, ∃ ρ ∈ cornersIn b F, ρ i = σ i) :
+    (fun i => if i ∈ J then σ i else τ₀ i) ∈ cornersIn b F := by
+  classical
+  induction J using Finset.induction_on with
+  | empty =>
+    have hfun : (fun i => if i ∈ (∅ : Finset (Fin n)) then σ i else τ₀ i) = τ₀ := by
+      funext i; simp
+    rw [hfun]; exact hτ₀
+  | @insert j J' hj ih =>
+    have hJ' : ∀ i ∈ J', ∃ ρ ∈ cornersIn b F, ρ i = σ i :=
+      fun i hi => hJ i (Finset.mem_insert_of_mem hi)
+    have hρJ := ih hJ'
+    obtain ⟨ρj, hρj, hρjval⟩ := hJ j (Finset.mem_insert_self j J')
+    have htrans := mem_of_transfer b hF ((mem_cornersIn b).mp hρJ)
+      ((mem_cornersIn b).mp hρj) j
+    have heqfun : Function.update (fun i => if i ∈ J' then σ i else τ₀ i) j (ρj j)
+        = fun i => if i ∈ insert j J' then σ i else τ₀ i := by
+      funext i
+      by_cases hij : i = j
+      · subst hij
+        rw [Function.update_self, hρjval]
+        simp
+      · rw [Function.update_of_ne hij]
+        simp [Finset.mem_insert, hij]
+    rw [heqfun] at htrans
+    exact (mem_cornersIn b).mpr htrans
+
+/-- **Every nonempty face of the cube is a subcube.** -/
+theorem eq_face_of_isFaceOf {F : Set E} (hF : IsFaceOf (body b) F) (hne : F.Nonempty) :
+    ∃ c : Fin n → Option Bool, F = face b c := by
+  classical
+  have hF' : IsFaceOf (convexHull ℝ (Set.range (corner b))) F := hF
+  have hFeq : F = convexHull ℝ (corner b '' ↑(cornersIn b F)) := by
+    calc F = convexHull ℝ (Set.range (corner b) ∩ F) := face_eq_convexHull_inter hF'
+      _ = convexHull ℝ (corner b '' ↑(cornersIn b F)) := by
+          rw [range_inter_eq_image_cornersIn]
+  have hTne : (cornersIn b F).Nonempty := by
+    rcases Finset.eq_empty_or_nonempty (cornersIn b F) with hemp | h
+    · exfalso
+      rw [hemp] at hFeq
+      simp only [Finset.coe_empty, Set.image_empty, convexHull_empty] at hFeq
+      obtain ⟨x, hx⟩ := hne
+      rw [hFeq] at hx
+      exact absurd hx (Set.notMem_empty x)
+    · exact h
+  obtain ⟨τ₀, hτ₀⟩ := hTne
+  -- fix exactly the coordinates on which all corners of `F` agree
+  set c : Fin n → Option Bool :=
+    fun i => if ∀ σ ∈ cornersIn b F, σ i = τ₀ i then some (τ₀ i) else none with hcdef
+  have hc_some : ∀ i, (∀ σ ∈ cornersIn b F, σ i = τ₀ i) → c i = some (τ₀ i) :=
+    fun i hall => if_pos hall
+  have hc_none : ∀ i, ¬(∀ σ ∈ cornersIn b F, σ i = τ₀ i) → c i = none :=
+    fun i hall => if_neg hall
+  refine ⟨c, ?_⟩
+  have hidx : cornerIdx c = cornersIn b F := by
+    ext σ
+    simp only [mem_cornerIdx]
+    constructor
+    · intro hagree
+      have hJ : ∀ i ∈ Finset.univ.filter (fun i => σ i ≠ τ₀ i),
+          ∃ ρ ∈ cornersIn b F, ρ i = σ i := by
+        intro i hi
+        have hdiff : σ i ≠ τ₀ i := (Finset.mem_filter.mp hi).2
+        by_cases hall : ∀ ρ ∈ cornersIn b F, ρ i = τ₀ i
+        · exact absurd (hagree i (τ₀ i) (hc_some i hall)) hdiff
+        · push_neg at hall
+          obtain ⟨ρ, hρ, hρne⟩ := hall
+          refine ⟨ρ, hρ, ?_⟩
+          have hbool : ∀ x y z : Bool, x ≠ z → y ≠ z → y = x := by decide
+          exact hbool (σ i) (ρ i) (τ₀ i) hdiff hρne
+      have hmix := cornersIn_mix b hF hτ₀ σ
+        (Finset.univ.filter (fun i => σ i ≠ τ₀ i)) hJ
+      have heq : (fun i => if i ∈ Finset.univ.filter (fun i => σ i ≠ τ₀ i)
+          then σ i else τ₀ i) = σ := by
+        funext i
+        by_cases hdiff : σ i = τ₀ i
+        · simp [Finset.mem_filter, hdiff]
+        · simp [Finset.mem_filter, hdiff]
+      rwa [heq] at hmix
+    · intro hσ i s hs
+      by_cases hall : ∀ ρ ∈ cornersIn b F, ρ i = τ₀ i
+      · rw [hc_some i hall] at hs
+        have hsv : s = τ₀ i := (Option.some_injective _ hs).symm
+        rw [hsv]
+        exact hall σ hσ
+      · rw [hc_none i hall] at hs
+        exact absurd hs (by simp)
+  rw [hFeq, face, hidx]
+
 end Cube
 end EulersGem
