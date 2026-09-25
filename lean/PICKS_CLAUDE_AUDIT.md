@@ -1045,3 +1045,53 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (I=3 Off uniqueness discharge + same-ear; still FAIL for classical Pick)
+
+Landed in `EulersGem/EarUniqueness.lean` + `EulersGem/LatticeFanInduction.lean`
+(honest names; **not** classical Pick):
+
+```lean
+theorem eq_of_mem_interiorFan_of_offBoundary
+    (q ∈ interiorLatticePoints) (OffTriangleBoundary earᵢ r)
+    (MemClosedTriangle earⱼ r) :
+    j = i   -- general cone/half-plane uniqueness (any I)
+
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied_offBoundary
+    (ThreeInterior) (i ≠ j) (Off ears for r and s, each exclusive) :
+    P.shoelace = 3 + B/2 − 1   -- no uniqueness hyps
+
+theorem TwoInterior_trianglePolygon_of_threeInterior_same_ear …
+theorem interiorFanDet_eq_five_of_threeInterior_same_ear …  -- det=5
+
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_same_ear_offBoundary
+    (ThreeInterior) (both r,s Off in ear i) :
+    P.shoelace = 3 + B/2 − 1
+```
+
+Results exports: `results_eq_of_mem_interiorFan_of_offBoundary`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied_offBoundary`,
+`results_TwoInterior_trianglePolygon_of_threeInterior_same_ear`,
+`results_interiorFanDet_eq_five_of_threeInterior_same_ear`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_same_ear_offBoundary`
+(prior uniqueness-hyp two-ear form retained).
+
+**Prize progress:** OffBoundary ear-uniqueness generalized beyond `TwoInterior` to
+any interior apex (supporting half-plane + Plücker). I=3 two-distinct-ears
+Pick-form without `huniq`. Same-ear occupation: ear is `TwoInterior`
+`trianglePolygon` ⇒ reuse unified I=2 ⇒ `det=5`; other ears `det=1`; fan sum
+`n+4`. Still **not** classical Pick: on-spoke I=3; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| I=3 Pick-form under two Off ears (uniqueness hyps) | Green |
+| Discharge I=3 ear-uniqueness from OffBoundary | **Green** |
+| I=3 two-ear Pick-form without uniqueness hyps | **Green** |
+| Same-ear Off occupation → TwoInterior ear / det=5 | **Green** |
+| Same-ear I=3 Pick-form | **Green** |
+| On-spoke I=3 | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

@@ -11,10 +11,12 @@ import EulersGem.OnSpoke
 Packages `I ∈ {0,1,2}` into one Finset shoelace Pick-form, then starts the
 `I ≥ 3` induction substrate: `ThreeInterior`, ear lattice classification for a
 general interior apex, empty-ear `|det|=1`, and an honest `card = 3` Pick-form
-under two distinct off-boundary occupied ears (each inheriting `UniqueInterior`).
+under two distinct off-boundary occupied ears (each inheriting `UniqueInterior`),
+with ear-uniqueness discharged from general OffBoundary cone arguments.
 
 **Honesty / not classical Pick:**
 Shoelace ≠ Haar/Lebesgue. EP→planar open. General I induction open.
+Same-ear Off occupation reuses I=2 on the ear triangle. On-spoke I=3 still open.
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -540,6 +542,362 @@ theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied
             have : 2 ≤ P.nVertices := by
               have : 3 ≤ P.nVertices := P.length_ge; omega
             have hcast : ((P.nVertices - 2 : ℕ) : ℤ) = (P.nVertices : ℤ) - 2 :=
+              Nat.cast_sub this
+            rw [hcast]; ring
+  have hshoelaceSum : P.shoelaceSum = (P.nVertices : ℤ) + 4 := by
+    rw [← sum_interiorFanDet_eq_shoelaceSum P q, hsum]
+  have hB : P.B = P.nVertices := B_eq_nVertices_of_primitive_edges P hedge hinj
+  have hnn : 0 ≤ P.shoelaceSum := by
+    have : 0 ≤ (P.nVertices : ℤ) + 4 := by
+      have : 3 ≤ P.nVertices := P.length_ge; omega
+    simpa [hshoelaceSum] using this
+  have hnat : Int.natAbs P.shoelaceSum = P.nVertices + 4 := by
+    apply Int.natCast_inj.mp
+    rw [Int.natAbs_of_nonneg hnn, hshoelaceSum]
+    push_cast; ring
+  calc
+    P.shoelace = (Int.natAbs P.shoelaceSum : ℚ) / 2 := rfl
+    _ = ((P.nVertices + 4 : ℕ) : ℚ) / 2 := by
+          have : (Int.natAbs P.shoelaceSum : ℚ) = ((P.nVertices + 4 : ℕ) : ℚ) := by
+            exact_mod_cast hnat
+          rw [this]
+    _ = (P.nVertices : ℚ) / 2 + 2 := by push_cast; ring
+    _ = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by rw [hB]; ring
+
+/-- **I = 3 shoelace Pick-form** under two distinct Off occupied ears, without
+uniqueness hyps (not classical Pick).
+
+Discharges `huniq_r` / `huniq_s` via `eq_of_mem_interiorFan_of_offBoundary`
+(general cone / half-plane uniqueness from any interior apex). On-spoke I=3
+still open. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied_offBoundary
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (i j : Fin P.nVertices)
+    (hne : i ≠ j)
+    (hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff_r : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs_not_i : ¬ MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) s)
+    (hs : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) s)
+    (hoff_s : OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) s)
+    (hr_not_j : ¬ MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  refine shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied
+    P hsc hinj hedge h i j hne hr hoff_r hs_not_i hs hoff_s hr_not_j ?_ ?_
+  · intro k hk
+    exact eq_of_mem_interiorFan_of_offBoundary P hsc hinj hedge
+      (mem_interior_of_threeInterior_apex P h) i k hr hoff_r hk
+  · intro k hk
+    exact eq_of_mem_interiorFan_of_offBoundary P hsc hinj hedge
+      (mem_interior_of_threeInterior_apex P h) j k hs hoff_s hk
+
+/-! ### Five-point PrimitiveEdges (same-ear substrate) -/
+
+/-- Edge `a--b` is primitive when closed-triangle lattice points lie in `{a,b,c,r,s}`
+and both extras are off that edge (not classical Pick). -/
+theorem edgeGcd_eq_one_of_subset_five_off_ab
+    (a b c r s : ℤ × ℤ) (hD : latticeDet a b c ≠ 0)
+    (hsub : ∀ p, MemClosedTriangle a b c p →
+      p = a ∨ p = b ∨ p = c ∨ p = r ∨ p = s)
+    (hoff_r : r ∉ edgeLatticePoints a b) (hoff_s : s ∉ edgeLatticePoints a b) :
+    edgeGcd a b = 1 := by
+  have hab : a ≠ b := by
+    intro hab; exact hD (by simp [latticeDet, hab])
+  have hge0 : edgeGcd a b ≠ 0 := fun hz => hab ((edgeGcd_eq_zero_iff a b).mp hz)
+  by_contra hne1
+  have h2 : 2 ≤ edgeGcd a b := by omega
+  obtain ⟨t, ht, htne⟩ := exists_strict_mem_edgeLatticePoints_of_edgeGcd_ge_two a b h2
+  have hm := hsub t (memClosedTriangle_of_mem_edgeLatticePoints_ab a b c t ht)
+  rcases hm with h1 | h2' | h3 | h4 | h5
+  · exact htne.1 h1
+  · exact htne.2 h2'
+  · exact hD (latticeDet_eq_zero_of_mem_edge_ab a b c (h3 ▸ ht))
+  · exact hoff_r (h4 ▸ ht)
+  · exact hoff_s (h5 ▸ ht)
+
+theorem edgeGcd_eq_one_of_subset_five_off_bc
+    (a b c r s : ℤ × ℤ) (hD : latticeDet a b c ≠ 0)
+    (hsub : ∀ p, MemClosedTriangle a b c p →
+      p = a ∨ p = b ∨ p = c ∨ p = r ∨ p = s)
+    (hoff_r : r ∉ edgeLatticePoints b c) (hoff_s : s ∉ edgeLatticePoints b c) :
+    edgeGcd b c = 1 := by
+  have hD' : latticeDet b c a ≠ 0 := by
+    simpa [← latticeDet_cyclic a b c] using hD
+  have hsub' : ∀ p, MemClosedTriangle b c a p →
+      p = b ∨ p = c ∨ p = a ∨ p = r ∨ p = s := by
+    intro p hp
+    have hp' : MemClosedTriangle a b c p := memClosedTriangle_permute_bca hp
+    rcases hsub p hp' with h1 | h2 | h3 | h4 | h5
+    · exact Or.inr (Or.inr (Or.inl h1))
+    · exact Or.inl h2
+    · exact Or.inr (Or.inl h3)
+    · exact Or.inr (Or.inr (Or.inr (Or.inl h4)))
+    · exact Or.inr (Or.inr (Or.inr (Or.inr h5)))
+  simpa using edgeGcd_eq_one_of_subset_five_off_ab b c a r s hD' hsub' hoff_r hoff_s
+
+theorem edgeGcd_eq_one_of_subset_five_off_ca
+    (a b c r s : ℤ × ℤ) (hD : latticeDet a b c ≠ 0)
+    (hsub : ∀ p, MemClosedTriangle a b c p →
+      p = a ∨ p = b ∨ p = c ∨ p = r ∨ p = s)
+    (hoff_r : r ∉ edgeLatticePoints c a) (hoff_s : s ∉ edgeLatticePoints c a) :
+    edgeGcd c a = 1 := by
+  have hD' : latticeDet c a b ≠ 0 := by
+    simpa [← latticeDet_cyclic₂ a b c] using hD
+  have hsub' : ∀ p, MemClosedTriangle c a b p →
+      p = c ∨ p = a ∨ p = b ∨ p = r ∨ p = s := by
+    intro p hp
+    have hp' : MemClosedTriangle a b c p := memClosedTriangle_permute_cab hp
+    rcases hsub p hp' with h1 | h2 | h3 | h4 | h5
+    · exact Or.inr (Or.inl h1)
+    · exact Or.inr (Or.inr (Or.inl h2))
+    · exact Or.inl h3
+    · exact Or.inr (Or.inr (Or.inr (Or.inl h4)))
+    · exact Or.inr (Or.inr (Or.inr (Or.inr h5)))
+  simpa using edgeGcd_eq_one_of_subset_five_off_ab c a b r s hD' hsub' hoff_r hoff_s
+
+/-- `PrimitiveEdges` for a triangle whose closed lattice points are among five
+points with both extras off every edge (not classical Pick). -/
+theorem PrimitiveEdges_trianglePolygon_of_subset_five_off
+    (a b c r s : ℤ × ℤ) (hD : latticeDet a b c ≠ 0)
+    (hsub : ∀ p, MemClosedTriangle a b c p →
+      p = a ∨ p = b ∨ p = c ∨ p = r ∨ p = s)
+    (hoff_r : OffTriangleBoundary a b c r)
+    (hoff_s : OffTriangleBoundary a b c s) :
+    PrimitiveEdges (trianglePolygon a b c) := by
+  intro i
+  fin_cases i
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using
+      edgeGcd_eq_one_of_subset_five_off_ab a b c r s hD hsub hoff_r.1 hoff_s.1
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using
+      edgeGcd_eq_one_of_subset_five_off_bc a b c r s hD hsub hoff_r.2.1 hoff_s.2.1
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using
+      edgeGcd_eq_one_of_subset_five_off_ca a b c r s hD hsub hoff_r.2.2 hoff_s.2.2
+
+/-! ### Same-ear occupation (both extras in one Off ear) -/
+
+/-- Under `ThreeInterior`, if both `r` and `s` occupy the same Off ear, that ear
+as `trianglePolygon` inherits `TwoInterior`. -/
+theorem TwoInterior_trianglePolygon_of_threeInterior_same_ear
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (i : Fin P.nVertices)
+    (hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff_r : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) s)
+    (hoff_s : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) s) :
+    TwoInterior (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))) r s := by
+  classical
+  set v := P.vertex i
+  set w := P.vertex (P.nextIdx i)
+  set T := trianglePolygon q v w
+  have hr_not_bd : r ∉ T.boundaryLatticePoints :=
+    not_mem_boundary_trianglePolygon_of_OffTriangleBoundary hoff_r
+  have hs_not_bd : s ∉ T.boundaryLatticePoints :=
+    not_mem_boundary_trianglePolygon_of_OffTriangleBoundary hoff_s
+  have hr_hull : toReal r ∈ T.convexHullRegion := by
+    rw [trianglePolygon_convexHullRegion]
+    exact mem_convexHull_of_memClosedTriangle q v w r hr
+  have hs_hull : toReal s ∈ T.convexHullRegion := by
+    rw [trianglePolygon_convexHullRegion]
+    exact mem_convexHull_of_memClosedTriangle q v w s hs
+  refine ⟨h.2.2.1, ?_⟩
+  ext p
+  constructor
+  · intro hp
+    have hp_mem : MemClosedTriangle q v w p :=
+      memClosedTriangle_of_mem_convexHull q v w p (by
+        simpa [T, trianglePolygon_convexHullRegion] using hp.1)
+    have hp_not_bd : p ∉ T.boundaryLatticePoints := hp.2
+    rcases eq_vertices_or_rs_of_mem_interiorFan_of_threeInterior P hsc hinj hedge h i
+        (by simpa [interiorFanTriangle, v, w] using hp_mem) with h1 | h2 | h3 | h4 | h5
+    · have hbd : q ∈ T.boundaryLatticePoints :=
+        T.vertices_mem_boundary (List.mem_cons_self (a := q) (l := [v, w]))
+      exact absurd (h1.symm ▸ hbd) hp_not_bd
+    · have hbd : v ∈ T.boundaryLatticePoints :=
+        T.vertices_mem_boundary
+          (List.mem_cons_of_mem q (List.mem_cons_self (a := v) (l := [w])))
+      exact absurd (h2.symm ▸ hbd) hp_not_bd
+    · have hbd : w ∈ T.boundaryLatticePoints :=
+        T.vertices_mem_boundary
+          (List.mem_cons_of_mem q
+            (List.mem_cons_of_mem v (List.mem_singleton.mpr rfl)))
+      exact absurd (h3.symm ▸ hbd) hp_not_bd
+    · exact Or.inl h4
+    · exact Or.inr (Set.mem_singleton_iff.mpr h5)
+  · intro hp
+    rcases (Set.mem_insert_iff.mp hp) with hpr | hps
+    · subst hpr; exact ⟨hr_hull, hr_not_bd⟩
+    · have hps' : p = s := Set.mem_singleton_iff.mp hps
+      subst hps'; exact ⟨hs_hull, hs_not_bd⟩
+
+/-- Same-ear Off occupation: ear has `StrictlyConvexCCW`, `PrimitiveEdges`, injective
+vertices as a `trianglePolygon`. -/
+theorem StrictlyConvexCCW_PrimitiveEdges_trianglePolygon_of_threeInterior_same_ear
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (i : Fin P.nVertices)
+    (_hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff_r : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (_hs : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) s)
+    (hoff_s : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) s) :
+    let T := trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))
+    StrictlyConvexCCW T ∧ PrimitiveEdges T ∧ Function.Injective T.vertex := by
+  classical
+  set v := P.vertex i
+  set w := P.vertex (P.nextIdx i)
+  set T := trianglePolygon q v w
+  have hpos := InteriorFanDetsPos_of_threeInterior P hsc hinj hedge h
+  have hD : 0 < latticeDet q v w := by
+    simpa [v, w, interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+  have hscT : StrictlyConvexCCW T := StrictlyConvexCCW_trianglePolygon q v w hD
+  have hinjT : Function.Injective T.vertex :=
+    injective_vertex_trianglePolygon q v w (ne_of_gt hD)
+  have hsubset :
+      ∀ p : ℤ × ℤ,
+        MemClosedTriangle q v w p →
+          p = q ∨ p = v ∨ p = w ∨ p = r ∨ p = s := by
+    intro p hp
+    have hp' : MemClosedTriangle (interiorFanTriangle P q i).a
+        (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c p := by
+      simpa [interiorFanTriangle, v, w] using hp
+    rcases eq_vertices_or_rs_of_mem_interiorFan_of_threeInterior
+        P hsc hinj hedge h i hp' with h1 | h2 | h3 | h4 | h5
+    · exact Or.inl h1
+    · exact Or.inr (Or.inl h2)
+    · exact Or.inr (Or.inr (Or.inl h3))
+    · exact Or.inr (Or.inr (Or.inr (Or.inl h4)))
+    · exact Or.inr (Or.inr (Or.inr (Or.inr h5)))
+  have hedgeT : PrimitiveEdges T :=
+    PrimitiveEdges_trianglePolygon_of_subset_five_off q v w r s
+      (ne_of_gt hD) hsubset hoff_r hoff_s
+  exact ⟨hscT, hedgeT, hinjT⟩
+
+/-- Same-ear Off occupation has `interiorFanDet = 5` (I=2 on the ear ⇒ shoelace
+`5/2`). -/
+theorem interiorFanDet_eq_five_of_threeInterior_same_ear
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (i : Fin P.nVertices)
+    (hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff_r : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) s)
+    (hoff_s : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) s) :
+    interiorFanDet P q i = 5 := by
+  classical
+  set v := P.vertex i
+  set w := P.vertex (P.nextIdx i)
+  set T := trianglePolygon q v w
+  obtain ⟨hscT, hedgeT, hinjT⟩ :=
+    StrictlyConvexCCW_PrimitiveEdges_trianglePolygon_of_threeInterior_same_ear
+      P hsc hinj hedge h i hr hoff_r hs hoff_s
+  have hTwo : TwoInterior T r s :=
+    TwoInterior_trianglePolygon_of_threeInterior_same_ear
+      P hsc hinj hedge h i hr hoff_r hs hoff_s
+  have hshoelace : T.shoelace = (2 : ℚ) + (T.B : ℚ) / 2 - 1 :=
+    shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior T hscT hinjT hedgeT hTwo
+  have hB : T.B = 3 := by
+    have := B_eq_nVertices_of_primitive_edges T hedgeT hinjT
+    simpa [T, trianglePolygon_nVertices] using this
+  have harea : T.shoelace = (5 : ℚ) / 2 := by
+    rw [hshoelace, hB]; ring
+  have hDpos : 0 < latticeDet q v w := by
+    have hpos := InteriorFanDetsPos_of_threeInterior P hsc hinj hedge h
+    simpa [v, w, interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+  have hnn : 0 ≤ T.shoelaceSum := by
+    have hseq : T.shoelaceSum = latticeDet q v w := shoelaceSum_trianglePolygon q v w
+    simpa [hseq] using le_of_lt hDpos
+  have hnat : Int.natAbs T.shoelaceSum = 5 := by
+    have : (Int.natAbs T.shoelaceSum : ℚ) / 2 = (5 : ℚ) / 2 := by
+      simpa [LatticePolygon.shoelace] using harea
+    have : (Int.natAbs T.shoelaceSum : ℚ) = 5 := by linarith
+    exact_mod_cast this
+  have hz : T.shoelaceSum = (Int.natAbs T.shoelaceSum : ℤ) :=
+    (Int.natAbs_of_nonneg hnn).symm
+  have : latticeDet q v w = 5 := by
+    have hseq : T.shoelaceSum = latticeDet q v w := shoelaceSum_trianglePolygon q v w
+    rw [← hseq, hz, hnat]; norm_num
+  simpa [interiorFanDet, interiorFanTriangle, Triangle.det, v, w] using this
+
+/-- **I = 3 shoelace Pick-form** under same-ear Off occupation (not classical Pick).
+
+Both remaining interior points occupy one Off ear: that ear is `TwoInterior` as a
+`trianglePolygon` ⇒ `det=5`; other ears empty ⇒ `det=1`; fan sum `n+4`; `B=n` ⇒
+`shoelace = 3 + B/2 − 1`. Uniqueness of the occupied ear from general OffBoundary
+cone arguments. On-spoke I=3 still open. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_same_ear_offBoundary
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r s : ℤ × ℤ}
+    (h : ThreeInterior P q r s) (i : Fin P.nVertices)
+    (hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff_r : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) s)
+    (hoff_s : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) s) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hq := mem_interior_of_threeInterior_apex P h
+  have hdet5 : interiorFanDet P q i = 5 :=
+    interiorFanDet_eq_five_of_threeInterior_same_ear
+      P hsc hinj hedge h i hr hoff_r hs hoff_s
+  have huniq_r : ∀ k : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) r → k = i := by
+    intro k hk
+    exact eq_of_mem_interiorFan_of_offBoundary P hsc hinj hedge hq i k hr hoff_r hk
+  have huniq_s : ∀ k : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) s → k = i := by
+    intro k hk
+    exact eq_of_mem_interiorFan_of_offBoundary P hsc hinj hedge hq i k hs hoff_s hk
+  have hdet1 : ∀ k : Fin P.nVertices, k ≠ i →
+      interiorFanDet P q k = 1 := by
+    intro k hki
+    have hempty : ∀ p ∈ P.interiorLatticePoints, p ≠ q →
+        ¬ MemClosedTriangle (interiorFanTriangle P q k).a
+          (interiorFanTriangle P q k).b (interiorFanTriangle P q k).c p := by
+      intro p hp hpq hp_mem
+      have hpset : p ∈ ({q, r, s} : Set (ℤ × ℤ)) := by
+        rw [← h.2.2.2]; exact hp
+      rcases (Set.mem_insert_iff.mp hpset) with hpq' | hp'
+      · exact hpq hpq'
+      · rcases (Set.mem_insert_iff.mp hp') with hpr | hps
+        · have : k = i := huniq_r k (by
+            simpa [interiorFanTriangle, hpr] using hp_mem)
+          exact hki this
+        · have hps' : p = s := Set.mem_singleton_iff.mp hps
+          have : k = i := huniq_s k (by
+            simpa [interiorFanTriangle, hps'] using hp_mem)
+          exact hki this
+    exact interiorFanDet_eq_one_of_no_other_interior
+      P hsc hinj hedge hq k hempty
+  have hsum :
+      (∑ k : Fin P.nVertices, interiorFanDet P q k) = (P.nVertices : ℤ) + 4 := by
+    have hi_mem : i ∈ Finset.univ := Finset.mem_univ i
+    have hdecomp :
+        (∑ k : Fin P.nVertices, interiorFanDet P q k) =
+          interiorFanDet P q i +
+            ∑ k ∈ Finset.univ.erase i, interiorFanDet P q k := by
+      rw [add_comm]
+      exact (Finset.sum_erase_add (s := Finset.univ) (interiorFanDet P q) hi_mem).symm
+    have hrest :
+        ∑ k ∈ Finset.univ.erase i, interiorFanDet P q k =
+          ∑ k ∈ Finset.univ.erase i, (1 : ℤ) := by
+      refine Finset.sum_congr rfl fun k hk => ?_
+      have ⟨hne_i, _⟩ := Finset.mem_erase.mp hk
+      exact hdet1 k hne_i
+    have hcard : (Finset.univ.erase i).card = P.nVertices - 1 := by
+      rw [Finset.card_erase_of_mem hi_mem, Finset.card_univ, Fintype.card_fin]
+    calc
+      ∑ k : Fin P.nVertices, interiorFanDet P q k
+          = interiorFanDet P q i +
+              ∑ k ∈ Finset.univ.erase i, interiorFanDet P q k := hdecomp
+      _ = 5 + ∑ k ∈ Finset.univ.erase i, (1 : ℤ) := by rw [hdet5, hrest]
+      _ = 5 + ((Finset.univ.erase i).card : ℤ) := by simp
+      _ = 5 + ((P.nVertices - 1 : ℕ) : ℤ) := by rw [hcard]
+      _ = (P.nVertices : ℤ) + 4 := by
+            have : 1 ≤ P.nVertices := by
+              have : 3 ≤ P.nVertices := P.length_ge; omega
+            have hcast : ((P.nVertices - 1 : ℕ) : ℤ) = (P.nVertices : ℤ) - 1 :=
               Nat.cast_sub this
             rw [hcast]; ring
   have hshoelaceSum : P.shoelaceSum = (P.nVertices : ℤ) + 4 := by

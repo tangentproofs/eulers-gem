@@ -6,10 +6,11 @@ Authors: Michal Wallace, Grok Bot
 import EulersGem.LatticeFanInterior
 
 /-!
-# Ear-uniqueness for I = 2 (not classical Pick)
+# Ear-uniqueness under OffTriangleBoundary (not classical Pick)
 
 Plücker identity, segment ↔ `edgeLatticePoints`, then area-weight signs and
-cone-disjointness uniqueness of the occupied ear under `OffTriangleBoundary`.
+cone-disjointness uniqueness of an Off occupied ear from any interior apex.
+Specializes to I = 2 (`TwoInterior`) and discharges I = 3 uniqueness hyps.
 -/
 
 namespace EulersGem
@@ -353,7 +354,79 @@ lemma latticeDet_swap_middle (a b c : ℤ × ℤ) :
     latticeDet a b c = -latticeDet a c b :=
   latticeDet_swap_sign a c b
 
-/-- Foreign-vertex / interior contradiction for a polygon vertex in an ear. -/
+/-- Foreign vertex in an interior-fan ear contradicts supporting half-plane at that
+vertex (works for any interior apex; not classical Pick). -/
+lemma false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hq : q ∈ P.interiorLatticePoints) (i j : Fin P.nVertices)
+    (hne_i : P.vertex j ≠ P.vertex i)
+    (hne_n : P.vertex j ≠ P.vertex (P.nextIdx i))
+    (hvj : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j)) :
+    False := by
+  classical
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hvj
+  set A := toReal (P.vertex (P.prevIdx j))
+  set B := toReal (P.vertex j)
+  have hpos := InteriorFanDetsPos_of_mem_interior P hsc hinj hedge hq
+  have hφq : 0 < detR A B (toReal q) := by
+    simpa [A, B] using detR_prev_apex_pos_of_InteriorFanDetsPos P hpos j
+  have hφvi : 0 ≤ detR A B (toReal (P.vertex i)) := by
+    simpa [A, B] using detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j i
+  have hφvn : 0 ≤ detR A B (toReal (P.vertex (P.nextIdx i))) := by
+    simpa [A, B] using
+      detR_prev_vertex_nonneg_of_ConvexCCW P hsc.1 j (P.nextIdx i)
+  have hφj : detR A B (toReal (P.vertex j)) = 0 := by
+    simpa [A, B] using detR_prev_vertex_eq_zero P j
+  have hcomb :
+      detR A B (toReal (P.vertex j)) =
+        α * detR A B (toReal q) +
+          β * detR A B (toReal (P.vertex i)) +
+            γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+    have heq' :
+        toReal (P.vertex j) =
+          α • toReal q + β • toReal (P.vertex i) +
+            γ • toReal (P.vertex (P.nextIdx i)) := heq.symm
+    have haff := detR_affine_combination3 A B
+      (toReal q) (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i)))
+      α β γ hsum
+    rw [heq', haff]
+  have hα0 : α = 0 := by
+    have hge :
+        α * detR A B (toReal q) ≤
+          α * detR A B (toReal q) +
+            β * detR A B (toReal (P.vertex i)) +
+              γ * detR A B (toReal (P.vertex (P.nextIdx i))) := by
+      have h1 : 0 ≤ β * detR A B (toReal (P.vertex i)) :=
+        mul_nonneg hβ hφvi
+      have h2 : 0 ≤ γ * detR A B (toReal (P.vertex (P.nextIdx i))) :=
+        mul_nonneg hγ hφvn
+      linarith
+    have hαφ : α * detR A B (toReal q) ≤ 0 := by
+      have : α * detR A B (toReal q) +
+            β * detR A B (toReal (P.vertex i)) +
+              γ * detR A B (toReal (P.vertex (P.nextIdx i))) = 0 := by
+        simpa [hφj] using hcomb.symm
+      linarith
+    have hαφ' : 0 ≤ α * detR A B (toReal q) :=
+      mul_nonneg hα (le_of_lt hφq)
+    have hαφ0 : α * detR A B (toReal q) = 0 := le_antisymm hαφ hαφ'
+    exact (mul_eq_zero.mp hαφ0).resolve_right (ne_of_gt hφq)
+  have hseg :
+      toReal (P.vertex j) ∈
+        segment ℝ (toReal (P.vertex i))
+          (toReal (P.vertex (P.nextIdx i))) := by
+    refine ⟨β, γ, hβ, hγ, ?_, ?_⟩
+    · linarith [hsum, hα0]
+    · simpa [hα0, zero_smul, zero_add] using heq
+  have hprim : edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) = 1 := by
+    simpa [LatticePolygon.edgePair] using hedge i
+  have hend := eq_endpoints_of_mem_segment_of_edgeGcd_eq_one
+    (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j) hprim hseg
+  exact hend.elim (fun h => hne_i h) (fun h => hne_n h)
+
+/-- Foreign-vertex / interior contradiction for a polygon vertex in an ear
+under `TwoInterior` (delegates to the general half-plane form). -/
 lemma false_of_vertex_mem_interiorFan_ear_ne
     (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
     (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
@@ -361,44 +434,25 @@ lemma false_of_vertex_mem_interiorFan_ear_ne
     (hne_i : P.vertex j ≠ P.vertex i)
     (hne_n : P.vertex j ≠ P.vertex (P.nextIdx i))
     (hvj : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j)) :
-    False := by
-  rcases eq_vertices_or_r_of_mem_interiorFan_of_twoInterior P hsc hinj hedge h i
-      (by simpa [interiorFanTriangle] using hvj) with h1 | h2 | h3 | h4
-  · -- vertex j = q, but q is interior
-    have hq_int := mem_interior_of_twoInterior_left P h
-    have hj_mem : P.vertex j ∈ P.vertices := by
-      have : P.vertex j ∈ P.vertexFinset := by
-        rw [vertexFinset_eq_univ_image]
-        exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
-      exact List.mem_toFinset.mp this
-    have hj_bd := P.vertices_mem_boundary hj_mem
-    have : q ∉ P.boundaryLatticePoints := hq_int.2
-    exact this (h1 ▸ hj_bd)
-  · exact hne_i h2
-  · exact hne_n h3
-  · -- vertex j = r, but r is interior
-    have hr_int := mem_interior_of_twoInterior_right P h
-    have hj_mem : P.vertex j ∈ P.vertices := by
-      have : P.vertex j ∈ P.vertexFinset := by
-        rw [vertexFinset_eq_univ_image]
-        exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
-      exact List.mem_toFinset.mp this
-    have hj_bd := P.vertices_mem_boundary hj_mem
-    have : r ∉ P.boundaryLatticePoints := hr_int.2
-    exact this (h4 ▸ hj_bd)
+    False :=
+  false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior P hsc hinj hedge
+    (mem_interior_of_twoInterior_left P h) i j hne_i hne_n hvj
 
-/-- At most one closed interior-fan ear contains `r` under `OffTriangleBoundary`
-on an occupied ear (cone / half-plane disjointness; not classical Pick). -/
-theorem eq_of_mem_interiorFan_of_twoInterior_offBoundary
+/-- At most one closed interior-fan ear contains an Off-boundary point `r`
+from an interior apex (cone / half-plane disjointness; not classical Pick).
+
+Works for any interior cardinality: only `q ∈ interior` + `OffTriangleBoundary`
+on the occupied ear. -/
+theorem eq_of_mem_interiorFan_of_offBoundary
     (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
     (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
-    (h : TwoInterior P q r) (i j : Fin P.nVertices)
+    (hq : q ∈ P.interiorLatticePoints) (i j : Fin P.nVertices)
     (hri : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
     (hoff : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
     (hrj : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r) :
     j = i := by
   classical
-  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hpos := InteriorFanDetsPos_of_mem_interior P hsc hinj hedge hq
   have hDi : 0 < latticeDet q (P.vertex i) (P.vertex (P.nextIdx i)) := by
     simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
   have hDj : 0 < latticeDet q (P.vertex j) (P.vertex (P.nextIdx j)) := by
@@ -473,7 +527,7 @@ theorem eq_of_mem_interiorFan_of_twoInterior_offBoundary
               intro heq; exact hji (hinj heq)
             have hne_n : vj ≠ wi := by
               intro heq; exact hadj1 (hinj heq)
-            exact (false_of_vertex_mem_interiorFan_ear_ne P hsc hinj hedge h i j
+            exact (false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior P hsc hinj hedge hq i j
               hne_i hne_n (by simpa [vi, wi, vj] using hvj)).elim
         · -- dac ≤ 0 ⇒ vi ∈ closed ear j (via Plücker)
           push Not at hdac
@@ -531,8 +585,21 @@ theorem eq_of_mem_interiorFan_of_twoInterior_offBoundary
               intro heq; exact hji (hinj heq.symm)
             have hne_jn : vi ≠ wj := by
               intro heq; exact hadj2 (hinj heq)
-            exact (false_of_vertex_mem_interiorFan_ear_ne P hsc hinj hedge h j i
+            exact (false_of_vertex_mem_interiorFan_ear_ne_of_mem_interior P hsc hinj hedge hq j i
               hne_j hne_jn (by simpa [vj, wj, vi] using hvi)).elim
+
+/-- At most one closed interior-fan ear contains `r` under `TwoInterior` +
+`OffTriangleBoundary` (specializes `eq_of_mem_interiorFan_of_offBoundary`). -/
+theorem eq_of_mem_interiorFan_of_twoInterior_offBoundary
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (i j : Fin P.nVertices)
+    (hri : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hrj : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r) :
+    j = i :=
+  eq_of_mem_interiorFan_of_offBoundary P hsc hinj hedge
+    (mem_interior_of_twoInterior_left P h) i j hri hoff hrj
 
 /-- **I = 2 shoelace Pick-form** without uniqueness hyp (still needs
 `OffTriangleBoundary`; not classical Pick). -/
