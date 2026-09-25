@@ -786,3 +786,48 @@ EdgeVertices untouched.
 | B-bookkeeping → `shoelace = 2 + B/2 − 1` | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (I=2 ear CCW / PrimitiveEdges / det=3 / Pick-form under uniqueness; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem StrictlyConvexCCW_trianglePolygon
+    (0 < latticeDet a b c) : StrictlyConvexCCW (trianglePolygon a b c)
+
+theorem StrictlyConvexCCW_PrimitiveEdges_trianglePolygon_of_twoInterior_occupied
+    … (OffTriangleBoundary …) :
+    StrictlyConvexCCW T ∧ PrimitiveEdges T ∧ Injective T.vertex
+
+theorem interiorFanDet_eq_three_of_twoInterior_occupied … :
+    interiorFanDet P q i = 3
+
+theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied
+    … (OffTriangleBoundary …)
+    (∀ j, MemClosedTriangle earⱼ r → j = i) :
+    P.shoelace = 2 + B/2 − 1
+```
+
+Results exports: `results_StrictlyConvexCCW_trianglePolygon`,
+`results_StrictlyConvexCCW_PrimitiveEdges_trianglePolygon_of_twoInterior_occupied`,
+`results_interiorFanDet_eq_three_of_twoInterior_occupied`,
+`results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied`.
+
+**Prize progress:** Fin-3 `StrictlyConvexCCW` from positive orientation; occupied
+off-boundary ear inherits `PrimitiveEdges` via four-point edge-gcd lemmas; I=1 on
+the ear triangle ⇒ `det=3`. Under an explicit uniqueness hyp, empty ears `det=1`
++ occupied `det=3` bookkeep to `shoelace = 2 + B/2 − 1`. Still **not** classical
+Pick: ear-uniqueness discharge (cone disjointness); on-spoke I=2; Haar;
+EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Occupied-ear UniqueInterior (off boundary) | Green |
+| Ear StrictlyConvexCCW / PrimitiveEdges | **Green** |
+| Occupied-ear `det=3` via I=1 | **Green** |
+| I=2 Pick-form under uniqueness hyp | **Green** |
+| Discharge ear-uniqueness from OffTriangleBoundary | Open |
+| On-spoke I=2 configurations | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

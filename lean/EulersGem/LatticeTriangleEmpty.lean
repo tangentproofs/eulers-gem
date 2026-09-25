@@ -445,7 +445,7 @@ theorem natAbs_det_eq_one_of_memClosedTriangle_eq_vertices_of_edgeGcd
 
 /-! ### Edge primitivity from emptiness + nondegeneracy -/
 
-private lemma memClosedTriangle_permute_acb
+lemma memClosedTriangle_permute_acb
     {a b c p : ℤ × ℤ} (h : MemClosedTriangle a c b p) :
     MemClosedTriangle a b c p := by
   obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := h
@@ -454,7 +454,35 @@ private lemma memClosedTriangle_permute_acb
   convert heq using 1
   abel
 
-private lemma latticeDet_eq_zero_of_mem_edge_ab
+lemma memClosedTriangle_permute_bca
+    {a b c p : ℤ × ℤ} (h : MemClosedTriangle b c a p) :
+    MemClosedTriangle a b c p := by
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := h
+  refine ⟨γ, α, β, hγ, hα, hβ, by linarith, ?_⟩
+  convert heq using 1
+  abel
+
+lemma memClosedTriangle_permute_cab
+    {a b c p : ℤ × ℤ} (h : MemClosedTriangle c a b p) :
+    MemClosedTriangle a b c p := by
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := h
+  refine ⟨β, γ, α, hβ, hγ, hα, by linarith, ?_⟩
+  convert heq using 1
+  abel
+
+lemma memClosedTriangle_of_mem_edgeLatticePoints_bc
+    (a b c p : ℤ × ℤ) (hp : p ∈ edgeLatticePoints b c) :
+    MemClosedTriangle a b c p :=
+  memClosedTriangle_permute_bca
+    (memClosedTriangle_of_mem_edgeLatticePoints_ab b c a p hp)
+
+lemma memClosedTriangle_of_mem_edgeLatticePoints_ca
+    (a b c p : ℤ × ℤ) (hp : p ∈ edgeLatticePoints c a) :
+    MemClosedTriangle a b c p :=
+  memClosedTriangle_permute_cab
+    (memClosedTriangle_of_mem_edgeLatticePoints_ab c a b p hp)
+
+lemma latticeDet_eq_zero_of_mem_edge_ab
     (a b c : ℤ × ℤ) (hc : c ∈ edgeLatticePoints a b) :
     latticeDet a b c = 0 := by
   classical

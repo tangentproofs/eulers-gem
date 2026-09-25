@@ -761,8 +761,7 @@ def results_trianglePolygon (a b c : ℤ × ℤ) : EulersGem.Picks.LatticePolygo
 /-! ### I=2 occupied-ear UniqueInterior (not classical Pick)
 
 Under `TwoInterior`, an ear containing `r` off its three edges inherits
-`UniqueInterior r` as a `trianglePolygon`. StrictlyConvexCCW / PrimitiveEdges /
-`det=3` / B-bookkeeping to `shoelace = 2 + B/2 − 1` still open. Classical Pick FAIL.
+`UniqueInterior r` as a `trianglePolygon`. Classical Pick FAIL.
 -/
 
 /-- `r` lies on none of the three edges of △`(a,b,c)` (not classical Pick). -/
@@ -798,6 +797,83 @@ theorem results_memClosedTriangle_of_mem_convexHull
           EulersGem.Picks.LatticeTriangle.toReal c} : Set (ℝ × ℝ))) :
     EulersGem.Picks.LatticeTriangle.MemClosedTriangle a b c p :=
   EulersGem.Picks.LatticeFan.InteriorFan.memClosedTriangle_of_mem_convexHull a b c p h
+
+/-! ### I=2 ear CCW / PrimitiveEdges / det=3 / Pick-form (not classical Pick)
+
+Occupied off-boundary ear is `StrictlyConvexCCW` + `PrimitiveEdges` as a
+`trianglePolygon`; I=1 inheritance yields `interiorFanDet = 3`. Under an
+explicit ear-uniqueness hyp, empty ears `det=1` + occupied `det=3` bookkeep to
+`shoelace = 2 + B/2 − 1`. Ear-uniqueness discharge and on-spoke I=2 still open.
+Classical Pick FAIL.
+-/
+
+/-- Positive orientation ⇒ Fin-3 `StrictlyConvexCCW` (not classical Pick). -/
+theorem results_StrictlyConvexCCW_trianglePolygon
+    (a b c : ℤ × ℤ) (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c) :
+    EulersGem.Picks.LatticeFan.StrictlyConvexCCW
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.StrictlyConvexCCW_trianglePolygon a b c hD
+
+/-- Occupied off-boundary ear has `StrictlyConvexCCW`, `PrimitiveEdges`, and
+injective vertices as a `trianglePolygon` (not classical Pick). -/
+theorem results_StrictlyConvexCCW_PrimitiveEdges_trianglePolygon_of_twoInterior_occupied
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    EulersGem.Picks.LatticeFan.StrictlyConvexCCW
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon q
+          (P.vertex i) (P.vertex (P.nextIdx i))) ∧
+      EulersGem.Picks.LatticeFan.PrimitiveEdges
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon q
+          (P.vertex i) (P.vertex (P.nextIdx i))) ∧
+        Function.Injective
+          (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon q
+            (P.vertex i) (P.vertex (P.nextIdx i))).vertex :=
+  EulersGem.Picks.LatticeFan.InteriorFan.StrictlyConvexCCW_PrimitiveEdges_trianglePolygon_of_twoInterior_occupied
+    P hsc hinj hedge h i hr hoff
+
+/-- Occupied off-boundary ear has determinant exactly `3` (not classical Pick). -/
+theorem results_interiorFanDet_eq_three_of_twoInterior_occupied
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q i = 3 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_three_of_twoInterior_occupied
+    P hsc hinj hedge h i hr hoff
+
+/-- **I = 2 shoelace Pick-form** under unique off-boundary occupied ear
+(not classical Pick). Ear-uniqueness discharge still open. -/
+theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (huniq : ∀ j : Fin P.nVertices,
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex j)
+        (P.vertex (P.nextIdx j)) r → j = i) :
+    P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied
+    P hsc hinj hedge h i hr hoff huniq
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
