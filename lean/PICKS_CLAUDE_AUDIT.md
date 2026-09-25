@@ -1460,3 +1460,43 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (I=3 Off-free Finset card=3 via Covered-of-ThreeInterior; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma exists_onSpoke_of_covering_class
+lemma off_ear_rel_of_spoke
+theorem ThreeInteriorCovered_of_threeInterior
+    (StrictlyConvexCCW) (Injective) (PrimitiveEdges) (ThreeInterior P q r s) :
+    ThreeInteriorCovered P q r s
+-- ThreeInteriorCovered extended with Off+onSpoke duals (nonadj / adj-left / adj-right)
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three
+    -- geometric only: no Off-apex / Covered witness hyp
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_off
+    -- former Off-apex Finset theorem (renamed)
+```
+
+Results exports: `results_ThreeInteriorCovered_of_threeInterior`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three` (geometric),
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_off` (Off-apex),
+updated Covered docstring.
+
+**Prize progress:** Off-free Finset `card = 3` closed — every `ThreeInterior` is
+`ThreeInteriorCovered` by covering-ear + Off/on-spoke exhaustion (same/two-ear Off,
+onSpoke+Off duals, sameSpoke, twoSpoke). Geometric Finset Pick-form needs only
+injective + `PrimitiveEdges` + `StrictlyConvexCCW`. Still **not** classical Pick:
+Haar; EP→planar; general `I`. Claude Platonic / Cube / MetricRegular / EdgeVertices
+untouched.
+
+| Item | Status |
+|------|--------|
+| Off-adjacent-left/right `det=4` + Pick-form | Green |
+| Non-adjacent / adjacent two-spoke | Green |
+| Finset card=3 under covered | Green |
+| `ThreeInteriorCovered_of_threeInterior` | **Green** |
+| Finset card=3 without covered hyp (geometric) | **Green** |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
