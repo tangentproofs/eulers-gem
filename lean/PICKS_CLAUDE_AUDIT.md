@@ -341,9 +341,52 @@ Claude Platonic / Embed / Octahedron untouched.
 | Empty-interior shoelace `= B/2−1` (fan-primitivity hyps) | Green |
 | `empty ⇒ \|det\|=1` (nondegenerate triangle) | **Green** |
 | `FanDetPrimitive` from empty fan ears + `FanDetsPos` | **Green** |
-| `FanTrianglesEmpty` from polygon `I=0` (convex) | Open |
+| `FanTrianglesEmpty` from polygon `I=0` (convex) | Partial — see next update |
 | General EP → planar via `Euler_Poincare_full` | Open |
 | Geometric triangulation existence (no emptiness hyp) | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-24 (`FanTrianglesEmpty` from `I=∅`; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFan.lean` / `LatticeTriangle.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem mem_convexHull_of_memClosedTriangle
+    (a b c p) (MemClosedTriangle a b c p) :
+    toReal p ∈ convexHull ℝ {toReal a, toReal b, toReal c}
+
+theorem FanTrianglesEmpty_of_empty_interior
+    (P) (Injective P.vertex) (PrimitiveEdges P)
+    (EmptyInterior P) (VerticesExtreme P) :
+    FanTrianglesEmpty P
+
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior
+    (P) (Injective P.vertex) (PrimitiveEdges P)
+    (FanDetsPos P) (EmptyInterior P) (VerticesExtreme P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_mem_convexHull_of_memClosedTriangle`,
+`results_boundaryLatticePoints_eq_vertexFinset`,
+`results_FanTrianglesEmpty_of_empty_interior`,
+`results_shoelace_eq_B_div_two_sub_one_of_empty_interior`.
+
+**Prize progress:** fan ears empty of extra lattice points when the polygon has
+empty convex-hull interior, primitive edges, and extreme listed vertices.
+`VerticesExtreme` is still a hyp (true for convex polygons; not yet discharged
+from a local-turn / convexity predicate). Still **not** classical Pick: Haar,
+general triangulation existence, EP→planar remain open. Claude Platonic / Embed /
+Octahedron untouched.
+
+| Item | Status |
+|------|--------|
+| `empty ⇒ \|det\|=1` (nondegenerate triangle) | Green |
+| `FanDetPrimitive` from empty fan ears + `FanDetsPos` | Green |
+| `FanTrianglesEmpty` from polygon `I=∅` + extreme vertices | **Green** (hyp `VerticesExtreme`) |
+| Empty-interior shoelace `= B/2−1` under those hyps | **Green** |
+| Discharge `VerticesExtreme` from convexity | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 

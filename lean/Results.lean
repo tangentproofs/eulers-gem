@@ -402,6 +402,50 @@ theorem results_shoelace_eq_B_div_two_sub_one_of_empty_fan
     P hverts hedge hpos hempty
 
 
+
+/-- Primitive edges ⇒ constructive boundary equals the listed vertex set. -/
+theorem results_boundaryLatticePoints_eq_vertexFinset
+    (P : EulersGem.Picks.LatticePolygon)
+    (hprim : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hverts : Function.Injective P.vertex) :
+    P.boundaryLatticePoints = P.vertexFinset :=
+  EulersGem.Picks.LatticeFan.boundaryLatticePoints_eq_vertexFinset P hprim hverts
+
+/-- **Prize (partial):** empty interior + primitive edges + extreme vertices ⇒
+fan ears contain only their three vertices as lattice points (not classical Pick). -/
+theorem results_FanTrianglesEmpty_of_empty_interior
+    (P : EulersGem.Picks.LatticePolygon)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P)
+    (hext : EulersGem.Picks.LatticeFan.VerticesExtreme P) :
+    EulersGem.Picks.LatticeFan.FanTrianglesEmpty P :=
+  EulersGem.Picks.LatticeFan.FanTrianglesEmpty_of_empty_interior P hverts hedge hI hext
+
+/-- Empty-interior shoelace Pick-form with `FanTrianglesEmpty` discharged from
+`I=∅` + extreme vertices + CCW fan + primitive edges (not classical Pick). -/
+theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior
+    (P : EulersGem.Picks.LatticePolygon)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hpos : EulersGem.Picks.LatticeFan.FanDetsPos P)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P)
+    (hext : EulersGem.Picks.LatticeFan.VerticesExtreme P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_empty_interior
+    P hverts hedge hpos hI hext
+
+/-- Barycentric closed triangle ⇒ Euclidean convex hull of the three vertices. -/
+theorem results_mem_convexHull_of_memClosedTriangle
+    (a b c p : ℤ × ℤ)
+    (h : EulersGem.Picks.LatticeTriangle.MemClosedTriangle a b c p) :
+    EulersGem.Picks.LatticeTriangle.toReal p ∈
+      convexHull ℝ
+        ({EulersGem.Picks.LatticeTriangle.toReal a,
+          EulersGem.Picks.LatticeTriangle.toReal b,
+          EulersGem.Picks.LatticeTriangle.toReal c} : Set (ℝ × ℝ)) :=
+  EulersGem.Picks.LatticeTriangle.mem_convexHull_of_memClosedTriangle a b c p h
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane

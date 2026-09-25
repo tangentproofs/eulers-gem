@@ -18,6 +18,7 @@ primitivity / primitive edges.
 
 **Honesty / not classical Pick:**
 * Fan primitivity discharged from empty fan triangles + nondeg (`FanDetPrimitive_of_empty_fan_triangles`).
+* `FanTrianglesEmpty` from polygon `I=∅` + primitive edges + extreme vertices.
 * Shoelace ≠ Haar/Lebesgue.
 * Consistent orientation is a hyp (`0 ≤ fanDet`).
 * General lattice-polygon triangulation existence still open.
@@ -457,6 +458,168 @@ theorem shoelace_eq_B_div_two_sub_one_of_empty_fan
   shoelace_eq_B_div_two_sub_one_of_primitive_fan P hverts hedge
     (FanDetsNonneg_of_pos P hpos)
     (FanDetPrimitive_of_empty_fan_triangles P hpos hempty)
+
+/-! ## Empty polygon interior ⇒ empty fan triangles (convex / extreme vertices) -/
+
+/-- Geometric empty-interior: no lattice points in the convex hull off the cyclic boundary.
+Matches classical Pick `I = 0` when the polygon is convex (listed vertices extreme). -/
+def EmptyInterior : Prop := P.interiorLatticePoints = ∅
+
+/-- Every listed vertex is extreme in the convex hull of the vertex set.
+True for convex lattice polygons in vertex order; rules out “foreign” vertices
+inside fan ears. (`toReal` = `LatticeTriangle.toReal` = polygon embedding.) -/
+def VerticesExtreme : Prop :=
+  ∀ i : Fin P.nVertices,
+    toReal (P.vertex i) ∉
+      convexHull ℝ (toReal '' ((P.vertexFinset.erase (P.vertex i) : Set (ℤ × ℤ))))
+
+lemma vertexFinset_eq_univ_image :
+    P.vertexFinset = (Finset.univ : Finset (Fin P.nVertices)).image P.vertex := by
+  ext p
+  constructor
+  · intro hp
+    have hp' : p ∈ P.vertices := List.mem_toFinset.mp hp
+    obtain ⟨i, rfl⟩ := List.mem_iff_get.mp hp'
+    refine Finset.mem_image.mpr ⟨⟨i.1, ?_⟩, Finset.mem_univ _, rfl⟩
+    simp [LatticePolygon.nVertices]
+  · intro hp
+    obtain ⟨i, _, rfl⟩ := Finset.mem_image.mp hp
+    exact List.mem_toFinset.mpr (List.get_mem P.vertices i)
+
+/-- Primitive edges + distinct vertices ⇒ constructive boundary equals the vertex set. -/
+theorem boundaryLatticePoints_eq_vertexFinset
+    (hprim : PrimitiveEdges P) (_hverts : Function.Injective P.vertex) :
+    P.boundaryLatticePoints = P.vertexFinset := by
+  classical
+  have hedge : ∀ i : Fin P.nVertices,
+      edgeLatticePoints (P.edgePair i).1 (P.edgePair i).2 =
+        {(P.edgePair i).1, (P.edgePair i).2} :=
+    fun i => edgeLatticePoints_eq_endpoints _ _ (hprim i)
+  have hrew :
+      P.boundaryLatticePoints =
+        Finset.univ.biUnion fun i : Fin P.nVertices =>
+          {(P.edgePair i).1, (P.edgePair i).2} := by
+    unfold LatticePolygon.boundaryLatticePoints
+    exact Finset.biUnion_congr rfl fun i _ => by rw [hedge i]
+  have hsub :
+      (Finset.univ.biUnion fun i : Fin P.nVertices =>
+          {(P.edgePair i).1, (P.edgePair i).2}) =
+        Finset.univ.image P.vertex := by
+    ext p
+    simp only [Finset.mem_biUnion, Finset.mem_insert, Finset.mem_singleton,
+      Finset.mem_image, Finset.mem_univ, true_and, LatticePolygon.edgePair]
+    constructor
+    · rintro ⟨i, h | h⟩
+      · exact ⟨i, h.symm⟩
+      · exact ⟨P.nextIdx i, h.symm⟩
+    · rintro ⟨i, rfl⟩
+      exact ⟨i, Or.inl rfl⟩
+  rw [hrew, hsub, vertexFinset_eq_univ_image P]
+
+/-- Fan-triangle vertices lie among the polygon vertices. -/
+lemma fanTriangle_vertices_mem_vertexFinset
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    (fanTriangle P i hi).a ∈ P.vertexFinset ∧
+      (fanTriangle P i hi).b ∈ P.vertexFinset ∧
+        (fanTriangle P i hi).c ∈ P.vertexFinset := by
+  rw [vertexFinset_eq_univ_image]
+  refine ⟨?_, ?_, ?_⟩
+  · exact Finset.mem_image.mpr ⟨⟨0, P.nVertices_pos⟩, Finset.mem_univ _, rfl⟩
+  · exact Finset.mem_image.mpr ⟨⟨i + 1, by have := P.length_ge; omega⟩, Finset.mem_univ _, rfl⟩
+  · exact Finset.mem_image.mpr ⟨⟨i + 2, by have := P.length_ge; omega⟩, Finset.mem_univ _, rfl⟩
+
+/-- Closed fan triangle (barycentric) sits inside the polygon convex hull. -/
+theorem mem_convexHullRegion_of_memClosedTriangle_fan
+    (i : ℕ) (hi : i < P.nVertices - 2) {p : ℤ × ℤ}
+    (hp : MemClosedTriangle (fanTriangle P i hi).a (fanTriangle P i hi).b
+      (fanTriangle P i hi).c p) :
+    toReal p ∈ P.convexHullRegion := by
+  have htrip := mem_convexHull_of_memClosedTriangle _ _ _ _ hp
+  have hv := fanTriangle_vertices_mem_vertexFinset P i hi
+  have hsub : ({toReal (fanTriangle P i hi).a,
+        toReal (fanTriangle P i hi).b,
+        toReal (fanTriangle P i hi).c} : Set (ℝ × ℝ)) ⊆
+      toReal '' (P.vertexFinset : Set (ℤ × ℤ)) := by
+    intro x hx
+    simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+    rcases hx with rfl | rfl | rfl
+    · exact Set.mem_image_of_mem toReal hv.1
+    · exact Set.mem_image_of_mem toReal hv.2.1
+    · exact Set.mem_image_of_mem toReal hv.2.2
+  have hmono := (convexHull_mono hsub) htrip
+  simpa [LatticePolygon.convexHullRegion] using hmono
+
+/-- **Prize (partial):** empty interior + primitive edges + extreme vertices ⇒
+each fan ear meets lattice points only at its three vertices.
+
+Key geometry: fan triangles ⊂ convex hull; with `PrimitiveEdges` the constructive
+boundary is exactly the vertex set, so `I = ∅` leaves only listed vertices as
+candidate lattice points in the hull; extremality rules out foreign vertices in
+an ear. Not classical Pick (no Haar; triangulation existence still open). -/
+theorem FanTrianglesEmpty_of_empty_interior
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hI : EmptyInterior P)
+    (hext : VerticesExtreme P) :
+    FanTrianglesEmpty P := by
+  classical
+  intro i hi p hp
+  have hhull : toReal p ∈ P.convexHullRegion :=
+    mem_convexHullRegion_of_memClosedTriangle_fan P i hi hp
+  by_cases hb : p ∈ P.boundaryLatticePoints
+  · have hbound := boundaryLatticePoints_eq_vertexFinset P hedge hverts
+    have hpV : p ∈ P.vertexFinset := by simpa [hbound] using hb
+    have hpV' : p ∈ (Finset.univ : Finset (Fin P.nVertices)).image P.vertex := by
+      rwa [← vertexFinset_eq_univ_image P]
+    obtain ⟨j, _, hj⟩ := Finset.mem_image.mp hpV'
+    subst hj
+    by_cases hA : P.vertex j = (fanTriangle P i hi).a
+    · exact Or.inl hA
+    · by_cases hB : P.vertex j = (fanTriangle P i hi).b
+      · exact Or.inr (Or.inl hB)
+      · by_cases hC : P.vertex j = (fanTriangle P i hi).c
+        · exact Or.inr (Or.inr hC)
+        · exfalso
+          have hv := fanTriangle_vertices_mem_vertexFinset P i hi
+          have hae : (fanTriangle P i hi).a ∈ P.vertexFinset.erase (P.vertex j) :=
+            Finset.mem_erase.mpr ⟨Ne.symm hA, hv.1⟩
+          have hbe : (fanTriangle P i hi).b ∈ P.vertexFinset.erase (P.vertex j) :=
+            Finset.mem_erase.mpr ⟨Ne.symm hB, hv.2.1⟩
+          have hce : (fanTriangle P i hi).c ∈ P.vertexFinset.erase (P.vertex j) :=
+            Finset.mem_erase.mpr ⟨Ne.symm hC, hv.2.2⟩
+          have htrip := mem_convexHull_of_memClosedTriangle _ _ _ _ hp
+          have hsub :
+              ({toReal (fanTriangle P i hi).a,
+                  toReal (fanTriangle P i hi).b,
+                  toReal (fanTriangle P i hi).c} : Set (ℝ × ℝ)) ⊆
+                toReal '' ((P.vertexFinset.erase (P.vertex j) : Set (ℤ × ℤ))) := by
+            intro x hx
+            simp only [Set.mem_insert_iff, Set.mem_singleton_iff] at hx
+            rcases hx with rfl | rfl | rfl
+            · exact Set.mem_image_of_mem toReal hae
+            · exact Set.mem_image_of_mem toReal hbe
+            · exact Set.mem_image_of_mem toReal hce
+          exact hext j ((convexHull_mono hsub) htrip)
+  · have hint : p ∈ P.interiorLatticePoints := by
+      refine ⟨?_, hb⟩
+      -- align `LatticeTriangle.toReal` with `Picks.toReal` in the region def
+      simpa [LatticePolygon.convexHullRegion,
+        show (toReal : ℤ × ℤ → ℝ × ℝ) = Picks.toReal from rfl] using hhull
+    have : P.interiorLatticePoints = ∅ := hI
+    exact (this ▸ hint).elim
+
+/-- Empty-interior shoelace Pick-form under CCW fan + primitive edges + extreme
+vertices (discharges `FanTrianglesEmpty` / fan-primitivity). Not classical Pick. -/
+theorem shoelace_eq_B_div_two_sub_one_of_empty_interior
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hpos : FanDetsPos P)
+    (hI : EmptyInterior P)
+    (hext : VerticesExtreme P) :
+    P.shoelace = (P.B : ℚ) / 2 - 1 :=
+  shoelace_eq_B_div_two_sub_one_of_empty_fan P hverts hedge hpos
+    (FanTrianglesEmpty_of_empty_interior P hverts hedge hI hext)
+
 
 end LatticeFan
 end Picks

@@ -33,8 +33,10 @@ namespace Picks
 
 open LatticeTriangle
 
-/-- Embed a lattice point into the Euclidean plane. -/
-def toReal (p : ℤ × ℤ) : ℝ × ℝ := (↑p.1, ↑p.2)
+/-- Embed a lattice point into the Euclidean plane.
+Alias of `LatticeTriangle.toReal` so polygon hull and triangle barycentric
+membership share one embedding. -/
+abbrev toReal := LatticeTriangle.toReal
 
 lemma toReal_injective : Function.Injective toReal := by
   intro p q h

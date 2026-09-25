@@ -7,6 +7,7 @@ import Mathlib.Tactic
 import Mathlib.Data.Rat.Defs
 import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 import Mathlib.Data.Int.GCD
+import Mathlib.Analysis.Convex.Combination
 
 /-!
 # Lattice-triangle shoelace helpers (not yet classical Pick)
@@ -22,6 +23,8 @@ Defines the corner determinant and the **shoelace rational**
 * Integer barycentric cells with `α,β ≥ 0`, `α+β ≤ 1` are only `(0,0),(1,0),(0,1)`.
 * Sum of shoelaces over a finite set of `|det|=1` triangles equals `#/2`.
 * `|det|=1` ⇒ closed barycentric triangle contains no other lattice points.
+
+* `mem_convexHull_of_memClosedTriangle`: barycentric membership ⇒ Euclidean convex hull.
 
 **Proved (emptiness bridge):**
 
@@ -399,6 +402,21 @@ theorem memClosedTriangle_eq_vertices_of_natAbs_det_eq_one
   · left; exact sub_eq_zero.mp h0
   · right; left; exact sub_left_inj.mp h1
   · right; right; exact sub_left_inj.mp h2
+
+
+/-- Barycentric closed-triangle membership implies membership in the Euclidean
+convex hull of the three vertices. Bridge to `LatticePolygon.convexHullRegion`. -/
+theorem mem_convexHull_of_memClosedTriangle
+    (a b c p : ℤ × ℤ) (h : MemClosedTriangle a b c p) :
+    toReal p ∈ convexHull ℝ ({toReal a, toReal b, toReal c} : Set (ℝ × ℝ)) := by
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := h
+  let w : Fin 3 → ℝ := ![α, β, γ]
+  let z : Fin 3 → ℝ × ℝ := ![toReal a, toReal b, toReal c]
+  refine mem_convexHull_of_exists_fintype (R := ℝ) (E := ℝ × ℝ) w z ?hw0 ?hw1 ?hz ?hx
+  · intro i; fin_cases i <;> simp [w, hα, hβ, hγ]
+  · simp [w, Fin.sum_univ_three, hsum]
+  · intro i; fin_cases i <;> simp [z]
+  · simpa [w, z, Fin.sum_univ_three] using heq
 
 
 end LatticeTriangle
