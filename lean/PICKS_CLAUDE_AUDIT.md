@@ -2077,3 +2077,59 @@ Results exports: `results_finTwoProd_addHaar_eq_volume`,
 Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 Classical Pick **FAIL** — no rename.
 
+
+## Update 2026-09-25 (lattice triangle Haar = shoelace; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeArea.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem triangleShoelace_coe_eq_abs_det_div_two (a b c : ℤ × ℤ) :
+    (triangleShoelace a b c : ℝ) = |(latticeDet a b c : ℝ)| / 2
+
+theorem volume_convexHull_lattice_triangle (a b c : ℤ × ℤ) :
+    volume (convexHull ℝ {toReal a, toReal b, toReal c}) =
+      ENNReal.ofReal (triangleShoelace a b c)
+
+theorem volume_convexHull_trianglePolygon (a b c : ℤ × ℤ) :
+    volume (trianglePolygon a b c).convexHullRegion =
+      ENNReal.ofReal (trianglePolygon a b c).shoelace
+
+theorem sum_volume_fanTriangles_eq_ofReal_shoelace
+    (P) (hnn : FanDetsNonneg P) (hverts) :
+    (∑ t ∈ fanTriangles P, volume (conv{t.a,t.b,t.c})) =
+      ENNReal.ofReal P.shoelace
+
+theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
+    (P) (S) (hvol : volume P.hull = ofReal P.shoelace)
+    (hcomb : P.shoelace = #S + B/2 - 1) :
+    volume P.hull = ofReal (#S + B/2 - 1)
+```
+
+Bridge: translate triangle to origin (`volume_vadd` + `convexHull_vadd`) then
+reuse `volume_convexHull_origin_triangle`. `trianglePolygon` via existing
+`shoelaceSum_trianglePolygon` + `trianglePolygon_convexHullRegion`.
+
+Results exports: `results_triangleShoelace_coe_eq_abs_det_div_two`,
+`results_volume_convexHull_lattice_triangle`,
+`results_volume_convexHull_trianglePolygon`,
+`results_shoelace_coe_eq_abs_shoelaceSum_div_two`,
+`results_sum_volume_fanTriangles_eq_ofReal_shoelace`,
+`results_volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace`.
+
+**Still open for classical Pick:**
+* StrictlyConvexCCW polygon `convexHullRegion` = almost-disjoint union of fan
+  triangles (⇒ discharge `hvol` for general polygons)
+* EP → planar Euler; general triangulation existence
+
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+Classical Pick **FAIL** — no rename.
+
+Also Results compose (I ≤ 1 triangle only):
+
+```lean
+theorem results_volume_trianglePolygon_eq_ofReal_cardI_add_B_div_two_sub_one_of_I_le_one
+    (a b c) (hD : 0 < latticeDet a b c) (S) (hS) (hcard : S.card ≤ 1) :
+    volume (trianglePolygon a b c).convexHullRegion =
+      ofReal (#S + B/2 - 1)
+```
+

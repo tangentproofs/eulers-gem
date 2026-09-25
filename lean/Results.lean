@@ -2747,10 +2747,11 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one
 /-! ## Haar / Lebesgue area of triangles (not classical Pick)
 
 Bridge from combinatorial shoelace arithmetic toward Lebesgue `volume` on
-`ℝ × ℝ`. Unit / origin triangles green. Lattice shoelace coercion, translation
-to an arbitrary lattice triangle, and StrictlyConvexCCW fan additivity remain
-open. Compose with `results_shoelace_eq_cardI_add_B_div_two_sub_one` only after
-those close. Classical Pick FAIL — see `PICKS_CLAUDE_AUDIT.md`.
+`ℝ × ℝ`. Unit / origin / arbitrary lattice triangles green; `trianglePolygon`
+volume = shoelace; fan-ear volume sum = `ofReal(P.shoelace)` under
+`FanDetsNonneg`. Polygon hull = almost-disjoint fan union (to discharge
+`volume(P) = ofReal(shoelace)`) remains open. Classical Pick FAIL —
+see `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 /-- Standard basis parallelepiped Haar equals product Lebesgue on `ℝ × ℝ`. -/
@@ -2776,6 +2777,86 @@ theorem results_volume_convexHull_origin_triangle (u v : ℝ × ℝ) :
     MeasureTheory.volume (convexHull ℝ ({(0 : ℝ × ℝ), u, v} : Set (ℝ × ℝ))) =
       ENNReal.ofReal (|u.1 * v.2 - u.2 * v.1| / 2) :=
   EulersGem.Picks.LatticeArea.volume_convexHull_origin_triangle u v
+
+/-- Combinatorial triangle shoelace `ℚ` coerces to `|latticeDet|/2` as `ℝ`. -/
+theorem results_triangleShoelace_coe_eq_abs_det_div_two (a b c : ℤ × ℤ) :
+    (EulersGem.Picks.LatticeTriangle.triangleShoelace a b c : ℝ) =
+      |(EulersGem.Picks.LatticeTriangle.latticeDet a b c : ℝ)| / 2 :=
+  EulersGem.Picks.LatticeArea.triangleShoelace_coe_eq_abs_det_div_two a b c
+
+/-- Arbitrary lattice triangle Haar volume equals combinatorial shoelace. -/
+theorem results_volume_convexHull_lattice_triangle (a b c : ℤ × ℤ) :
+    MeasureTheory.volume
+        (convexHull ℝ
+          ({EulersGem.Picks.LatticeTriangle.toReal a,
+            EulersGem.Picks.LatticeTriangle.toReal b,
+            EulersGem.Picks.LatticeTriangle.toReal c} : Set (ℝ × ℝ))) =
+      ENNReal.ofReal (EulersGem.Picks.LatticeTriangle.triangleShoelace a b c) :=
+  EulersGem.Picks.LatticeArea.volume_convexHull_lattice_triangle a b c
+
+/-- `trianglePolygon` Haar volume equals its combinatorial shoelace. -/
+theorem results_volume_convexHull_trianglePolygon (a b c : ℤ × ℤ) :
+    MeasureTheory.volume
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).convexHullRegion =
+      ENNReal.ofReal
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace :=
+  EulersGem.Picks.LatticeArea.volume_convexHull_trianglePolygon a b c
+
+/-- Polygon shoelace `ℚ` coerces to `|shoelaceSum|/2` as `ℝ`. -/
+theorem results_shoelace_coe_eq_abs_shoelaceSum_div_two
+    (P : EulersGem.Picks.LatticePolygon) :
+    (P.shoelace : ℝ) = |(P.shoelaceSum : ℝ)| / 2 :=
+  EulersGem.Picks.LatticeArea.shoelace_coe_eq_abs_shoelaceSum_div_two P
+
+/-- Fan-ear Haar volumes sum to `ofReal(P.shoelace)` under `FanDetsNonneg`.
+
+Does not yet equate `volume(P.convexHullRegion)` to this sum. -/
+theorem results_sum_volume_fanTriangles_eq_ofReal_shoelace
+    (P : EulersGem.Picks.LatticePolygon)
+    (hnn : EulersGem.Picks.LatticeFan.FanDetsNonneg P)
+    (hverts : Function.Injective P.vertex) :
+    (∑ t ∈ EulersGem.Picks.LatticeFan.fanTriangles P,
+        MeasureTheory.volume
+          (convexHull ℝ
+            ({EulersGem.Picks.LatticeTriangle.toReal t.a,
+              EulersGem.Picks.LatticeTriangle.toReal t.b,
+              EulersGem.Picks.LatticeTriangle.toReal t.c} : Set (ℝ × ℝ)))) =
+      ENNReal.ofReal P.shoelace :=
+  EulersGem.Picks.LatticeArea.sum_volume_fanTriangles_eq_ofReal_shoelace P hnn hverts
+
+/-- Conditional volume Pick-form: `volume = ofReal(shoelace)` + combinatorial
+shoelace Pick-form ⇒ `volume = ofReal(#I + B/2 - 1)`. Not classical Pick. -/
+theorem results_volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
+    (P : EulersGem.Picks.LatticePolygon) (S : Finset (ℤ × ℤ))
+    (hvol : MeasureTheory.volume P.convexHullRegion = ENNReal.ofReal P.shoelace)
+    (hcomb : P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1) :
+    MeasureTheory.volume P.convexHullRegion =
+      ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) :=
+  EulersGem.Picks.LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
+    P S hvol hcomb
+
+/-- Triangle volume Pick-form for I ≤ 1: Haar = `ofReal(#I + B/2 − 1)`.
+
+Discharges `hvol` via `volume_convexHull_trianglePolygon` and combinatorial
+I ≤ 1 triangle shoelace. Not classical Pick (I ≤ 1 only; EP / general polygon
+hull-union open). -/
+theorem results_volume_trianglePolygon_eq_ofReal_cardI_add_B_div_two_sub_one_of_I_le_one
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).interiorLatticePoints)
+    (hcard : S.card ≤ 1) :
+    MeasureTheory.volume
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).convexHullRegion =
+      ENNReal.ofReal
+        ((S.card : ℚ) +
+          ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B : ℚ) / 2 - 1) := by
+  refine EulersGem.Picks.LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
+    _ S ?hvol ?hcomb
+  · exact EulersGem.Picks.LatticeArea.volume_convexHull_trianglePolygon a b c
+  · exact EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one_triangle
+      a b c hD S hS hcard
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 

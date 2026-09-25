@@ -16,6 +16,9 @@ import Mathlib.LinearAlgebra.Determinant
 import Mathlib.Analysis.Convex.Hull
 import Mathlib.Analysis.Convex.Combination
 import EulersGem.LatticeTriangle
+import EulersGem.LatticePolygon
+import EulersGem.LatticeFan
+import EulersGem.LatticeFanInterior
 
 /-!
 # Lattice triangle Haar area bridge (not classical Pick)
@@ -25,12 +28,18 @@ Lebesgue / Haar on `ℝ × ℝ`:
 * parallelepiped volume = `|det|`
 * unit triangle volume = `1/2`
 * origin triangle volume = `|det|/2`
+* lattice shoelace `ℚ` coerces to `|latticeDet|/2` as `ℝ`
+* arbitrary lattice triangle volume = `ofReal(triangleShoelace)`
+  (translate to origin + origin theorem)
 
-Lattice shoelace identification and polygon fan additivity remain open for
-composition. **Not** classical Pick — see `PICKS_CLAUDE_AUDIT.md`.
+Also: `trianglePolygon` volume = `ofReal(shoelace)`; fan triangle volumes sum to
+`ofReal(P.shoelace)` under `FanDetsNonneg`. Polygon hull = fan-union (measure
+additivity) and full compose with combinatorial Finset Pick-form remain open.
+**Not** classical Pick — see `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 open MeasureTheory Measure Module Set Matrix
+open scoped Pointwise
 
 namespace EulersGem
 namespace Picks
@@ -240,9 +249,162 @@ theorem volume_convexHull_origin_triangle (u v : V) :
   rw [← ENNReal.ofReal_mul hnonneg]
   congr 1; ring
 
-/- Lattice shoelace coercion + translation invariance + polygon fan additivity:
-remain open. Compose with combinatorial `shoelace_eq_cardI_add_B_div_two_sub_one`
-only after those close. Classical Pick still FAIL. -/
+/-! ## Lattice shoelace as ℝ and Haar of an arbitrary lattice triangle -/
+
+open LatticeTriangle
+
+lemma toReal_sub (p q : ℤ × ℤ) : toReal (p - q) = toReal p - toReal q := by
+  cases p; cases q
+  simp [LatticeTriangle.toReal, Prod.sub_def]
+
+lemma latticeDet_coe_eq_real_cross (a b c : ℤ × ℤ) :
+    (latticeDet a b c : ℝ) =
+      (toReal (b - a)).1 * (toReal (c - a)).2 -
+        (toReal (b - a)).2 * (toReal (c - a)).1 := by
+  cases a; cases b; cases c
+  simp [latticeDet, LatticeTriangle.toReal, Prod.sub_def]
+
+/-- Combinatorial shoelace `ℚ` coerces to `|latticeDet|/2` as `ℝ`. -/
+theorem triangleShoelace_coe_eq_abs_det_div_two (a b c : ℤ × ℤ) :
+    (triangleShoelace a b c : ℝ) = |(latticeDet a b c : ℝ)| / 2 := by
+  simp only [triangleShoelace, Rat.cast_div, Rat.cast_natCast, Rat.cast_ofNat]
+  rw [Nat.cast_natAbs, Int.cast_abs]
+
+lemma triangleShoelace_nonneg (a b c : ℤ × ℤ) :
+    0 ≤ (triangleShoelace a b c : ℝ) := by
+  rw [triangleShoelace_coe_eq_abs_det_div_two]; positivity
+
+lemma ofReal_triangleShoelace_eq_ofReal_abs_det_div_two (a b c : ℤ × ℤ) :
+    ENNReal.ofReal (triangleShoelace a b c) =
+      ENNReal.ofReal (|(latticeDet a b c : ℝ)| / 2) := by
+  rw [← triangleShoelace_coe_eq_abs_det_div_two]
+
+private lemma neg_toReal_add_eq_toReal_sub (a b : ℤ × ℤ) :
+    -toReal a + toReal b = toReal (b - a) := by
+  rw [toReal_sub, sub_eq_add_neg, add_comm]
+
+lemma vadd_neg_triangle_pts (a b c : ℤ × ℤ) :
+    (-toReal a) +ᵥ ({toReal a, toReal b, toReal c} : Set V) =
+      ({(0 : V), toReal (b - a), toReal (c - a)} : Set V) := by
+  ext p
+  constructor
+  · rintro ⟨q, hq, rfl⟩
+    have hq' : q = toReal a ∨ q = toReal b ∨ q = toReal c := by
+      simpa [mem_insert_iff, mem_singleton_iff] using hq
+    rcases hq' with rfl | rfl | rfl
+    · simp [vadd_eq_add]
+    · simp [vadd_eq_add, neg_toReal_add_eq_toReal_sub]
+    · simp [vadd_eq_add, neg_toReal_add_eq_toReal_sub]
+  · intro hp
+    have hp' : p = (0 : V) ∨ p = toReal (b - a) ∨ p = toReal (c - a) := by
+      simpa [mem_insert_iff, mem_singleton_iff] using hp
+    rcases hp' with rfl | rfl | rfl
+    · exact ⟨toReal a, by simp, by simp [vadd_eq_add]⟩
+    · exact ⟨toReal b, by simp, by simp [vadd_eq_add, neg_toReal_add_eq_toReal_sub]⟩
+    · exact ⟨toReal c, by simp, by simp [vadd_eq_add, neg_toReal_add_eq_toReal_sub]⟩
+
+lemma convexHull_triangle_translate (a b c : ℤ × ℤ) :
+    (-toReal a) +ᵥ convexHull ℝ ({toReal a, toReal b, toReal c} : Set V) =
+      convexHull ℝ ({(0 : V), toReal (b - a), toReal (c - a)} : Set V) := by
+  rw [← convexHull_vadd, vadd_neg_triangle_pts]
+
+/-- Translation invariance of Lebesgue measure on `ℝ × ℝ`. -/
+lemma volume_vadd (x : V) (s : Set V) :
+    volume (x +ᵥ s) = volume s := by
+  have : IsAddLeftInvariant (volume : Measure V) := by
+    rw [Measure.volume_eq_prod]; infer_instance
+  have h : x +ᵥ s = (fun y : V => (-x) + y) ⁻¹' s := by
+    ext z
+    simp only [mem_vadd_set, mem_preimage, vadd_eq_add]
+    constructor
+    · rintro ⟨y, hy, rfl⟩
+      simpa [add_assoc, neg_add_cancel, zero_add] using hy
+    · intro hz
+      refine ⟨(-x) + z, hz, ?_⟩
+      abel
+  rw [h, measure_preimage_add]
+
+/-- Arbitrary lattice triangle Haar volume equals combinatorial shoelace. -/
+theorem volume_convexHull_lattice_triangle (a b c : ℤ × ℤ) :
+    volume (convexHull ℝ ({toReal a, toReal b, toReal c} : Set V)) =
+      ENNReal.ofReal (triangleShoelace a b c) := by
+  have htrans :=
+    volume_vadd (-toReal a) (convexHull ℝ ({toReal a, toReal b, toReal c} : Set V))
+  rw [← htrans, convexHull_triangle_translate, volume_convexHull_origin_triangle,
+    ofReal_triangleShoelace_eq_ofReal_abs_det_div_two]
+  congr 2
+  exact congrArg abs (latticeDet_coe_eq_real_cross a b c).symm
+
+/-! ## trianglePolygon bridge -/
+
+open LatticeFan
+open LatticeFan.InteriorFan
+
+lemma shoelace_trianglePolygon_eq_triangleShoelace (a b c : ℤ × ℤ) :
+    (trianglePolygon a b c).shoelace = triangleShoelace a b c := by
+  simp [LatticePolygon.shoelace, triangleShoelace, shoelaceSum_trianglePolygon]
+
+/-- `trianglePolygon` convex hull has Haar volume equal to its combinatorial shoelace. -/
+theorem volume_convexHull_trianglePolygon (a b c : ℤ × ℤ) :
+    volume (trianglePolygon a b c).convexHullRegion =
+      ENNReal.ofReal (trianglePolygon a b c).shoelace := by
+  rw [trianglePolygon_convexHullRegion, shoelace_trianglePolygon_eq_triangleShoelace,
+    volume_convexHull_lattice_triangle]
+
+/-! ## Polygon shoelace as ℝ + fan ear volume sum -/
+
+theorem shoelace_coe_eq_abs_shoelaceSum_div_two (P : LatticePolygon) :
+    (P.shoelace : ℝ) = |(P.shoelaceSum : ℝ)| / 2 := by
+  simp only [LatticePolygon.shoelace, Rat.cast_div, Rat.cast_natCast, Rat.cast_ofNat]
+  rw [Nat.cast_natAbs, Int.cast_abs]
+
+lemma volume_fanTriangle (P : LatticePolygon) (i : ℕ) (hi : i < P.nVertices - 2) :
+    volume (convexHull ℝ
+        ({toReal (fanTriangle P i hi).a,
+          toReal (fanTriangle P i hi).b,
+          toReal (fanTriangle P i hi).c} : Set V)) =
+      ENNReal.ofReal (fanTriangle P i hi).shoelace :=
+  volume_convexHull_lattice_triangle _ _ _
+
+/-- Under nonneg fan dets, summed fan-ear Haar volumes equal `ofReal(P.shoelace)`.
+
+Does **not** yet identify `volume(P.convexHullRegion)` with this sum — hull-union
+almost-disjointness remains open. -/
+theorem sum_volume_fanTriangles_eq_ofReal_shoelace
+    (P : LatticePolygon) (hnn : FanDetsNonneg P)
+    (hverts : Function.Injective P.vertex) :
+    (∑ t ∈ fanTriangles P,
+        volume (convexHull ℝ ({toReal t.a, toReal t.b, toReal t.c} : Set V))) =
+      ENNReal.ofReal P.shoelace := by
+  have hsum := shoelace_eq_sum_fan_shoelace P hnn hverts
+  have hterm : ∀ t ∈ fanTriangles P,
+      volume (convexHull ℝ ({toReal t.a, toReal t.b, toReal t.c} : Set V)) =
+        ENNReal.ofReal t.shoelace := fun t _ =>
+    volume_convexHull_lattice_triangle t.a t.b t.c
+  have hvol :
+      (∑ t ∈ fanTriangles P,
+          volume (convexHull ℝ ({toReal t.a, toReal t.b, toReal t.c} : Set V))) =
+        ∑ t ∈ fanTriangles P, ENNReal.ofReal t.shoelace :=
+    Finset.sum_congr rfl hterm
+  rw [hvol]
+  have hnonneg : ∀ t ∈ fanTriangles P, 0 ≤ (t.shoelace : ℝ) := fun t _ =>
+    triangleShoelace_nonneg t.a t.b t.c
+  rw [← ENNReal.ofReal_sum_of_nonneg hnonneg]
+  congr 1
+  rw [← Rat.cast_sum, hsum]
+
+/-- Conditional compose: if polygon Haar equals shoelace, combinatorial Pick-form
+lifts to a volume identity. Not classical Pick (hyp `hvol` / EP open). -/
+theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
+    (P : LatticePolygon) (S : Finset (ℤ × ℤ))
+    (hvol : volume P.convexHullRegion = ENNReal.ofReal P.shoelace)
+    (hcomb : P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1) :
+    volume P.convexHullRegion =
+      ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) := by
+  rw [hvol, hcomb]; norm_cast
+
+/- Polygon hull = almost-disjoint fan union (⇒ discharge `hvol` above) remains open.
+Classical Pick still FAIL. -/
 
 end
 end LatticeArea
