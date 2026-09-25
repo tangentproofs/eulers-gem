@@ -599,6 +599,40 @@ lemma memClosedTriangle_split_of_edgeGcd_eq_two_mem
               rw [this]
         _ = p.2 := h2
 
+/-- Midpoint of `b—c`: closed △`(a,b,s)` sits inside △`(a,b,c)`. -/
+lemma memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_two_mem_bc
+    (a b c s p : ℤ × ℤ) (hd : edgeGcd b c = 2)
+    (hs : s ∈ edgeLatticePoints b c) (hne_b : s ≠ b) (hne_c : s ≠ c)
+    (hp : MemClosedTriangle a b s p) :
+    MemClosedTriangle a b c p := by
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two b c s hd hs hne_b hne_c
+  have hs1 : (s.1 : ℝ) = (b.1 : ℝ) + (1 / 2) * ((c.1 : ℝ) - b.1) := by
+    have : (2 : ℤ) * (s.1 - b.1) = c.1 - b.1 := hx
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  have hs2 : (s.2 : ℝ) = (b.2 : ℝ) + (1 / 2) * ((c.2 : ℝ) - b.2) := by
+    have : (2 : ℤ) * (s.2 - b.2) = c.2 - b.2 := hy
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  refine ⟨α, β + γ / 2, γ / 2, hα, by linarith, by linarith, by linarith, ?_⟩
+  apply Prod.ext
+  · have h1 := congrArg Prod.fst heq
+    simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+    calc
+      α * (a.1 : ℝ) + (β + γ / 2) * b.1 + (γ / 2) * c.1
+          = α * a.1 + β * b.1 + γ * ((b.1 : ℝ) + (1 / 2) * (c.1 - b.1)) := by ring
+      _ = α * a.1 + β * b.1 + γ * s.1 := by rw [← hs1]
+      _ = p.1 := h1
+  · have h2 := congrArg Prod.snd heq
+    simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+    calc
+      α * (a.2 : ℝ) + (β + γ / 2) * b.2 + (γ / 2) * c.2
+          = α * a.2 + β * b.2 + γ * ((b.2 : ℝ) + (1 / 2) * (c.2 - b.2)) := by ring
+      _ = α * a.2 + β * b.2 + γ * s.2 := by rw [← hs2]
+      _ = p.2 := h2
+
 /-- A point in both midpoint half-triangles lies on the shared diagonal. -/
 lemma mem_edgeLatticePoints_of_memClosedTriangle_both_halves
     (a b c r p : ℤ × ℤ) (_hd : edgeGcd a b = 2)
