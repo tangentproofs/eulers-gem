@@ -220,3 +220,33 @@ PolytopeFaces / Embed untouched.
 | Triangulation existence (arbitrary lattice polygons) | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-24 (general fan `n ≥ 3`; still FAIL for classical Pick)
+
+Landed in `EulersGem/FanDisk.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem exists_fan_disk_triangulation (n : ℕ) (hn : 3 ≤ n) :
+    Nonempty (CombinatorialDiskTriangulation (Fin n))
+
+theorem fan_planar_euler (n : ℕ) (hn : 3 ≤ n) :
+    ((fan n hn).planarCounts).eulerChar = 2
+```
+
+Fan incidence proved for **all** `n ≥ 3` (Nat-indexed boundary / diagonals /
+triangles — no `native_decide` Fin-bound). Planar Euler via empty-interior
+disk counts. Unit-square + disk-count pathways unchanged. Classical Pick still
+FAIL (geometry / Haar / general EP→planar / polygon triangulation existence
+open). Claude `SimplexFaces.lean` / Embed / Platonic untouched.
+
+| Item | Status |
+|------|--------|
+| Handshaking from incidence | Green |
+| Planar Euler from disk-count axioms | Green |
+| Fan existence (`∀ n ≥ 3`) | **Green** (combinatorial) |
+| Unit-square Euler via disk counts | Green |
+| General EP → planar via `Euler_Poincare_full` | Open |
+| Geometric lattice-polygon triangulation existence | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+

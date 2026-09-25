@@ -9,6 +9,7 @@ import EulersGem.Picks
 import EulersGem.LatticeTriangle
 import EulersGem.LatticePolygon
 import EulersGem.PlanarTriangulation
+import EulersGem.FanDisk
 
 /-!
 # Primitive lattice triangulation witness (EP-spine Pick substrate)
@@ -32,14 +33,14 @@ This file provides:
 **Honesty / still open:**
 
 * Existence of a triangulation for an arbitrary simple lattice polygon
-  (combinatorial fan existence for `3 ≤ n ≤ 7` landed in `FanDiskTriangulation`;
+  (combinatorial fan existence for `n ≥ 3` landed in `FanDiskTriangulation`;
   geometric existence for general convex lattice polygons still open).
 * Discharge of handshaking `2E = 3T + B` from a *geometric* incidence structure
   (combinatorial discharge landed in `PlanarTriangulation.lean` —
   `CombinatorialDiskTriangulation.two_E_eq_three_T_add_B`; unit-square witness
   is wired below; general polygons still open).
 * Discharge of `hEuler_planar` for general polygons (unit square + fan disks
-  `3 ≤ n ≤ 7` + disk-count axioms proved in `PlanarTriangulation.lean`;
+  `n ≥ 3` + disk-count axioms proved in `PlanarTriangulation.lean`;
   general EP→planar from `Euler_Poincare_full` still open).
 * Shoelace = Haar/Lebesgue measure.
 * Classical Pick's theorem (gated by `PICKS_CLAUDE_AUDIT.md`).

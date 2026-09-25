@@ -12,6 +12,7 @@ import EulersGem.Platonic
 import EulersGem.Picks
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
+import EulersGem.FanDisk
 
 /-!
 # Paper-facing results
@@ -215,10 +216,10 @@ theorem results_planar_disk_euler_of_fan_counts
     (V : ℤ) - E + F = 2 :=
   EulersGem.Picks.planar_disk_euler_of_fan_counts n V E T B F hn hV hB hT hE hF
 
-/-- Combinatorial fan disk triangulation exists for every `n` with `3 ≤ n ≤ 7`. -/
-theorem results_exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) (hN : n ≤ 7) :
+/-- Combinatorial fan disk triangulation exists for every `n ≥ 3`. -/
+theorem results_exists_fan_disk_triangulation {n : ℕ} (hn : 3 ≤ n) :
     Nonempty (EulersGem.Picks.CombinatorialDiskTriangulation (Fin n)) :=
-  EulersGem.Picks.FanDiskTriangulation.exists_fan_disk_triangulation hn hN
+  EulersGem.Picks.FanDiskTriangulation.exists_fan_disk_triangulation n hn
 
 /-- Planar Euler for the abstract pentagon fan triangulation. -/
 theorem results_fan5_planar_euler :
