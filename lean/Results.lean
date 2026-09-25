@@ -21,6 +21,7 @@ import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
 import EulersGem.FanDisk
 import EulersGem.LatticeFan
+import EulersGem.LatticeFanInterior
 import EulersGem.LatticeTriangleEmpty
 
 /-!
@@ -111,7 +112,7 @@ theorem results_platonic_schlafli_classification
 /-- Exactly five admissible Schläfli pairs. -/
 theorem results_platonic_schlafli_card :
     ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)).card = 5 := by
-  native_decide
+  decide
 
 /-- **Five combinatorial `(V,E,F)` witnesses** (Euler bookkeeping): each admissible
 Schläfli pair has some `(V,E,F)` satisfying the count equations.
@@ -125,7 +126,7 @@ theorem results_platonic_five_constructions :
             (V : ℤ) - E + F = 2 := by
   have h := EulersGem.Platonic.exactly_five_platonic_schlafli
   refine ⟨?card, ?ex⟩
-  · native_decide
+  · decide
   · intro p hp
     have hp' : p ∈ EulersGem.Platonic.schlafliPairs := by
       simpa [EulersGem.Platonic.schlafliPairs] using hp
@@ -471,6 +472,47 @@ theorem results_shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
     P.shoelace = (P.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.LatticeFan.shoelace_eq_B_div_two_sub_one_of_empty_interior_convex
     P hverts hedge hI hsc
+
+
+/-! ### Interior-fan I=1 shoelace Pick-form (not classical Pick)
+
+Fan from an interior lattice apex to each boundary edge. Algebraic identity
+`∑ det(q,vᵢ,vᵢ₊₁) = shoelaceSum` is unconditional. Under positive orientation +
+empty fan triangles + primitive edges: `shoelace = 1 + B/2 − 1`.
+`InteriorFanDetsPos` / `InteriorFanTrianglesEmpty` remain geometric hyps
+(discharge from `UniqueInterior` + convexity open). Not Haar; classical Pick FAIL.
+-/
+
+/-- Unconditional algebraic identity: interior-fan dets sum to polygon shoelace sum. -/
+theorem results_sum_interiorFanDet_eq_shoelaceSum
+    (P : EulersGem.Picks.LatticePolygon) (q : ℤ × ℤ) :
+    (∑ i : Fin P.nVertices,
+        EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q i) =
+      P.shoelaceSum :=
+  EulersGem.Picks.LatticeFan.InteriorFan.sum_interiorFanDet_eq_shoelaceSum P q
+
+/-- Interior-fan primitivity from empty ears + positive orientation. -/
+theorem results_InteriorFanDetPrimitive_of_empty
+    (P : EulersGem.Picks.LatticePolygon) (q : ℤ × ℤ)
+    (hpos : EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos P q)
+    (hempty : EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanTrianglesEmpty P q) :
+    EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetPrimitive P q :=
+  EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetPrimitive_of_empty P hpos hempty
+
+/-- **I = 1 shoelace Pick-form** via interior fan (not classical Pick).
+
+Hyps: injective vertices, primitive edges, positively oriented empty fan from an
+interior apex. Concludes `shoelace = 1 + B/2 − 1`. Does **not** discharge
+`InteriorFanDetsPos` / `InteriorFanTrianglesEmpty` from `UniqueInterior`. -/
+theorem results_shoelace_eq_I_add_B_div_two_sub_one_of_interior_fan
+    (P : EulersGem.Picks.LatticePolygon) (q : ℤ × ℤ)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hpos : EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos P q)
+    (hempty : EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanTrianglesEmpty P q) :
+    P.shoelace = (1 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_I_add_B_div_two_sub_one_of_interior_fan
+    P hverts hedge hpos hempty
 
 /-- Barycentric closed triangle ⇒ Euclidean convex hull of the three vertices. -/
 theorem results_mem_convexHull_of_memClosedTriangle

@@ -478,3 +478,43 @@ in this commit.
 | Empty-interior shoelace with both discharged | **Green** |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (I=1 interior-fan shoelace Pick-form; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem sum_interiorFanDet_eq_shoelaceSum (P) (q) :
+    (∑ i, interiorFanDet P q i) = P.shoelaceSum
+
+theorem InteriorFanDetPrimitive_of_empty
+    (InteriorFanDetsPos P q) (InteriorFanTrianglesEmpty P q) :
+    InteriorFanDetPrimitive P q
+
+theorem shoelace_eq_I_add_B_div_two_sub_one_of_interior_fan
+    (Injective P.vertex) (PrimitiveEdges P)
+    (InteriorFanDetsPos P q) (InteriorFanTrianglesEmpty P q) :
+    P.shoelace = (1 : ℚ) + (P.B : ℚ) / 2 - 1
+```
+
+Results exports: `results_sum_interiorFanDet_eq_shoelaceSum`,
+`results_InteriorFanDetPrimitive_of_empty`,
+`results_shoelace_eq_I_add_B_div_two_sub_one_of_interior_fan`.
+
+**Prize progress:** first **I > 0** Pick-shaped shoelace identity on the EP spine.
+Algebraic fan-from-interior identity is unconditional. Under positive orientation +
+empty interior-fan triangles + primitive edges: `shoelace = 1 + B/2 − 1`
+(= `I + B/2 − 1` with `I = 1`). Still **not** classical Pick:
+`InteriorFanDetsPos` / `InteriorFanTrianglesEmpty` not yet discharged from
+`UniqueInterior` + `StrictlyConvexCCW`; Haar; general I>1 triangulation;
+EP→planar open. Claude Cube / Octahedron / Platonic / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Empty-interior shoelace with `StrictlyConvexCCW` | Green |
+| Unconditional interior-fan algebraic identity | **Green** |
+| I=1 shoelace `= 1 + B/2 − 1` under fan hyps | **Green** |
+| Discharge `InteriorFanDetsPos` / empty from `UniqueInterior` | Open |
+| Construct `PrimitiveLatticeTriangulationWitness` from convex polygon | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
