@@ -1,0 +1,249 @@
+/-
+Copyright (c) 2026 Michal Wallace / tangentproofs. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Michal Wallace, Grok Bot
+-/
+import Mathlib.Tactic
+
+/-!
+# Combinatorial disk triangulation — handshaking from incidence
+
+**EP-spine role:** classical Pick needs `2E = 3T + B` as a derived incidence
+identity (not a free hyp). This file defines a combinatorial planar / disk
+triangulation whose edge–triangle incidence fields make that identity a theorem.
+
+**Honesty:**
+* This is combinatorial (Finset incidence), not yet a geometric embedding in `ℝ²`.
+* `B` here is `#boundaryEdges`. For a simple closed polygonal boundary,
+  `#boundaryEdges = #boundaryVertices`, which is the Pick `B` when all boundary
+  lattice points are vertices of the triangulation.
+* Planar Euler `V−E+F=2` is **not** proved here (see `PlanarDiskEulerCounts` stub).
+* Classical Pick remains FAIL (`PICKS_CLAUDE_AUDIT.md`).
+
+Identifiers avoid claiming classical Pick.
+-/
+
+open Finset BigOperators
+
+namespace EulersGem
+namespace Picks
+
+/-- Combinatorial triangulation of a disk (polygon interior filled by triangles).
+
+Fields encode the classical edge–triangle incidence used in Pick:
+each triangle contributes three edges; interior edges meet two triangles;
+boundary edges meet one. -/
+structure CombinatorialDiskTriangulation (α : Type*) [DecidableEq α] where
+  /-- Triangular faces (each a 3-element vertex set). -/
+  triangles : Finset (Finset α)
+  /-- All edges of the complex (each a 2-element vertex set). -/
+  edges : Finset (Finset α)
+  /-- Boundary edges (the outer cycle; subset of `edges`). -/
+  boundaryEdges : Finset (Finset α)
+  /-- Every triangle has exactly three vertices. -/
+  triangle_card : ∀ t ∈ triangles, t.card = 3
+  /-- Every edge has exactly two vertices. -/
+  edge_card : ∀ e ∈ edges, e.card = 2
+  /-- Boundary edges are edges. -/
+  boundary_subset : boundaryEdges ⊆ edges
+  /-- The three 2-subsets of each triangle are edges of the complex. -/
+  triangle_edges_mem :
+    ∀ t ∈ triangles, t.powersetCard 2 ⊆ edges
+  /-- Incidence: boundary edge in exactly one triangle; interior edge in exactly two. -/
+  edge_incidence :
+    ∀ e ∈ edges,
+      (triangles.filter (fun t => e ⊆ t)).card =
+        if e ∈ boundaryEdges then 1 else 2
+
+namespace CombinatorialDiskTriangulation
+
+variable {α : Type*} [DecidableEq α] (G : CombinatorialDiskTriangulation α)
+
+/-- Number of triangles `T`. -/
+def T : ℕ := G.triangles.card
+
+/-- Number of edges `E`. -/
+def E : ℕ := G.edges.card
+
+/-- Number of boundary edges `B` (equals Pick boundary-vertex count on a simple cycle
+when every boundary lattice point is a graph vertex). -/
+def B : ℕ := G.boundaryEdges.card
+
+lemma B_le_E : G.B ≤ G.E :=
+  Finset.card_le_card G.boundary_subset
+
+/-- Each triangle has exactly three edges (2-subsets). -/
+theorem card_powersetCard_two_of_mem_triangles {t : Finset α}
+    (ht : t ∈ G.triangles) : (t.powersetCard 2).card = 3 := by
+  have hc := G.triangle_card t ht
+  rw [Finset.card_powersetCard, hc]
+  norm_num
+
+/-- Incidence Finset: pairs `(t, e)` with `t` a triangle and `e ⊆ t` an edge. -/
+def incidences : Finset (Finset α × Finset α) :=
+  (G.triangles ×ˢ G.edges).filter fun p => p.2 ⊆ p.1
+
+private lemma card_filter_eq_sum_ite {β : Type*} [DecidableEq β]
+    (s : Finset β) (p : β → Prop) [DecidablePred p] :
+    (s.filter p).card = ∑ x ∈ s, if p x then (1 : ℕ) else 0 := by
+  rw [Finset.card_eq_sum_ones, Finset.sum_filter]
+
+private lemma edges_of_triangle {t : Finset α} (ht : t ∈ G.triangles) :
+    G.edges.filter (fun e => e ⊆ t) = t.powersetCard 2 := by
+  ext e
+  constructor
+  · intro he
+    obtain ⟨heE, hesub⟩ := Finset.mem_filter.mp he
+    exact Finset.mem_powersetCard.mpr ⟨hesub, G.edge_card e heE⟩
+  · intro he
+    exact Finset.mem_filter.mpr ⟨G.triangle_edges_mem t ht he,
+      (Finset.mem_powersetCard.mp he).1⟩
+
+/-- Left count: each of `T` triangles contributes three edges ⇒ `|I| = 3T`. -/
+theorem card_incidences_eq_three_T : G.incidences.card = 3 * G.T := by
+  classical
+  unfold incidences T
+  have hsum :
+      ((G.triangles ×ˢ G.edges).filter fun p => p.2 ⊆ p.1).card =
+        ∑ t ∈ G.triangles, (G.edges.filter (fun e => e ⊆ t)).card := by
+    rw [card_filter_eq_sum_ite]
+    rw [Finset.sum_product]
+    refine Finset.sum_congr rfl fun t _ => ?_
+    -- ∑ e, if e ⊆ t then 1 else 0 = (edges.filter (· ⊆ t)).card
+    exact (card_filter_eq_sum_ite G.edges (fun e => e ⊆ t)).symm
+  rw [hsum]
+  have hrew :
+      ∑ t ∈ G.triangles, (G.edges.filter (fun e => e ⊆ t)).card =
+        ∑ t ∈ G.triangles, (t.powersetCard 2).card :=
+    Finset.sum_congr rfl fun t ht => by rw [G.edges_of_triangle ht]
+  rw [hrew]
+  have h3 : ∀ t ∈ G.triangles, (t.powersetCard 2).card = 3 :=
+    fun t ht => G.card_powersetCard_two_of_mem_triangles ht
+  rw [Finset.sum_congr rfl h3, Finset.sum_const_nat (fun _ _ => rfl), Nat.mul_comm]
+
+/-- Right count: interior edges contribute 2, boundary 1 ⇒ `|I| = 2E − B`. -/
+theorem card_incidences_eq_two_E_sub_B : G.incidences.card = 2 * G.E - G.B := by
+  classical
+  unfold incidences E B
+  have hsum :
+      ((G.triangles ×ˢ G.edges).filter fun p => p.2 ⊆ p.1).card =
+        ∑ e ∈ G.edges, (G.triangles.filter (fun t => e ⊆ t)).card := by
+    rw [card_filter_eq_sum_ite, Finset.sum_product, Finset.sum_comm]
+    refine Finset.sum_congr rfl fun e _ => ?_
+    exact (card_filter_eq_sum_ite G.triangles (fun t => e ⊆ t)).symm
+  rw [hsum]
+  have hrew :
+      ∑ e ∈ G.edges, (G.triangles.filter (fun t => e ⊆ t)).card =
+        ∑ e ∈ G.edges, (if e ∈ G.boundaryEdges then (1 : ℕ) else 2) :=
+    Finset.sum_congr rfl fun e he => G.edge_incidence e he
+  rw [hrew]
+  have hsub := G.boundary_subset
+  have hsplit :
+      ∑ e ∈ G.edges, (if e ∈ G.boundaryEdges then (1 : ℕ) else 2) =
+        G.boundaryEdges.card + 2 * (G.edges.card - G.boundaryEdges.card) := by
+    have hdisj : Disjoint G.boundaryEdges (G.edges \ G.boundaryEdges) :=
+      Finset.disjoint_sdiff
+    have hunion : G.boundaryEdges ∪ (G.edges \ G.boundaryEdges) = G.edges :=
+      Finset.union_sdiff_of_subset hsub
+    calc
+      ∑ e ∈ G.edges, (if e ∈ G.boundaryEdges then (1 : ℕ) else 2)
+          = ∑ e ∈ G.boundaryEdges ∪ (G.edges \ G.boundaryEdges),
+              (if e ∈ G.boundaryEdges then 1 else 2) := by rw [hunion]
+      _ = ∑ e ∈ G.boundaryEdges, (if e ∈ G.boundaryEdges then (1 : ℕ) else 2) +
+            ∑ e ∈ G.edges \ G.boundaryEdges, (if e ∈ G.boundaryEdges then 1 else 2) := by
+          rw [Finset.sum_union hdisj]
+      _ = G.boundaryEdges.card + 2 * (G.edges \ G.boundaryEdges).card := by
+          have h1 : ∑ e ∈ G.boundaryEdges, (if e ∈ G.boundaryEdges then (1 : ℕ) else 2) =
+              G.boundaryEdges.card := by
+            have : ∀ e ∈ G.boundaryEdges,
+                (if e ∈ G.boundaryEdges then (1 : ℕ) else 2) = 1 := fun e he => by simp [he]
+            rw [Finset.sum_congr rfl this, Finset.sum_const_nat (fun _ _ => rfl), mul_one]
+          have h2 : ∑ e ∈ G.edges \ G.boundaryEdges,
+              (if e ∈ G.boundaryEdges then (1 : ℕ) else 2) =
+                2 * (G.edges \ G.boundaryEdges).card := by
+            have : ∀ e ∈ G.edges \ G.boundaryEdges,
+                (if e ∈ G.boundaryEdges then (1 : ℕ) else 2) = 2 := by
+              intro e he
+              have : e ∉ G.boundaryEdges := (Finset.mem_sdiff.mp he).2
+              simp [this]
+            rw [Finset.sum_congr rfl this, Finset.sum_const_nat (fun _ _ => rfl), Nat.mul_comm]
+          rw [h1, h2]
+      _ = G.boundaryEdges.card + 2 * (G.edges.card - G.boundaryEdges.card) := by
+          rw [Finset.card_sdiff_of_subset hsub]
+  have harith :
+      G.boundaryEdges.card + 2 * (G.edges.card - G.boundaryEdges.card) =
+        2 * G.edges.card - G.boundaryEdges.card := by
+    have : G.boundaryEdges.card ≤ G.edges.card := Finset.card_le_card hsub
+    omega
+  omega
+
+/-- **Handshaking for a combinatorial disk triangulation** (proved from incidence).
+
+`2E = 3T + B` where `B = #boundaryEdges`. This discharges the `hshake` hypothesis
+of `triangulation_count_identity` whenever a `CombinatorialDiskTriangulation` is
+supplied. -/
+theorem two_E_eq_three_T_add_B : 2 * G.E = 3 * G.T + G.B := by
+  have hL := G.card_incidences_eq_three_T
+  have hR := G.card_incidences_eq_two_E_sub_B
+  have hB := G.B_le_E
+  omega
+
+/-- ℤ form matching `triangulation_count_identity`'s `hshake`. -/
+theorem two_E_eq_three_T_add_B_int :
+    (2 : ℤ) * G.E = 3 * (G.T : ℤ) + G.B := by
+  exact_mod_cast G.two_E_eq_three_T_add_B
+
+end CombinatorialDiskTriangulation
+
+/-- Convenience export. -/
+theorem handshaking_of_combinatorial_disk_triangulation
+    {α : Type*} [DecidableEq α] (G : CombinatorialDiskTriangulation α) :
+    2 * G.E = 3 * G.T + G.B :=
+  G.two_E_eq_three_T_add_B
+
+/-! ## Planar / disk Euler bridge (partial — EP connection documented)
+
+A disk cell complex with one unbounded outer face satisfies `V − E + F = 2`
+when `F = T + 1` and the complex is topologically a disk. Full discharge from
+`Euler_Poincare_full` (3D convex polytopes) requires either:
+
+* stereographic / cone lift of a planar graph to a spherical / polyhedral complex, or
+* a 2D Euler–Poincaré theorem for polygonal disks derived from the same face-sum API.
+
+This stub records the combinatorial target and what still connects to 3D EP.
+-/
+
+/-- Combinatorial counts for a triangulated polygonal disk (including outer face). -/
+structure PlanarDiskEulerCounts where
+  V : ℕ
+  E : ℕ
+  /-- Triangular interior faces. -/
+  T : ℕ
+  /-- `F = T + 1` (outer face counted). -/
+  F : ℕ := T + 1
+  hF : F = T + 1 := by rfl
+
+/-- Target Euler identity for a disk triangulation counting the outer face. -/
+def PlanarDiskEulerCounts.eulerChar (C : PlanarDiskEulerCounts) : ℤ :=
+  (C.V : ℤ) - C.E + C.F
+
+/-- Documentation theorem shape: if a planar disk complex arises as the boundary
+link / stereographic image of a convex 3-polytope face lattice (EP root), then
+Euler char is 2. **Hypothesis `hEP_bridge` is the open discharge** from
+`Euler_Poincare_full` / `euler_relation_convex_3polytope`. -/
+theorem planar_disk_euler_of_EP_bridge (C : PlanarDiskEulerCounts)
+    (hEP_bridge : C.eulerChar = 2) :
+    (C.V : ℤ) - C.E + C.F = 2 :=
+  hEP_bridge
+
+/-- From a combinatorial disk triangulation, Euler counts with `F = T + 1`.
+Vertices are left abstract (`V` supplied) — extracting `V` from edge endpoints
+is a separate Finset union lemma. -/
+def PlanarDiskEulerCounts.ofTriangulation {α : Type*} [DecidableEq α]
+    (G : CombinatorialDiskTriangulation α) (V : ℕ) : PlanarDiskEulerCounts where
+  V := V
+  E := G.E
+  T := G.T
+
+end Picks
+end EulersGem

@@ -11,6 +11,7 @@ import EulersGem.Embed
 import EulersGem.Platonic
 import EulersGem.Picks
 import EulersGem.PicksTriangulation
+import EulersGem.PlanarTriangulation
 
 /-!
 # Paper-facing results
@@ -155,6 +156,39 @@ theorem results_triangulation_count_identity
     (harea : A = (T : ℚ) / 2) :
     A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
   EulersGem.Picks.triangulation_count_identity I B V E T F A hV hF heuler hshake harea
+
+/-! ## Combinatorial disk triangulation handshaking (not Pick)
+
+Proved from edge–triangle incidence on `CombinatorialDiskTriangulation`.
+Discharges the `hshake` hyp of the triangulation count identity when a
+combinatorial disk triangulation is supplied. `B` = `#boundaryEdges`.
+Planar Euler / triangulation existence / classical Pick remain open.
+-/
+
+/-- **Handshaking from incidence** (not Pick):
+`2E = 3T + B` for a `CombinatorialDiskTriangulation`. -/
+theorem results_handshaking_of_combinatorial_disk_triangulation
+    {α : Type*} [DecidableEq α]
+    (G : EulersGem.Picks.CombinatorialDiskTriangulation α) :
+    2 * G.E = 3 * G.T + G.B :=
+  EulersGem.Picks.handshaking_of_combinatorial_disk_triangulation G
+
+/-- **Triangulation count identity with handshaking discharged** (not Pick).
+
+Same conclusion as `results_triangulation_count_identity`, but `2E = 3T + B`
+comes from `CombinatorialDiskTriangulation` incidence rather than a free hyp.
+Still assumes Euler / `V=I+B` / `F=T+1` / `A=T/2` — EP planar discharge open. -/
+theorem results_triangulation_count_identity_of_disk_triangulation
+    {α : Type*} [DecidableEq α]
+    (G : EulersGem.Picks.CombinatorialDiskTriangulation α)
+    (I V F : ℤ) (A : ℚ)
+    (hV : V = I + G.B)
+    (hF : F = (G.T : ℤ) + 1)
+    (heuler : V - G.E + F = 2)
+    (harea : A = (G.T : ℚ) / 2) :
+    A = (I : ℚ) + (G.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.triangulation_count_identity I G.B V G.E G.T F A
+    hV hF heuler G.two_E_eq_three_T_add_B_int harea
 
 /-! ## Witness-conditional shoelace Pick-form (not classical Pick)
 

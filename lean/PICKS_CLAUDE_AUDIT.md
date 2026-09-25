@@ -115,3 +115,27 @@ theorem results_shoelace_pick_form_of_primitive_triangulation_witness
 ```
 
 File: `lean/EulersGem/PicksTriangulation.lean` / `lean/Results.lean`.
+
+
+## Update 2026-09-24 (handshaking from incidence; still FAIL for classical Pick)
+
+Landed in `EulersGem/PlanarTriangulation.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem two_E_eq_three_T_add_B {α} [DecidableEq α]
+    (G : CombinatorialDiskTriangulation α) :
+    2 * G.E = 3 * G.T + G.B
+```
+
+`B` = `#boundaryEdges`. Results exports:
+`results_handshaking_of_combinatorial_disk_triangulation`,
+`results_triangulation_count_identity_of_disk_triangulation`
+(handshaking discharged; Euler still a hyp).
+
+| Item | Status |
+|------|--------|
+| Handshaking from incidence | Green (combinatorial) |
+| Geometric witness → incidence structure | Open |
+| EP → planar Euler | Open (`planar_disk_euler_of_EP_bridge` records hyp) |
+| Triangulation existence | Open |
+| Classical Pick | **Still FAIL** |

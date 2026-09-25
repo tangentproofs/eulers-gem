@@ -24,6 +24,10 @@ Euler–Poincaré (faceEulerSum / V−E+F=2 for convex polytopes)
 - Pick Funkenbusch identities — **assume** `heuler`, not discharged from planar EP.
 - Pick witness-conditional shoelace form — geometric witness + emptiness landed;
   still takes `hEuler_planar` as EP-spine hyp (discharge open). Not classical Pick.
+- Pick handshaking — **proved** for `CombinatorialDiskTriangulation` (incidence);
+  wiring geometric witness → combinatorial incidence still open.
+- Planar disk Euler bridge — `PlanarDiskEulerCounts` / `planar_disk_euler_of_EP_bridge`
+  records the EP discharge hyp; not yet derived from `Euler_Poincare_full`.
 
 ## Done means
 Results exports theorems whose proofs call the EP spine; auditors can follow Euler → corollary without a gap.

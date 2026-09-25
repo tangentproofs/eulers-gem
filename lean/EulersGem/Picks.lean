@@ -55,8 +55,10 @@ theorem funkenbusch_identity
 /-- From triangulation handshaking `2 E = 3 T + B` + Euler + `V = I + B` and
 `F = T + 1` (one unbounded outer face), derive Funkenbusch's edge count.
 
-The handshaking hypothesis is an assumption here (not proved from a planar graph
-API — Mathlib has no face/planarity layer usable for this). -/
+The handshaking hypothesis is an assumption here. It is **proved** for
+`CombinatorialDiskTriangulation` in `PlanarTriangulation.lean`
+(`two_E_eq_three_T_add_B`); pass that theorem when a combinatorial disk
+triangulation is available. -/
 theorem funkenbusch_of_triangulation
     (I B V E T F : ℤ)
     (hV : V = I + B)

@@ -33,7 +33,10 @@ This file provides:
 * Existence of a triangulation for an arbitrary simple lattice polygon.
 * Discharge of `hEuler_planar` from `Euler_Poincare_full` (disk / sphere /
   planar complex).
-* Discharge of handshaking `2E = 3T + B` from a planar graph API.
+* Discharge of handshaking `2E = 3T + B` from a *geometric* incidence structure
+  (combinatorial discharge landed in `PlanarTriangulation.lean` —
+  `CombinatorialDiskTriangulation.two_E_eq_three_T_add_B`; wiring this witness
+  to that structure is still open).
 * Shoelace = Haar/Lebesgue measure.
 * Classical Pick's theorem (gated by `PICKS_CLAUDE_AUDIT.md`).
 
