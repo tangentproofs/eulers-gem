@@ -32,6 +32,13 @@ and boundary edges are primitive, then each `|det| = 1`, hence
 Foreign vertices in an ear contradict the supporting half-plane at that vertex
 (CCW edge functional strictly positive at the unique interior apex).
 
+**I ∈ {0,1} Finset unification:**
+`shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one` packages empty + unique
+interior into one Finset statement (`card ≤ 1`).
+
+**I = 2 scaffold:** `TwoInterior`, fan positivity from either apex. Fan covering /
+ear inheritance / B-bookkeeping still open.
+
 **Honesty / not classical Pick:**
 Shoelace ≠ Haar/Lebesgue. General I > 1 triangulation existence open. EP→planar open.
 See `PICKS_CLAUDE_AUDIT.md`.
@@ -778,13 +785,126 @@ theorem shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior
   shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior_of_empty P hverts hedge hsc hU
     (InteriorFanTrianglesEmpty_of_uniqueInterior P hsc hverts hedge hU)
 
-/-! ## I > 1 gap (honest)
+/-! ## I ∈ {0,1} Finset unification (not classical Pick)
 
-A fan from a single interior lattice point, when `I > 1`, leaves polygonal cells
-that still contain interior lattice points. Closing Pick for general `I` needs a
-recursive / multi-apex triangulation existence theorem (open on this spine).
+Packages the empty-interior and unique-interior geometric discharges into a
+single statement whose interior data is a `Finset` with `card ≤ 1`. This is the
+API shape needed for a future general-`I` induction; it is **not** classical
+Pick (shoelace ≠ Haar; triangulation existence for `I > 1` open).
 -/
 
+/-- **I ∈ {0,1} shoelace Pick-form** (not classical Pick).
+
+Hyps: `↑S = interiorLatticePoints`, `S.card ≤ 1`, injective vertices, primitive
+edges, `StrictlyConvexCCW`. Concludes `shoelace = #S + B/2 − 1`.
+
+* `#S = 0` ⇒ empty-interior convex discharge.
+* `#S = 1` ⇒ unique-interior fan discharge.
+
+Still shoelace ≠ Haar/Lebesgue; classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 1)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  rcases Nat.eq_zero_or_pos S.card with h0 | hpos
+  · -- I = 0
+    have hSempty : S = ∅ := Finset.card_eq_zero.mp h0
+    have hI : EmptyInterior P := by
+      simpa [EmptyInterior, hSempty] using hS.symm
+    have harea :=
+      shoelace_eq_B_div_two_sub_one_of_empty_interior_convex P hverts hedge hI hsc
+    calc
+      P.shoelace = (P.B : ℚ) / 2 - 1 := harea
+      _ = (0 : ℚ) + (P.B : ℚ) / 2 - 1 := by ring
+      _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by simp [h0]
+  · -- I = 1
+    have h1 : S.card = 1 := by omega
+    obtain ⟨q, rfl⟩ := Finset.card_eq_one.mp h1
+    have hU : UniqueInterior P q := by
+      refine ⟨?mem, ?uniq⟩
+      · -- q is the unique listed interior point
+        have : q ∈ (({q} : Finset (ℤ × ℤ)) : Set (ℤ × ℤ)) := by
+          simp
+        rwa [← hS]
+      · intro p hp
+        have hpS : p ∈ ({q} : Finset (ℤ × ℤ)) := by
+          change p ∈ (({q} : Finset (ℤ × ℤ)) : Set (ℤ × ℤ))
+          rwa [hS]
+        simpa using hpS
+    have harea :=
+      shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior P hverts hedge hsc hU
+    simpa [h1] using harea
+
+/-! ## I = 2 scaffolding (not classical Pick)
+
+`InteriorFanDetsPos` already discharges from mere interior membership (no
+uniqueness). For `I = 2`, fanning from one apex leaves the other interior point
+inside some fan ear; closing Pick needs that ear’s triangle (or the leftover
+polygon) to inherit an `I ≤ 1` statement. Covering / inheritance lemmas below;
+full geometric `I = 2` discharge still open.
+-/
+
+/-- Exactly two distinct interior lattice points (set form). -/
+def TwoInterior (q r : ℤ × ℤ) : Prop :=
+  q ≠ r ∧ P.interiorLatticePoints = ({q, r} : Set (ℤ × ℤ))
+
+theorem mem_interior_of_twoInterior_left {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) : q ∈ P.interiorLatticePoints := by
+  rw [h.2]; simp
+
+theorem mem_interior_of_twoInterior_right {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) : r ∈ P.interiorLatticePoints := by
+  rw [h.2]; simp
+
+/-- Fan orientation from either apex of a two-point interior (not uniqueness). -/
+theorem InteriorFanDetsPos_of_twoInterior_left
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) :
+    InteriorFanDetsPos P q :=
+  InteriorFanDetsPos_of_mem_interior P hsc hinj hedge
+    (mem_interior_of_twoInterior_left P h)
+
+theorem InteriorFanDetsPos_of_twoInterior_right
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) :
+    InteriorFanDetsPos P r :=
+  InteriorFanDetsPos_of_mem_interior P hsc hinj hedge
+    (mem_interior_of_twoInterior_right P h)
+
+/-- Finset form of `TwoInterior` (API for inductive general-`I`). -/
+theorem twoInterior_of_finset_card_two
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 2) :
+    ∃ q r, TwoInterior P q r ∧ S = {q, r} := by
+  classical
+  obtain ⟨q, r, hne, rfl⟩ := Finset.card_eq_two.mp hcard
+  refine ⟨q, r, ⟨hne, ?_⟩, rfl⟩
+  -- Finset `{q,r}` coe equals the set `{q,r}` used by `TwoInterior`.
+  simpa [Finset.coe_insert, Finset.coe_singleton] using hS.symm
+
+/-! ### Remaining I > 1 checklist (honest)
+
+Still open on this spine (classical Pick FAIL):
+
+1. Fan covering: every other interior point lies in some closed fan ear from a
+   chosen apex (convex CCW + positive fan dets).
+2. Ear inheritance: an ear triangle `(q, vᵢ, vᵢ₊₁)` carrying exactly one leftover
+   interior point is a `LatticePolygon` with `UniqueInterior` / `StrictlyConvexCCW`
+   / primitive ear edges, so I=1 applies; empty ears are det-primitive.
+3. Bookkeeping: sum of ear shoelaces = polygon shoelace (already have the det-sum
+   identity); convert ear `B` counts on shared apex-spokes into global `B`.
+4. Shoelace = Haar/Lebesgue; EP → planar Euler.
+
+The Finset `I ≤ 1` theorem above is the base of that induction.
+-/
 
 end InteriorFan
 end LatticeFan

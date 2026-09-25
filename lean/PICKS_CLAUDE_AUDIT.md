@@ -597,3 +597,51 @@ Claude Cube / Octahedron / Platonic / EdgeVertices untouched.
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (I∈{0,1} Finset unification + I=2 scaffold; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one
+    (S : Finset (ℤ × ℤ))
+    (↑S = P.interiorLatticePoints) (S.card ≤ 1)
+    (Injective P.vertex) (PrimitiveEdges P) (StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1
+
+def TwoInterior (q r : ℤ × ℤ) : Prop :=
+  q ≠ r ∧ P.interiorLatticePoints = {q, r}
+
+theorem InteriorFanDetsPos_of_twoInterior_left
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (TwoInterior P q r) :
+    InteriorFanDetsPos P q
+
+theorem twoInterior_of_finset_card_two
+    (↑S = P.interiorLatticePoints) (S.card = 2) :
+    ∃ q r, TwoInterior P q r ∧ S = {q, r}
+```
+
+Results exports: `results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one`,
+`results_TwoInterior`, `results_InteriorFanDetsPos_of_twoInterior_left`,
+`results_twoInterior_of_finset_card_two`.
+
+**Prize progress:** empty-interior + unique-interior wired into a **single** Finset
+statement covering `I ∈ {0,1}` with crystal-clear “not classical Pick” labeling.
+I=2 scaffolding: `TwoInterior` + fan positivity from either apex (no uniqueness
+needed — already had `InteriorFanDetsPos_of_mem_interior`). Still **not** classical
+Pick: fan covering of the second interior point; ear-triangle inheritance of I=1;
+B-bookkeeping across shared spokes; Haar; EP→planar open. Claude Cube / Octahedron /
+Platonic / EdgeVertices / MetricRegular untouched.
+
+| Item | Status |
+|------|--------|
+| I=0 shoelace under `StrictlyConvexCCW` | Green |
+| I=1 shoelace under only geometric hyps | Green |
+| Combined Finset `I ∈ {0,1}` shoelace | **Green** |
+| `TwoInterior` + fan positivity from either apex | **Green** (scaffold) |
+| Fan covering of second interior point | Open |
+| Ear inheritance → I=1 on triangle polygon | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |
+

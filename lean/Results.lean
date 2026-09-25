@@ -568,6 +568,57 @@ theorem results_shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_I_add_B_div_two_sub_one_of_uniqueInterior
     P hverts hedge hsc hU
 
+/-! ### I ∈ {0,1} Finset unification + I=2 scaffold (not classical Pick)
+
+Single combined statement covering empty-interior and unique-interior under a
+`Finset` of interior points with `card ≤ 1`. Crystal-clear: **not** classical
+Pick. I=2 scaffolding (`TwoInterior`, fan positivity from either apex) is
+exported for the inductive climb; covering / ear-inheritance still open.
+-/
+
+/-- **I ∈ {0,1} shoelace Pick-form** via Finset of interior points (not classical Pick).
+
+Hyps: `↑S = interiorLatticePoints`, `S.card ≤ 1`, injective vertices, primitive
+edges, `StrictlyConvexCCW`. Concludes `shoelace = #S + B/2 − 1`.
+Unifies empty-interior (`#S = 0`) and unique-interior (`#S = 1`).
+Still shoelace ≠ Haar; classical Pick FAIL. -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 1)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_one
+    P S hS hcard hverts hedge hsc
+
+/-- Exactly two distinct interior lattice points (set form; not Pick). -/
+def results_TwoInterior (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ) : Prop :=
+  EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r
+
+/-- Fan dets positive from either apex of a two-point interior (not uniqueness). -/
+theorem results_InteriorFanDetsPos_of_twoInterior_left
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r) :
+    EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos P q :=
+  EulersGem.Picks.LatticeFan.InteriorFan.InteriorFanDetsPos_of_twoInterior_left
+    P hsc hinj hedge h
+
+/-- Finset `card = 2` ⇒ `TwoInterior` witness pair. -/
+theorem results_twoInterior_of_finset_card_two
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 2) :
+    ∃ q r, EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r ∧ S = {q, r} :=
+  EulersGem.Picks.LatticeFan.InteriorFan.twoInterior_of_finset_card_two P S hS hcard
+
+
 /-- Barycentric closed triangle ⇒ Euclidean convex hull of the three vertices. -/
 theorem results_mem_convexHull_of_memClosedTriangle
     (a b c p : ℤ × ℤ)
