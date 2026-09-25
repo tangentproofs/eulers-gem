@@ -738,16 +738,16 @@ theorem octahedron_platonic :
       ((3 : ℕ), (4 : ℕ)) ∈ Platonic.schlafliPairs := by
   haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
   haveI : Nonempty E := ⟨0⟩
-  obtain ⟨h2e, he2, hv4, he0⟩ := octahedron_incidence b
+  obtain ⟨h2e, he2, hv4, -⟩ := octahedron_incidence b
   obtain ⟨hFace, hVert, hEuler⟩ :=
     Platonic.regular_polytope_counts (s := 3) (m := 4) (hyperplanes_finite b)
       (body_eq_iInter_closedHalfspace b (by norm_num)) (isPolytope_body b)
-      (affDim_body_oct b) (finrank_eq_of_orthonormalBasis b) h2e he2 hv4 he0
+      (affDim_body_oct b) (finrank_eq_of_orthonormalBasis b) h2e he2 hv4
   refine ⟨hFace, hVert, hEuler, ?_⟩
   exact Platonic.schlafli_pair_mem_of_regular_polytope (hyperplanes_finite b)
     (body_eq_iInter_closedHalfspace b (by norm_num)) (isPolytope_body b)
     (affDim_body_oct b) (finrank_eq_of_orthonormalBasis b) (by norm_num) (by norm_num)
-    h2e he2 hv4 he0
+    h2e he2 hv4
 
 end Oct3
 

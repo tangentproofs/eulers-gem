@@ -846,16 +846,16 @@ theorem cube_platonic :
       ((4 : ℕ), (3 : ℕ)) ∈ Platonic.schlafliPairs := by
   haveI : FiniteDimensional ℝ E := Module.Finite.of_basis b.toBasis
   haveI : Nonempty E := ⟨0⟩
-  obtain ⟨h4e, he2, hv3, he0⟩ := cube_incidence b
+  obtain ⟨h4e, he2, hv3, -⟩ := cube_incidence b
   obtain ⟨hFace, hVert, hEuler⟩ :=
     Platonic.regular_polytope_counts (s := 4) (m := 3) (hyperplanes_finite b)
       (body_eq_iInter_closedHalfspace b) (isPolytope_body b) (affDim_body_cube b)
-      (Octahedron.finrank_eq_of_orthonormalBasis b) h4e he2 hv3 he0
+      (Octahedron.finrank_eq_of_orthonormalBasis b) h4e he2 hv3
   refine ⟨hFace, hVert, hEuler, ?_⟩
   exact Platonic.schlafli_pair_mem_of_regular_polytope (hyperplanes_finite b)
     (body_eq_iInter_closedHalfspace b) (isPolytope_body b) (affDim_body_cube b)
     (Octahedron.finrank_eq_of_orthonormalBasis b) (by norm_num) (by norm_num)
-    h4e he2 hv3 he0
+    h4e he2 hv3
 
 end Cube3
 

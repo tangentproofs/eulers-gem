@@ -6,6 +6,7 @@ Authors: Michal Wallace, Grok Bot
 import EulersGem.Embed
 import EulersGem.Platonic
 import EulersGem.PolytopeFaces
+import EulersGem.EdgeVertices
 import Mathlib.Combinatorics.Enumerative.DoubleCounting
 
 /-!
@@ -34,16 +35,17 @@ The *regularity* input is stated as face-lattice incidence counts:
 * `hface_edges` — every 2-face has exactly `s` edges (it is an `s`-gon);
 * `hvert_edges` — exactly `m` edges meet at every vertex.
 
-Two further incidence hypotheses are *polytope facts* rather than regularity, and are
-assumed here rather than derived from the polytope structure:
+One further incidence hypothesis is a *polytope fact* rather than regularity, and is assumed
+here rather than derived from the polytope structure:
 
-* `hedge_faces` — every edge lies in exactly two 2-faces;
-* `hedge_verts` — every edge has exactly two vertices.
+* `hedge_faces` — every edge lies in exactly two 2-faces (the diamond property).
 
-Neither is Euler: no bare `V − E + F = 2` hypothesis appears anywhere below.
+It is not Euler: no bare `V − E + F = 2` hypothesis appears anywhere below.
 
 *Derived*, not assumed:
 
+* every edge has exactly two vertices — `ncard_vertices_of_edge` (`EdgeVertices.lean`:
+  a 1-dimensional face is a segment, whose only 0-faces are its two endpoints);
 * finiteness of the face set in each dimension — `facesOfDim_finite_of_isPolytope`
   (`PolytopeFaces.lean`: a face of a V-polytope is the hull of the generators it
   contains, so `F ↦ V ∩ F` is injective on faces);
@@ -147,8 +149,7 @@ theorem regular_polytope_counts
     (hEdim : Module.finrank ℝ E = 3)
     (hface_edges : ∀ f ∈ facesOfDim p 2, {e ∈ facesOfDim p 1 | e ⊆ f}.ncard = s)
     (hedge_faces : ∀ e ∈ facesOfDim p 1, {f ∈ facesOfDim p 2 | e ⊆ f}.ncard = 2)
-    (hvert_edges : ∀ v ∈ facesOfDim p 0, {e ∈ facesOfDim p 1 | v ⊆ e}.ncard = m)
-    (hedge_verts : ∀ e ∈ facesOfDim p 1, {v ∈ facesOfDim p 0 | v ⊆ e}.ncard = 2) :
+    (hvert_edges : ∀ v ∈ facesOfDim p 0, {e ∈ facesOfDim p 1 | v ⊆ e}.ncard = m) :
     s * (facesOfDim p 2).ncard = 2 * (facesOfDim p 1).ncard ∧
       m * (facesOfDim p 0).ncard = 2 * (facesOfDim p 1).ncard ∧
       ((facesOfDim p 0).ncard : ℤ) - (facesOfDim p 1).ncard
@@ -157,6 +158,9 @@ theorem regular_polytope_counts
   have hfin0 : (facesOfDim p 0).Finite := facesOfDim_finite_of_isPolytope hP 0
   have hfin1 : (facesOfDim p 1).Finite := facesOfDim_finite_of_isPolytope hP 1
   have hfin2 : (facesOfDim p 2).Finite := facesOfDim_finite_of_isPolytope hP 2
+  -- every edge has exactly two vertices: proved, not assumed
+  have hedge_verts : ∀ e ∈ facesOfDim p 1, {v ∈ facesOfDim p 0 | v ⊆ e}.ncard = 2 :=
+    fun e he => ncard_vertices_of_edge hP he.1 he.2
   refine ⟨?_, ?_, ?_⟩
   · -- every 2-face has `s` edges; every edge lies in `2` faces
     have h := ncard_mul_eq_ncard_mul (fun f e : Set E => e ⊆ f) hfin2 hfin1
@@ -189,12 +193,11 @@ theorem schlafli_pair_mem_of_regular_polytope
     (hs : 3 ≤ s) (hm : 3 ≤ m)
     (hface_edges : ∀ f ∈ facesOfDim p 2, {e ∈ facesOfDim p 1 | e ⊆ f}.ncard = s)
     (hedge_faces : ∀ e ∈ facesOfDim p 1, {f ∈ facesOfDim p 2 | e ⊆ f}.ncard = 2)
-    (hvert_edges : ∀ v ∈ facesOfDim p 0, {e ∈ facesOfDim p 1 | v ⊆ e}.ncard = m)
-    (hedge_verts : ∀ e ∈ facesOfDim p 1, {v ∈ facesOfDim p 0 | v ⊆ e}.ncard = 2) :
+    (hvert_edges : ∀ v ∈ facesOfDim p 0, {e ∈ facesOfDim p 1 | v ⊆ e}.ncard = m) :
     (s, m) ∈ schlafliPairs := by
   obtain ⟨hFace, hVert, hEuler⟩ :=
     regular_polytope_counts hH hp hP hdim hEdim
-      hface_edges hedge_faces hvert_edges hedge_verts
+      hface_edges hedge_faces hvert_edges
   exact schlafli_pair_mem
     { V := (facesOfDim p 0).ncard
       E := (facesOfDim p 1).ncard

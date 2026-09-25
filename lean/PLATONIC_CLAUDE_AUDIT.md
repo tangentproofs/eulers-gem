@@ -51,6 +51,7 @@ from EP inside `schlafli_pair_mem_of_regular_polytope`, never assumed at the top
 | cube `V − E + F = 2` | `Cube.cube_euler_relation` | from EP; `8 − 12 + 6 = 2` is a cross-check |
 | cube incidence counts | `Cube.cube_incidence` | all four, from the face lattice |
 | cube is `{4,3}` | `Cube.cube_platonic` | double counting + Euler + Schläfli membership |
+| every edge has two vertices | `EdgeVertices.ncard_vertices_of_edge` | a 1-dimensional face is a segment: a supporting functional along its direction is *injective* on it, so the extreme points are its argmin and argmax, and they differ |
 
 Axiom check: `#print axioms EulersGem.Simplex.tetrahedron_platonic` gives
 `[propext, Classical.choice, Quot.sound]` — no `sorry`, and no `native_decide` axiom
@@ -59,22 +60,23 @@ for exactly this reason).
 
 ## Still hypothesis (and honestly labelled as such)
 
-`schlafli_pair_mem_of_regular_polytope` takes four incidence counts. Two are the
+`schlafli_pair_mem_of_regular_polytope` takes three incidence counts. Two are the
 *regularity* input and belong there:
 
 * `hface_edges` — every 2-face has exactly `s` edges (it is an `s`-gon);
 * `hvert_edges` — exactly `m` edges meet at every vertex.
 
-Two are *polytope facts* that are assumed rather than derived from `IsPolytope`:
+One is a *polytope fact* that is assumed rather than derived from `IsPolytope`:
 
-* `hedge_faces` — every edge lies in exactly two 2-faces (the diamond property);
-* `hedge_verts` — every edge has exactly two 0-faces.
+* `hedge_faces` — every edge lies in exactly two 2-faces (the **diamond property**).
 
-**These are not vacuous.** `GeometricPlatonic.tetrahedron_incidence` proves all four for a
-geometric tetrahedron, so the theorem has a geometric model. Deriving `hedge_verts` in
-general (a 1-dimensional face of a polytope is a segment, whose only 0-faces are its two
-endpoints) and `hedge_faces` in general (the diamond property of polytope face lattices)
-are open items in this development.
+**It is not vacuous.** The incidence theorems for all three geometric solids
+(`tetrahedron_incidence`, `octahedron_incidence`, `cube_incidence`) prove it, so the theorem
+has geometric models. Deriving the diamond property in general needs the quotient-polytope
+(vertex-figure) theory of face lattices, which is not formalized here.
+
+The fourth count, "every edge has exactly two 0-faces", **used to be assumed and is now
+proved** in general: `EdgeVertices.ncard_vertices_of_edge`.
 
 ## Open
 

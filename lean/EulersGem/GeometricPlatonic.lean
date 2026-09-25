@@ -253,15 +253,15 @@ theorem tetrahedron_platonic (hE : Module.finrank ℝ E = 3) :
       ((facesOfDim (body b) 0).ncard : ℤ) - (facesOfDim (body b) 1).ncard
         + (facesOfDim (body b) 2).ncard = 2 ∧
       ((3 : ℕ), (3 : ℕ)) ∈ schlafliPairs := by
-  obtain ⟨h2e, he2, hv3, he0⟩ := tetrahedron_incidence b
+  obtain ⟨h2e, he2, hv3, -⟩ := tetrahedron_incidence b
   obtain ⟨hFace, hVert, hEuler⟩ :=
     Platonic.regular_polytope_counts (s := 3) (m := 3) (coordHyperplanes_finite b)
       (body_eq_iInter_closedHalfspace b) (isPolytope_body b) (affDim_body_tetra b hE) hE
-      h2e he2 hv3 he0
+      h2e he2 hv3
   refine ⟨hFace, hVert, hEuler, ?_⟩
   exact Platonic.schlafli_pair_mem_of_regular_polytope (coordHyperplanes_finite b)
     (body_eq_iInter_closedHalfspace b) (isPolytope_body b) (affDim_body_tetra b hE) hE
-    (by norm_num) (by norm_num) h2e he2 hv3 he0
+    (by norm_num) (by norm_num) h2e he2 hv3
 
 end Tetrahedron
 
