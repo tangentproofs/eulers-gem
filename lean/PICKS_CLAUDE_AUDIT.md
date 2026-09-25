@@ -986,3 +986,62 @@ Cube / MetricRegular / EdgeVertices untouched.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (I≤2 Finset unify + I=3 two-ear scaffold; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two
+    (↑S = interiorLatticePoints) (S.card ≤ 2) … :
+    P.shoelace = #S + B/2 − 1
+
+def ThreeInterior (q r s : ℤ × ℤ) : Prop
+
+theorem threeInterior_of_finset_card_three … :
+    ∃ q r s, ThreeInterior P q r s ∧ S = {q, r, s}
+
+theorem eq_vertices_or_interior_of_mem_interiorFan … :
+    p = q ∨ p = vᵢ ∨ p = vᵢ₊₁ ∨ p ∈ interiorLatticePoints
+
+theorem interiorFanDet_eq_one_of_no_other_interior … :
+    interiorFanDet P q i = 1
+
+theorem UniqueInterior_trianglePolygon_of_threeInterior_occupied … :
+    UniqueInterior (trianglePolygon q vᵢ vᵢ₊₁) r
+
+theorem interiorFanDet_eq_three_of_threeInterior_occupied … :
+    interiorFanDet P q i = 3
+
+theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied
+    … (i ≠ j) (Off ears for r and s) (uniqueness hyps) :
+    P.shoelace = 3 + B/2 − 1
+```
+
+Results exports: `results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two`,
+`results_ThreeInterior`, `results_threeInterior_of_finset_card_three`,
+`results_eq_vertices_or_interior_of_mem_interiorFan`,
+`results_interiorFanDet_eq_one_of_no_other_interior`,
+`results_interiorFanDet_eq_three_of_threeInterior_occupied`,
+`results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied`.
+
+**Prize progress:** I∈{0,1,2} packaged as one Finset statement. I=3 scaffold:
+general ear classification (any interior apex), empty-ear `|det|=1`, and
+Pick-form under two distinct Off occupied ears (each I=1 via UniqueInterior
+inheritance). Still **not** classical Pick: discharge ear-uniqueness for I=3;
+same-ear occupation (I=2 on ear triangle); on-spoke I=3; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Unified I=2 Pick-form (Off ∨ on-spoke) | Green |
+| I∈{0,1,2} Finset unification | **Green** |
+| `ThreeInterior` + Finset card=3 | **Green** |
+| General ear lattice classification | **Green** |
+| Empty-ear `|det|=1` (any I) | **Green** |
+| I=3 Pick-form under two Off occupied ears | **Green** (uniqueness hyps) |
+| Discharge I=3 ear-uniqueness / same-ear / on-spoke | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |

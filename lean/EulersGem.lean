@@ -23,11 +23,12 @@ import EulersGem.LatticeFan
 import EulersGem.LatticeFanInterior
 import EulersGem.EarUniqueness
 import EulersGem.OnSpoke
+import EulersGem.LatticeFanInduction
+import EulersGem.LatticeTriangleEmpty
 import EulersGem.PolytopeFaces
 import EulersGem.PlatonicOfEuler
 import EulersGem.SimplexFaces
 import EulersGem.GeometricPlatonic
-import EulersGem.LatticeTriangleEmpty
 import EulersGem.Octahedron
 import EulersGem.Cube
 import EulersGem.EdgeVertices

@@ -25,6 +25,7 @@ import EulersGem.LatticeFan
 import EulersGem.LatticeFanInterior
 import EulersGem.EarUniqueness
 import EulersGem.OnSpoke
+import EulersGem.LatticeFanInduction
 import EulersGem.LatticeTriangleEmpty
 
 /-!
@@ -1058,6 +1059,124 @@ theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior
     P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior
     P hsc hinj hedge h
+
+/-! ## I ≤ 2 Finset unification + I = 3 induction scaffold (not classical Pick)
+
+`LatticeFanInduction`: packages I∈{0,1,2} into one Finset shoelace Pick-form;
+starts I≥3 with `ThreeInterior`, general ear classification, empty-ear `|det|=1`,
+and an honest card=3 Pick-form under two distinct Off occupied ears.
+Still **not** classical Pick (no Haar; EP→planar open; same-ear/on-spoke I=3 open).
+-/
+
+/-- **I ∈ {0,1,2} shoelace Pick-form** (not classical Pick). -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 2)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two
+    P S hS hcard hverts hedge hsc
+
+/-- Exactly three distinct interior lattice points (set form; not Pick). -/
+def results_ThreeInterior (P : EulersGem.Picks.LatticePolygon) (q r s : ℤ × ℤ) : Prop :=
+  EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s
+
+/-- Finset `card = 3` ⇒ `ThreeInterior` witness triple. -/
+theorem results_threeInterior_of_finset_card_three
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 3) :
+    ∃ q r s, EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s ∧
+      S = {q, r, s} :=
+  EulersGem.Picks.LatticeFan.InteriorFan.threeInterior_of_finset_card_three P S hS hcard
+
+/-- Lattice points of an interior-fan ear from an interior apex are among the
+three ear vertices and the remaining interior lattice points of `P`. -/
+theorem results_eq_vertices_or_interior_of_mem_interiorFan
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (q : ℤ × ℤ) (hq : q ∈ P.interiorLatticePoints) (i : Fin P.nVertices)
+    (p : ℤ × ℤ)
+    (hp : EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).a
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).b
+      (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).c p) :
+    p = q ∨ p = P.vertex i ∨ p = P.vertex (P.nextIdx i) ∨
+      p ∈ P.interiorLatticePoints :=
+  EulersGem.Picks.LatticeFan.InteriorFan.eq_vertices_or_interior_of_mem_interiorFan
+    P hsc hinj hedge hq i hp
+
+/-- Empty (of other interior points) ears have determinant exactly `1`. -/
+theorem results_interiorFanDet_eq_one_of_no_other_interior
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (q : ℤ × ℤ) (hq : q ∈ P.interiorLatticePoints) (i : Fin P.nVertices)
+    (hempty : ∀ p ∈ P.interiorLatticePoints, p ≠ q →
+      ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle
+        (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).a
+        (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).b
+        (EulersGem.Picks.LatticeFan.InteriorFan.interiorFanTriangle P q i).c p) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q i = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_one_of_no_other_interior
+    P hsc hinj hedge hq i hempty
+
+/-- Occupied Off ear with exactly one of `{r,s}` has `interiorFanDet = 3`. -/
+theorem results_interiorFanDet_eq_three_of_threeInterior_occupied
+    (P : EulersGem.Picks.LatticePolygon) (q r s : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (i : Fin P.nVertices)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs_not : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) s) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q i = 3 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_three_of_threeInterior_occupied
+    P hsc hinj hedge h i hr hoff hs_not
+
+/-- **I = 3 shoelace Pick-form** under two distinct Off occupied ears
+(not classical Pick). -/
+theorem results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied
+    (P : EulersGem.Picks.LatticePolygon) (q r s : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.ThreeInterior P q r s)
+    (i j : Fin P.nVertices) (hne : i ≠ j)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff_r : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hs_not_i : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) s)
+    (hs : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex j)
+      (P.vertex (P.nextIdx j)) s)
+    (hoff_s : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex j) (P.vertex (P.nextIdx j)) s)
+    (hr_not_j : ¬ EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex j)
+      (P.vertex (P.nextIdx j)) r)
+    (huniq_r : ∀ k : Fin P.nVertices,
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex k)
+        (P.vertex (P.nextIdx k)) r → k = i)
+    (huniq_s : ∀ k : Fin P.nVertices,
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex k)
+        (P.vertex (P.nextIdx k)) s → k = j) :
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_two_occupied
+    P hsc hinj hedge h i j hne hr hoff_r hs_not_i hs hoff_s hr_not_j huniq_r huniq_s
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
