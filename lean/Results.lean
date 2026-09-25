@@ -2750,9 +2750,12 @@ Bridge from combinatorial shoelace arithmetic toward Lebesgue `volume` on
 `ℝ × ℝ`. Unit / origin / arbitrary lattice triangles green; `trianglePolygon`
 volume = shoelace; fan-ear volume sum = `ofReal(P.shoelace)` under
 `FanDetsNonneg`. Under `StrictlyConvexCCW` + injective vertices,
-`convexHullRegion = ⋃ fanTriangleRegion`. Pairwise AEDisjoint /
-`volume(P) = ∑ volume(ears)` (discharge `hvol`) remains open. Classical Pick
-FAIL — see `PICKS_CLAUDE_AUDIT.md`.
+`convexHullRegion = ⋃ fanTriangleRegion`, pairwise fan-ear intersections are
+Haar-null (shared spokes / apex), and `volume(P) = ∑ volume(ears) =
+ofReal(P.shoelace)`. Composed with combinatorial interior-fan Pick-form:
+`volume(P) = ofReal(#I + B/2 − 1)` under geometric hyps. Classical Pick
+FAIL (EP→planar / general triangulation existence open) — see
+`PICKS_CLAUDE_AUDIT.md`.
 -/
 
 /-- Standard basis parallelepiped Haar equals product Lebesgue on `ℝ × ℝ`. -/
@@ -2811,7 +2814,8 @@ theorem results_shoelace_coe_eq_abs_shoelaceSum_div_two
 
 /-- Fan-ear Haar volumes sum to `ofReal(P.shoelace)` under `FanDetsNonneg`.
 
-Does not yet equate `volume(P.convexHullRegion)` to this sum. -/
+Under `StrictlyConvexCCW` the hull volume equals this sum via
+`results_volume_convexHullRegion_eq_ofReal_shoelace`. -/
 theorem results_sum_volume_fanTriangles_eq_ofReal_shoelace
     (P : EulersGem.Picks.LatticePolygon)
     (hnn : EulersGem.Picks.LatticeFan.FanDetsNonneg P)
@@ -2854,8 +2858,7 @@ theorem results_exists_mem_fanTriangleRegion_of_mem_hull
   EulersGem.Picks.LatticeArea.exists_mem_fanTriangleRegion_of_mem_hull P hsc hinj hp
 
 /-- Under `StrictlyConvexCCW` + injective vertices, polygon hull equals the
-union of apex-`v₀` fan-ear regions. Not classical Pick (AEDisjoint / `hvol`
-open). -/
+union of apex-`v₀` fan-ear regions. Not classical Pick. -/
 theorem results_convexHullRegion_eq_iUnion_fanTriangleRegion
     (P : EulersGem.Picks.LatticePolygon)
     (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
@@ -2865,11 +2868,62 @@ theorem results_convexHullRegion_eq_iUnion_fanTriangleRegion
         EulersGem.Picks.LatticeArea.fanTriangleRegion P i hi :=
   EulersGem.Picks.LatticeArea.convexHullRegion_eq_iUnion_fanTriangleRegion P hsc hinj
 
+/-- Pairwise fan-ear intersections have Haar measure zero under
+`StrictlyConvexCCW` (adjacent ears meet on a spoke segment; non-adjacent on
+the apex). Not classical Pick. -/
+theorem results_pairwise_AEDisjoint_fanTriangleRegion
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    Pairwise fun (i j : Fin (P.nVertices - 2)) =>
+      MeasureTheory.volume
+          (EulersGem.Picks.LatticeArea.fanTriangleRegion P i.val i.isLt ∩
+            EulersGem.Picks.LatticeArea.fanTriangleRegion P j.val j.isLt) = 0 :=
+  EulersGem.Picks.LatticeArea.pairwise_AEDisjoint_fanTriangleRegion P hsc hinj
+
+/-- Under `StrictlyConvexCCW` + injective vertices, polygon Haar equals the
+sum of fan-ear volumes. -/
+theorem results_volume_convexHullRegion_eq_sum_volume_fanTriangleRegion
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    MeasureTheory.volume P.convexHullRegion =
+      ∑ i : Fin (P.nVertices - 2),
+        MeasureTheory.volume
+          (EulersGem.Picks.LatticeArea.fanTriangleRegion P i.val i.isLt) :=
+  EulersGem.Picks.LatticeArea.volume_convexHullRegion_eq_sum_volume_fanTriangleRegion
+    P hsc hinj
+
+/-- Under `StrictlyConvexCCW` + injective vertices, polygon Haar equals
+`ofReal(P.shoelace)`. Discharges the `hvol` hyp of the conditional compose.
+Not classical Pick. -/
+theorem results_volume_convexHullRegion_eq_ofReal_shoelace
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    MeasureTheory.volume P.convexHullRegion = ENNReal.ofReal P.shoelace :=
+  EulersGem.Picks.LatticeArea.volume_convexHullRegion_eq_ofReal_shoelace P hsc hinj
+
+/-- Geometric volume Pick-form under `StrictlyConvexCCW` + injective +
+`PrimitiveEdges` + combinatorial interior Finset: Haar =
+`ofReal(#I + B/2 − 1)`. Not classical Pick (EP→planar / triangulation
+existence still open). -/
+theorem results_volume_eq_ofReal_cardI_add_B_div_two_sub_one
+    (P : EulersGem.Picks.LatticePolygon) (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
+    MeasureTheory.volume P.convexHullRegion =
+      ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) :=
+  EulersGem.Picks.LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one
+    P S hS hverts hedge hsc
+
 /-- Triangle volume Pick-form for I ≤ 1: Haar = `ofReal(#I + B/2 − 1)`.
 
 Discharges `hvol` via `volume_convexHull_trianglePolygon` and combinatorial
 I ≤ 1 triangle shoelace. Not classical Pick (I ≤ 1 only; EP / general polygon
-hull-union open). -/
+still open). -/
 theorem results_volume_trianglePolygon_eq_ofReal_cardI_add_B_div_two_sub_one_of_I_le_one
     (a b c : ℤ × ℤ)
     (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)

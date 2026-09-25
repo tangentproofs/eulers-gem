@@ -2167,3 +2167,41 @@ Results exports: `results_fanTriangleRegion_subset_convexHullRegion`,
 Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 Classical Pick **FAIL** — no rename.
 
+## Update 2026-09-25 (AEDisjoint + volume = ∑ ears; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeArea.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem pairwise_AEDisjoint_fanTriangleRegion
+    (P) (hsc : StrictlyConvexCCW P) (hinj) :
+    Pairwise fun i j => volume (fanTriangleRegion i ∩ fanTriangleRegion j) = 0
+
+theorem volume_convexHullRegion_eq_sum_volume_fanTriangleRegion
+    (P) (hsc) (hinj) :
+    volume P.convexHullRegion = ∑ i, volume (fanTriangleRegion i)
+
+theorem volume_convexHullRegion_eq_ofReal_shoelace
+    (P) (hsc) (hinj) :
+    volume P.convexHullRegion = ENNReal.ofReal P.shoelace
+
+theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one
+    (P) (S) (hS) (hverts) (hedge : PrimitiveEdges P) (hsc) :
+    volume P.convexHullRegion = ofReal (#S + B/2 - 1)
+```
+
+Proof path: adjacent ears ∩ ⊆ shared spoke (Haar-null segment); non-adjacent
+∩ ⊆ `{apex}` via barycentric + `fan_chord_detR_pos` (half-plane Plücker with
+witness `v₁`); `measure_iUnion₀` + existing per-ear Haar + shoelace additivity;
+compose with `InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one`.
+
+Results exports: `results_pairwise_AEDisjoint_fanTriangleRegion`,
+`results_volume_convexHullRegion_eq_sum_volume_fanTriangleRegion`,
+`results_volume_convexHullRegion_eq_ofReal_shoelace`,
+`results_volume_eq_ofReal_cardI_add_B_div_two_sub_one`.
+
+**Still open for classical Pick:**
+* EP → planar Euler; general triangulation existence (beyond apex-`v₀` fan)
+* Dropping / weakening `StrictlyConvexCCW` / `PrimitiveEdges` / Finset witness
+
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+Classical Pick **FAIL** — no rename.

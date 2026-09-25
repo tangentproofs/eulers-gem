@@ -15,10 +15,14 @@ import Mathlib.LinearAlgebra.Matrix.Basis
 import Mathlib.LinearAlgebra.Determinant
 import Mathlib.Analysis.Convex.Hull
 import Mathlib.Analysis.Convex.Combination
+import Mathlib.Analysis.Convex.Measure
+import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
+import Mathlib.Analysis.SpecialFunctions.PolarCoord
 import EulersGem.LatticeTriangle
 import EulersGem.LatticePolygon
 import EulersGem.LatticeFan
 import EulersGem.LatticeFanInterior
+import EulersGem.LatticeFanTrianglePick
 
 /-!
 # Lattice triangle Haar area bridge (not classical Pick)
@@ -34,8 +38,9 @@ Lebesgue / Haar on `ℝ × ℝ`:
 
 Also: `trianglePolygon` volume = `ofReal(shoelace)`; fan triangle volumes sum to
 `ofReal(P.shoelace)` under `FanDetsNonneg`; under `StrictlyConvexCCW` + injective
-vertices, `P.convexHullRegion = ⋃ᵢ fanTriangleRegion i`. Pairwise AEDisjoint /
-`volume(P) = ∑ volume(ears)` (discharge `hvol`) remains open.
+vertices, `P.convexHullRegion = ⋃ᵢ fanTriangleRegion i`; pairwise AEDisjoint of
+fan ears (shared spokes Haar-null); `volume(P) = ∑ volume(ears) = ofReal(shoelace)`,
+discharging `hvol`; compose with combinatorial Pick-form.
 **Not** classical Pick — see `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -728,10 +733,10 @@ theorem exists_mem_fanTriangleRegion_of_mem_hull
     have hi_fan : (0 : ℕ) < P.nVertices - 2 := by have hn : 3 ≤ P.nVertices := P.length_ge; omega
     refine ⟨0, hi_fan, ?_⟩
     have ha : A ∈ fanTriangleRegion P 0 hi_fan :=
-      subset_convexHull _ _ (by simp [fanTriangleRegion, fanTriangle, A])
+      subset_convexHull _ _ (by simp [fanTriangle, A])
     have hb : toReal (P.vertex ⟨1, by have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩) ∈
         fanTriangleRegion P 0 hi_fan :=
-      subset_convexHull _ _ (by simp [fanTriangleRegion, fanTriangle])
+      subset_convexHull _ _ (by simp [fanTriangle])
     exact (convex_convexHull ℝ _).segment_subset ha hb hseg
   · by_cases hilast : i.val = P.nVertices - 1
     · -- Closing spoke `v_{n-1}v₀`.
@@ -754,7 +759,7 @@ theorem exists_mem_fanTriangleRegion_of_mem_hull
       have hj : j < P.nVertices - 2 := by have hn : 3 ≤ P.nVertices := P.length_ge; omega
       refine ⟨j, hj, ?_⟩
       have hA : A ∈ fanTriangleRegion P j hj :=
-        subset_convexHull _ _ (by simp [fanTriangleRegion, fanTriangle, A])
+        subset_convexHull _ _ (by simp [fanTriangle, A])
       have hVi : toReal (P.vertex i) ∈ fanTriangleRegion P j hj := by
         apply subset_convexHull
         have hj2 : j + 2 = i.val := by
@@ -828,9 +833,578 @@ theorem convexHullRegion_eq_iUnion_fanTriangleRegion
     rcases mem_iUnion.1 hi' with ⟨hi, hmem⟩
     exact fanTriangleRegion_subset_convexHullRegion P i hi hmem
 
-/- Pairwise AEDisjoint of fan ears (⇒ `volume(P) = ∑ volume(ears)` ⇒ discharge
-`hvol`) remains open. Landed: `convexHullRegion = ⋃ fanTriangleRegion` under
-`StrictlyConvexCCW` + injective vertices. Classical Pick still FAIL. -/
+
+/-! ## Pairwise AEDisjoint of fan ears + discharge `hvol` -/
+
+lemma detR_plucker (q a b c r : V) :
+    detR q a b * detR q c r - detR q a c * detR q b r + detR q a r * detR q b c = 0 := by
+  dsimp [detR]; ring
+
+lemma detR_linear_of_affine_combo {ι : Type*} [Fintype ι]
+    (u v : V) (w : ι → ℝ) (z : ι → V) (hw1 : ∑ i, w i = 1)
+    (p : V) (hp : p = ∑ i, w i • z i) :
+    detR u v p = ∑ i, w i * detR u v (z i) := by
+  have := detR_sum_smul u v w z hw1
+  simpa [hp] using this
+
+/-- Oriented-area weights are nonnegative on a positively oriented Euclidean triangle. -/
+theorem detR_nonneg_of_mem_convexHull_of_pos (a b c p : V)
+    (hD : 0 < detR a b c) (hp : p ∈ convexHull ℝ ({a, b, c} : Set V)) :
+    0 ≤ detR b c p ∧ 0 ≤ detR a p c ∧ 0 ≤ detR a b p := by
+  classical
+  obtain ⟨ι, _, w, z, hw0, hw1, hz, hsum⟩ :=
+    (mem_convexHull_iff_exists_fintype (R := ℝ) (E := V)).1 hp
+  have hz' : ∀ i, z i = a ∨ z i = b ∨ z i = c := by
+    intro i
+    simpa [mem_insert_iff, mem_singleton_iff] using hz i
+  have hα : 0 ≤ detR b c p := by
+    have hlin := detR_linear_of_affine_combo b c w z hw1 p hsum.symm
+    have hterm : ∀ i, 0 ≤ w i * detR b c (z i) := by
+      intro i
+      rcases hz' i with hza | hzb | hzc
+      · rw [hza]
+        have : detR b c a = detR a b c := by dsimp [detR]; ring
+        exact mul_nonneg (hw0 i) (by simpa [this] using le_of_lt hD)
+      · rw [hzb]; exact mul_nonneg (hw0 i) (le_of_eq (by dsimp [detR]; ring))
+      · rw [hzc]; exact mul_nonneg (hw0 i) (le_of_eq (by dsimp [detR]; ring))
+    have : 0 ≤ ∑ i, w i * detR b c (z i) := Finset.sum_nonneg fun i _ => hterm i
+    simpa [hlin] using this
+  have hγ : 0 ≤ detR a b p := by
+    have hlin := detR_linear_of_affine_combo a b w z hw1 p hsum.symm
+    have hterm : ∀ i, 0 ≤ w i * detR a b (z i) := by
+      intro i
+      rcases hz' i with hza | hzb | hzc
+      · rw [hza]; exact mul_nonneg (hw0 i) (le_of_eq (by dsimp [detR]; ring))
+      · rw [hzb]; exact mul_nonneg (hw0 i) (le_of_eq (by dsimp [detR]; ring))
+      · rw [hzc]; exact mul_nonneg (hw0 i) (le_of_lt hD)
+    have : 0 ≤ ∑ i, w i * detR a b (z i) := Finset.sum_nonneg fun i _ => hterm i
+    simpa [hlin] using this
+  have hβ : 0 ≤ detR a p c := by
+    have hswap : detR a p c = -detR a c p := by dsimp [detR]; ring
+    have hlin := detR_linear_of_affine_combo a c w z hw1 p hsum.symm
+    have hterm : ∀ i, w i * detR a c (z i) ≤ 0 := by
+      intro i
+      rcases hz' i with hza | hzb | hzc
+      · rw [hza]; exact mul_nonpos_of_nonneg_of_nonpos (hw0 i)
+          (le_of_eq (by dsimp [detR]; ring))
+      · rw [hzb]
+        have : detR a c b = -detR a b c := by dsimp [detR]; ring
+        exact mul_nonpos_of_nonneg_of_nonpos (hw0 i)
+          (by simpa [this] using (neg_nonpos.mpr (le_of_lt hD)))
+      · rw [hzc]; exact mul_nonpos_of_nonneg_of_nonpos (hw0 i)
+          (le_of_eq (by dsimp [detR]; ring))
+    have hsum_le : ∑ i, w i * detR a c (z i) ≤ 0 :=
+      Finset.sum_nonpos fun i _ => hterm i
+    have : detR a c p ≤ 0 := by simpa [hlin] using hsum_le
+    linarith
+  exact ⟨hα, hβ, hγ⟩
+
+private lemma finrank_V_eq_two : Module.finrank ℝ V = 2 := by
+  simp [V, Module.finrank_prod]
+
+/-- Segments are Haar-null in `ℝ × ℝ`. -/
+theorem volume_segment_eq_zero (a b : V) :
+    volume (segment ℝ a b) = 0 := by
+  rw [← convexHull_pair]
+  have hsub : (convexHull ℝ ({a, b} : Set V)) ⊆
+      (affineSpan ℝ ({a, b} : Set V) : Set V) :=
+    convexHull_min (subset_affineSpan ℝ _) (affineSpan ℝ ({a, b} : Set V)).convex
+  refine measure_mono_null hsub ?_
+  have : IsAddHaarMeasure (volume : Measure V) :=
+    Measure.prod.instIsAddHaarMeasure (volume : Measure ℝ) (volume : Measure ℝ)
+  refine Measure.addHaar_affineSubspace (volume : Measure V) _ ?_
+  intro htop
+  have hne : ((affineSpan ℝ ({a, b} : Set V) : Set V)).Nonempty :=
+    ⟨a, left_mem_affineSpan_pair _ _ _⟩
+  have hdir : (affineSpan ℝ ({a, b} : Set V)).direction = (⊤ : Submodule ℝ V) :=
+    (AffineSubspace.direction_eq_top_iff_of_nonempty hne).2 htop
+  have hspan : Module.finrank ℝ (affineSpan ℝ ({a, b} : Set V)).direction ≤ 1 := by
+    rw [direction_affineSpan, vectorSpan_pair]
+    by_cases hv : (a -ᵥ b) = (0 : V)
+    · rw [show a -ᵥ b = (0 : V) from hv, Submodule.span_zero_singleton, finrank_bot]
+      decide
+    · have h1 : Module.finrank ℝ (ℝ ∙ (a -ᵥ b)) = 1 := finrank_span_singleton hv
+      omega
+  have hV : Module.finrank ℝ V ≤ 1 := by
+    rwa [hdir, finrank_top ℝ V] at hspan
+  have h22 : Module.finrank ℝ V = 2 := finrank_V_eq_two
+  lia
+
+theorem volume_singleton_eq_zero (a : V) : volume ({a} : Set V) = 0 := by
+  convert volume_segment_eq_zero a a
+  exact (segment_same ℝ a).symm
+
+
+set_option maxHeartbeats 800000 in
+/-- Fan chord from apex `v₀` through listed vertices is positively oriented. -/
+theorem fan_chord_detR_pos
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (r s : Fin P.nVertices)
+    (hr : 1 ≤ r.val) (hrs : r.val < s.val) :
+    0 < detR (toReal (P.vertex ⟨0, P.nVertices_pos⟩))
+      (toReal (P.vertex r)) (toReal (P.vertex s)) := by
+  classical
+  set A : V := toReal (P.vertex ⟨0, P.nVertices_pos⟩)
+  have hpos := FanDetsPos_of_strictlyConvexCCW P hsc hinj
+  have hext := VerticesExtreme_of_strictlyConvexCCW P hsc hinj
+  have h1lt : 1 < P.nVertices := by have hn : 3 ≤ P.nVertices := P.length_ge; omega
+  have hfrom1 : ∀ t : Fin P.nVertices, 2 ≤ t.val →
+      0 < detR A (toReal (P.vertex ⟨1, h1lt⟩)) (toReal (P.vertex t)) := by
+    intro t ht2
+    have hnext : P.nextIdx ⟨0, P.nVertices_pos⟩ = ⟨1, h1lt⟩ := nextIdx_zero P
+    have hge : 0 ≤ latticeDet (P.vertex ⟨0, P.nVertices_pos⟩)
+        (P.vertex ⟨1, h1lt⟩) (P.vertex t) := by
+      simpa [hnext] using hsc.1 ⟨0, P.nVertices_pos⟩ t
+    have hz0 : (0 : ℕ) ≠ 1 := by decide
+    have h1lt_t : (1 : ℕ) < t.val := lt_of_lt_of_le (by decide : (1 : ℕ) < 2) ht2
+    have h0lt_t : (0 : ℕ) < t.val := lt_of_lt_of_le (by decide : (0 : ℕ) < 2) ht2
+    have h1t : (1 : ℕ) ≠ t.val := ne_of_lt h1lt_t
+    have h0t : (0 : ℕ) ≠ t.val := ne_of_lt h0lt_t
+    have hne : latticeDet (P.vertex ⟨0, P.nVertices_pos⟩)
+        (P.vertex ⟨1, h1lt⟩) (P.vertex t) ≠ 0 := by
+      intro h0
+      exact (not_collinear_of_VerticesExtreme P hext hinj
+        ⟨0, P.nVertices_pos⟩ ⟨1, h1lt⟩ t
+        (Fin.ne_of_val_ne hz0) (Fin.ne_of_val_ne h0t) (Fin.ne_of_val_ne h1t) h0).elim
+    have hZ : 0 < latticeDet (P.vertex ⟨0, P.nVertices_pos⟩)
+        (P.vertex ⟨1, h1lt⟩) (P.vertex t) :=
+      lt_of_le_of_ne hge (Ne.symm hne)
+    have : (0 : ℝ) <
+        (latticeDet (P.vertex ⟨0, P.nVertices_pos⟩)
+          (P.vertex ⟨1, h1lt⟩) (P.vertex t) : ℝ) := by exact_mod_cast hZ
+    simpa [A, detR_toReal] using this
+  have hcons : ∀ (k : ℕ) (hk0 : 1 ≤ k) (hk1 : k + 1 < P.nVertices),
+      0 < detR A (toReal (P.vertex ⟨k, Nat.lt_of_succ_lt hk1⟩))
+        (toReal (P.vertex ⟨k + 1, hk1⟩)) := by
+    intro k hk0 hk1
+    have hklt : k < P.nVertices := Nat.lt_of_succ_lt hk1
+    have hi : k - 1 < P.nVertices - 2 := by omega
+    have hfan : 0 < fanDet P (k - 1) hi := hpos (k - 1) hi
+    have hkb : (k - 1) + 1 = k := by omega
+    have hkc : (k - 1) + 2 = k + 1 := by omega
+    have hb : P.vertex ⟨(k - 1) + 1, by omega⟩ = P.vertex ⟨k, hklt⟩ := by
+      apply congrArg; exact Fin.ext hkb
+    have hc : P.vertex ⟨(k - 1) + 2, by omega⟩ = P.vertex ⟨k + 1, hk1⟩ := by
+      apply congrArg; exact Fin.ext hkc
+    have hdet : fanDet P (k - 1) hi =
+        latticeDet (P.vertex ⟨0, P.nVertices_pos⟩)
+          (P.vertex ⟨k, hklt⟩) (P.vertex ⟨k + 1, hk1⟩) := by
+      simp only [fanDet, Triangle.det, fanTriangle, hb, hc]
+    have : (0 : ℝ) <
+        (latticeDet (P.vertex ⟨0, P.nVertices_pos⟩)
+          (P.vertex ⟨k, hklt⟩) (P.vertex ⟨k + 1, hk1⟩) : ℝ) := by
+      exact_mod_cast (by rw [← hdet]; exact hfan)
+    simpa [A, detR_toReal] using this
+  -- Induction on difference d = s.val - r.val
+  have hdiff : ∀ d : ℕ, ∀ (r s : Fin P.nVertices),
+      1 ≤ r.val → s.val = r.val + d → 0 < d →
+      0 < detR A (toReal (P.vertex r)) (toReal (P.vertex s)) := by
+    intro d
+    refine Nat.strong_induction_on d fun d IH => ?_
+    intro r s hr hs hdpos
+    have hrs : r.val < s.val := by omega
+    by_cases hr1 : r.val = 1
+    · -- Chord from v₁: edge half-plane
+      have hs2 : 2 ≤ s.val := by omega
+      have hr_eq : r = ⟨1, h1lt⟩ := Fin.ext hr1
+      simpa [hr_eq] using hfrom1 s hs2
+    · by_cases hadj : d = 1
+      · subst hadj
+        have hk1 : r.val + 1 < P.nVertices := by
+          have := s.isLt; omega
+        have hs' : s = ⟨r.val + 1, hk1⟩ := Fin.ext (by omega)
+        simpa [hs'] using hcons r.val hr hk1
+      · have hd2 : 2 ≤ d := by omega
+        have hrv2 : 2 ≤ r.val := by omega
+        have hsval : s.val = r.val + d := hs
+        have hs1lt : s.val - 1 < P.nVertices := by
+          have := s.isLt; omega
+        have hspred_lt : s.val - 1 < P.nVertices := hs1lt
+        set spred : Fin P.nVertices := ⟨s.val - 1, hspred_lt⟩
+        have hspred_eq : spred.val = s.val - 1 := rfl
+        have h1 : 0 < detR A (toReal (P.vertex r)) (toReal (P.vertex spred)) := by
+          have hseq : spred.val = r.val + (d - 1) := by
+            rw [hspred_eq, hs]; omega
+          exact IH (d - 1) (by omega) r spred hr hseq (by omega)
+        have h2 : 0 < detR A (toReal (P.vertex spred)) (toReal (P.vertex s)) := by
+          have hk0 : 1 ≤ spred.val := by rw [hspred_eq]; omega
+          have hk1 : spred.val + 1 < P.nVertices := by
+            rw [hspred_eq]; have := s.isLt; omega
+          have hs' : s = ⟨spred.val + 1, hk1⟩ := by
+            apply Fin.ext
+            change s.val = spred.val + 1
+            rw [hspred_eq]; omega
+          simpa [hs'] using hcons spred.val hk0 hk1
+        have he_r : 0 < detR A (toReal (P.vertex ⟨1, h1lt⟩)) (toReal (P.vertex r)) :=
+          hfrom1 r hrv2
+        have he_y : 0 < detR A (toReal (P.vertex ⟨1, h1lt⟩)) (toReal (P.vertex spred)) := by
+          have : 2 ≤ spred.val := by rw [hspred_eq]; omega
+          exact hfrom1 spred this
+        have he_z : 0 < detR A (toReal (P.vertex ⟨1, h1lt⟩)) (toReal (P.vertex s)) := by
+          have : 2 ≤ s.val := by omega
+          exact hfrom1 s this
+        set e := toReal (P.vertex ⟨1, h1lt⟩)
+        set x := toReal (P.vertex r)
+        set y := toReal (P.vertex spred)
+        set z := toReal (P.vertex s)
+        have hpl := detR_plucker A e x y z
+        have hrhs :
+            0 < detR A e x * detR A y z + detR A e z * detR A x y := by
+          nlinarith [he_r, h2, he_z, h1]
+        have : 0 < detR A x z := by
+          have hmul :
+              detR A e y * detR A x z =
+                detR A e x * detR A y z + detR A e z * detR A x y := by
+            linarith [hpl]
+          have hpos' : 0 < detR A e y * detR A x z := by
+            simpa [hmul] using hrhs
+          exact pos_of_mul_pos_right hpos' (le_of_lt he_y)
+        exact this
+  exact hdiff (s.val - r.val) r s hr (by omega) (by omega)
+
+/-- Point of a CCW triangle on the AC line lies on segment AC. -/
+lemma mem_segment_of_mem_convexHull_of_detR_AC_eq_zero
+    (a b c p : V) (hD : 0 < detR a b c)
+    (hp : p ∈ convexHull ℝ ({a, b, c} : Set V))
+    (hAC : detR a c p = 0) :
+    p ∈ segment ℝ a c := by
+  obtain ⟨hα, hβ, hγ⟩ := detR_nonneg_of_mem_convexHull_of_pos a b c p hD hp
+  have hβ0 : detR a p c = 0 := by
+    have : detR a p c = -detR a c p := by dsimp [detR]; ring
+    linarith
+  set α : ℝ := detR b c p / detR a b c
+  set γ : ℝ := detR a b p / detR a b c
+  have hα0 : 0 ≤ α := div_nonneg hα (le_of_lt hD)
+  have hγ0 : 0 ≤ γ := div_nonneg hγ (le_of_lt hD)
+  have hD0 : detR a b c ≠ 0 := ne_of_gt hD
+  have hsum : α + γ = 1 := by
+    dsimp [α, γ]
+    have harea := detR_area_sum a b c p
+    have : (detR b c p + detR a b p) / detR a b c = 1 := by
+      have : detR b c p + detR a b p = detR a b c := by linarith [harea, hβ0]
+      rw [this, div_self hD0]
+    convert this using 1; ring
+  have heq : α • a + γ • c = p := by
+    apply Prod.ext
+    · change α * a.1 + γ * c.1 = p.1
+      dsimp [α, γ]
+      have hid := detR_barycentric_x a b c p
+      have hid' : detR a b c * p.1 = detR b c p * a.1 + detR a b p * c.1 := by
+        rw [hβ0, zero_mul, add_zero] at hid
+        -- hid became D*p.1 = detR b c p * a.1 + 0 + detR a b p * c.1
+        -- need to reassociate: X + 0 + Y = X + Y
+        simpa [add_zero] using hid
+      have :
+          (detR b c p * a.1 + detR a b p * c.1) / detR a b c = p.1 := by
+        rw [← hid', mul_div_cancel_left₀ _ hD0]
+      convert this using 1; ring
+    · change α * a.2 + γ * c.2 = p.2
+      dsimp [α, γ]
+      have hid := detR_barycentric_y a b c p
+      have hid' : detR a b c * p.2 = detR b c p * a.2 + detR a b p * c.2 := by
+        rw [hβ0, zero_mul, add_zero] at hid
+        simpa [add_zero] using hid
+      have :
+          (detR b c p * a.2 + detR a b p * c.2) / detR a b c = p.2 := by
+        rw [← hid', mul_div_cancel_left₀ _ hD0]
+      convert this using 1; ring
+  exact ⟨α, γ, hα0, hγ0, hsum, heq⟩
+
+
+private lemma fanTriangleRegion_eq_vertices
+    (P : LatticePolygon) (i : ℕ) (hi : i < P.nVertices - 2) :
+    fanTriangleRegion P i hi =
+      convexHull ℝ
+        ({toReal (P.vertex ⟨0, P.nVertices_pos⟩),
+          toReal (P.vertex ⟨i + 1, by omega⟩),
+          toReal (P.vertex ⟨i + 2, by omega⟩)} : Set V) := by
+  dsimp [fanTriangleRegion, fanTriangle]
+
+private lemma detR_fan_pos
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    0 < detR (toReal (P.vertex ⟨0, P.nVertices_pos⟩))
+      (toReal (P.vertex ⟨i + 1, by omega⟩))
+      (toReal (P.vertex ⟨i + 2, by omega⟩)) := by
+  have hpos := FanDetsPos_of_strictlyConvexCCW P hsc hinj
+  have hfan : 0 < fanDet P i hi := hpos i hi
+  have : (0 : ℝ) < (fanDet P i hi : ℝ) := by exact_mod_cast hfan
+  simpa [fanDet, Triangle.det, fanTriangle, detR_toReal] using this
+
+/-- Adjacent fan ears meet only on the shared spoke from the apex. -/
+theorem inter_fanTriangleRegion_adjacent_subset_spoke
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (i : ℕ) (hi : i + 1 < P.nVertices - 2) :
+    fanTriangleRegion P i (by omega) ∩ fanTriangleRegion P (i + 1) hi ⊆
+      segment ℝ (toReal (P.vertex ⟨0, P.nVertices_pos⟩))
+        (toReal (P.vertex ⟨i + 2, by omega⟩)) := by
+  classical
+  set A := toReal (P.vertex ⟨0, P.nVertices_pos⟩)
+  set B := toReal (P.vertex ⟨i + 1, by omega⟩)
+  set C := toReal (P.vertex ⟨i + 2, by omega⟩)
+  set D := toReal (P.vertex ⟨i + 3, by omega⟩)
+  intro p hp
+  have hp1 : p ∈ convexHull ℝ ({A, B, C} : Set V) := by
+    simpa [fanTriangleRegion_eq_vertices] using hp.1
+  have hp2 : p ∈ convexHull ℝ ({A, C, D} : Set V) := by
+    simpa [fanTriangleRegion_eq_vertices] using hp.2
+  have hD1 : 0 < detR A B C := detR_fan_pos P hsc hinj i (by omega)
+  have hD2 : 0 < detR A C D := detR_fan_pos P hsc hinj (i + 1) hi
+  obtain ⟨_, hβ1, _⟩ := detR_nonneg_of_mem_convexHull_of_pos A B C p hD1 hp1
+  obtain ⟨_, _, hγ2⟩ := detR_nonneg_of_mem_convexHull_of_pos A C D p hD2 hp2
+  have hAC_le : detR A C p ≤ 0 := by
+    have : detR A p C = -detR A C p := by dsimp [detR]; ring
+    linarith
+  have hAC0 : detR A C p = 0 := le_antisymm hAC_le hγ2
+  exact mem_segment_of_mem_convexHull_of_detR_AC_eq_zero A B C p hD1 hp1 hAC0
+
+/-- Non-adjacent fan ears meet only at the apex. -/
+theorem inter_fanTriangleRegion_nonadjacent_subset_apex
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    {i j : ℕ} (hi : i < P.nVertices - 2) (hj : j < P.nVertices - 2)
+    (hij : i + 1 < j) :
+    fanTriangleRegion P i hi ∩ fanTriangleRegion P j hj ⊆
+      ({toReal (P.vertex ⟨0, P.nVertices_pos⟩)} : Set V) := by
+  classical
+  set A := toReal (P.vertex ⟨0, P.nVertices_pos⟩)
+  set Bi := toReal (P.vertex ⟨i + 1, by omega⟩)
+  set Ci := toReal (P.vertex ⟨i + 2, by omega⟩)
+  set Bj := toReal (P.vertex ⟨j + 1, by omega⟩)
+  set Cj := toReal (P.vertex ⟨j + 2, by omega⟩)
+  intro p hp
+  have hp1 : p ∈ convexHull ℝ ({A, Bi, Ci} : Set V) := by
+    simpa [fanTriangleRegion_eq_vertices] using hp.1
+  have hp2 : p ∈ convexHull ℝ ({A, Bj, Cj} : Set V) := by
+    simpa [fanTriangleRegion_eq_vertices] using hp.2
+  have hDi : 0 < detR A Bi Ci := detR_fan_pos P hsc hinj i hi
+  have hDj : 0 < detR A Bj Cj := detR_fan_pos P hsc hinj j hj
+  -- Chord positivity: Bi, Ci before Bj
+  have hBi_lt : i + 1 < P.nVertices := by omega
+  have hCi_lt : i + 2 < P.nVertices := by omega
+  have hBj_lt : j + 1 < P.nVertices := by omega
+  have hBiBj : 0 < detR A Bi Bj :=
+    fan_chord_detR_pos P hsc hinj ⟨i + 1, hBi_lt⟩ ⟨j + 1, hBj_lt⟩
+      (by omega : 1 ≤ i + 1) (by omega : i + 1 < j + 1)
+  have hCiBj : 0 < detR A Ci Bj :=
+    fan_chord_detR_pos P hsc hinj ⟨i + 2, hCi_lt⟩ ⟨j + 1, hBj_lt⟩
+      (by omega : 1 ≤ i + 2) (by omega : i + 2 < j + 1)
+  obtain ⟨ι, _, w, z, hw0, hw1, hz, hsum⟩ :=
+    (mem_convexHull_iff_exists_fintype (R := ℝ) (E := V)).1 hp1
+  have hz' : ∀ k, z k = A ∨ z k = Bi ∨ z k = Ci := by
+    intro k; simpa [mem_insert_iff, mem_singleton_iff] using hz k
+  have hlin := detR_linear_of_affine_combo A Bj w z hw1 p hsum.symm
+  -- detR A Bj p = ∑ w * detR A Bj (z k) ≤ 0 with =0 iff no Bi/Ci weight
+  have hterm_le : ∀ k, w k * detR A Bj (z k) ≤ 0 := by
+    intro k
+    rcases hz' k with hA | hB | hC
+    · rw [hA]; exact mul_nonpos_of_nonneg_of_nonpos (hw0 k)
+        (le_of_eq (by dsimp [detR]; ring))
+    · rw [hB]
+      have : detR A Bj Bi = -detR A Bi Bj := by dsimp [detR]; ring
+      exact mul_nonpos_of_nonneg_of_nonpos (hw0 k)
+        (by simpa [this] using neg_nonpos.mpr (le_of_lt hBiBj))
+    · rw [hC]
+      have : detR A Bj Ci = -detR A Ci Bj := by dsimp [detR]; ring
+      exact mul_nonpos_of_nonneg_of_nonpos (hw0 k)
+        (by simpa [this] using neg_nonpos.mpr (le_of_lt hCiBj))
+  have hABj_le : detR A Bj p ≤ 0 := by
+    have : ∑ k, w k * detR A Bj (z k) ≤ 0 :=
+      Finset.sum_nonpos fun k _ => hterm_le k
+    simpa [hlin] using this
+  obtain ⟨_, _, hγj⟩ := detR_nonneg_of_mem_convexHull_of_pos A Bj Cj p hDj hp2
+  -- hγj : 0 ≤ detR A Bj p
+  have hABj0 : detR A Bj p = 0 := le_antisymm hABj_le hγj
+  -- Hence all Bi/Ci weights vanish (strictly negative crosses)
+  have hterm0 : ∀ k, w k * detR A Bj (z k) = 0 := by
+    intro k
+    have hnn : ∀ k ∈ (Finset.univ : Finset ι),
+        w k * detR A Bj (z k) ≤ 0 := fun k _ => hterm_le k
+    -- sum = 0 and each ≤ 0 ⇒ each = 0
+    have hsum0 : ∑ k, w k * detR A Bj (z k) = 0 := by rw [← hlin, hABj0]
+    exact (Finset.sum_eq_zero_iff_of_nonpos hnn).mp hsum0 k (Finset.mem_univ k)
+  have hsupp : ∀ k, 0 < w k → z k = A := by
+    intro k hwk
+    have hdet0 : detR A Bj (z k) = 0 :=
+      (mul_eq_zero.mp (hterm0 k)).resolve_left (ne_of_gt hwk)
+    rcases hz' k with hA | hB | hC
+    · exact hA
+    · rw [hB] at hdet0
+      have : detR A Bj Bi = -detR A Bi Bj := by dsimp [detR]; ring
+      have : detR A Bi Bj = 0 := by linarith
+      exact absurd this (ne_of_gt hBiBj)
+    · rw [hC] at hdet0
+      have : detR A Bj Ci = -detR A Ci Bj := by dsimp [detR]; ring
+      have : detR A Ci Bj = 0 := by linarith
+      exact absurd this (ne_of_gt hCiBj)
+  -- p is convex combination of only A
+  have htermA : ∀ k, w k • z k = w k • A := by
+    intro k
+    by_cases hw : w k = 0
+    · simp [hw]
+    · have hwp : 0 < w k := lt_of_le_of_ne (hw0 k) (Ne.symm hw)
+      rw [hsupp k hwp]
+  have hpA : p = A := by
+    calc
+      p = ∑ k, w k • z k := hsum.symm
+      _ = ∑ k, w k • A := Finset.sum_congr rfl fun k _ => htermA k
+      _ = (∑ k, w k) • A := by rw [← Finset.sum_smul]
+      _ = A := by rw [hw1, one_smul]
+  simp [hpA]
+
+/-- Pairwise AEDisjoint of apex-`v₀` fan-ear regions under `StrictlyConvexCCW`. -/
+theorem pairwise_AEDisjoint_fanTriangleRegion
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    Pairwise fun (i j : Fin (P.nVertices - 2)) =>
+      volume (fanTriangleRegion P i.val i.isLt ∩
+        fanTriangleRegion P j.val j.isLt) = 0 := by
+  classical
+  intro i j hij
+  have hij_val : i.val ≠ j.val := Fin.val_injective.ne hij
+  -- Prove for ordered pair, then use inter_comm
+  have hordered : ∀ (a b : Fin (P.nVertices - 2)), a.val < b.val →
+      volume (fanTriangleRegion P a.val a.isLt ∩
+        fanTriangleRegion P b.val b.isLt) = 0 := by
+    intro a b hlt
+    by_cases hadj : b.val = a.val + 1
+    · have hb : a.val + 1 < P.nVertices - 2 := by
+        have := b.isLt; omega
+      have hbeq : b = ⟨a.val + 1, hb⟩ := Fin.ext hadj
+      rw [hbeq]
+      exact measure_mono_null
+        (inter_fanTriangleRegion_adjacent_subset_spoke P hsc hinj a.val hb)
+        (volume_segment_eq_zero _ _)
+    · exact measure_mono_null
+        (inter_fanTriangleRegion_nonadjacent_subset_apex P hsc hinj
+          a.isLt b.isLt (by omega))
+        (volume_singleton_eq_zero _)
+  rcases lt_or_gt_of_ne hij_val with hlt | hgt
+  · exact hordered i j hlt
+  · simpa [inter_comm] using hordered j i hgt
+
+
+
+private lemma convexHullRegion_eq_iUnion_fin
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    P.convexHullRegion =
+      ⋃ i : Fin (P.nVertices - 2), fanTriangleRegion P i.val i.isLt := by
+  rw [convexHullRegion_eq_iUnion_fanTriangleRegion P hsc hinj]
+  ext p
+  constructor
+  · intro hp
+    rcases mem_iUnion.1 hp with ⟨i, hi'⟩
+    rcases mem_iUnion.1 hi' with ⟨hi, hmem⟩
+    refine mem_iUnion.2 ⟨⟨i, hi⟩, ?_⟩
+    simpa using hmem
+  · intro hp
+    rcases mem_iUnion.1 hp with ⟨i, hmem⟩
+    refine mem_iUnion.2 ⟨i.val, mem_iUnion.2 ⟨i.isLt, ?_⟩⟩
+    simpa using hmem
+
+private lemma nullMeasurableSet_fanTriangleRegion
+    (P : LatticePolygon) (i : ℕ) (hi : i < P.nVertices - 2) :
+    NullMeasurableSet (fanTriangleRegion P i hi) (volume : Measure V) := by
+  have : IsAddHaarMeasure (volume : Measure V) :=
+    Measure.prod.instIsAddHaarMeasure (volume : Measure ℝ) (volume : Measure ℝ)
+  exact (convex_convexHull ℝ _).nullMeasurableSet volume
+
+/-- Polygon hull Haar equals the sum of fan-ear volumes. -/
+theorem volume_convexHullRegion_eq_sum_volume_fanTriangleRegion
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    volume P.convexHullRegion =
+      ∑ i : Fin (P.nVertices - 2),
+        volume (fanTriangleRegion P i.val i.isLt) := by
+  classical
+  have hU := convexHullRegion_eq_iUnion_fin P hsc hinj
+  have hd : Pairwise fun (i j : Fin (P.nVertices - 2)) =>
+      AEDisjoint (volume : Measure V)
+        (fanTriangleRegion P i.val i.isLt)
+        (fanTriangleRegion P j.val j.isLt) :=
+    pairwise_AEDisjoint_fanTriangleRegion P hsc hinj
+  have hm : ∀ i : Fin (P.nVertices - 2),
+      NullMeasurableSet (fanTriangleRegion P i.val i.isLt) (volume : Measure V) :=
+    fun i => nullMeasurableSet_fanTriangleRegion P i.val i.isLt
+  have hd' : Pairwise
+      (Function.onFun (AEDisjoint (volume : Measure V))
+        fun i : Fin (P.nVertices - 2) => fanTriangleRegion P i.val i.isLt) := hd
+  rw [hU, measure_iUnion₀ hd' hm, tsum_fintype]
+
+/-- Under `StrictlyConvexCCW` + injective vertices, polygon Haar equals
+`ofReal(P.shoelace)`. Discharges the `hvol` hyp of the conditional compose. -/
+theorem volume_convexHullRegion_eq_ofReal_shoelace
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    volume P.convexHullRegion = ENNReal.ofReal P.shoelace := by
+  classical
+  have hnn := FanDetsNonneg_of_ConvexCCW P hsc.1
+  rw [volume_convexHullRegion_eq_sum_volume_fanTriangleRegion P hsc hinj]
+  have hterm : ∀ i : Fin (P.nVertices - 2),
+      volume (fanTriangleRegion P i.val i.isLt) =
+        ENNReal.ofReal (fanTriangle P i.val i.isLt).shoelace := fun i => by
+    have h := volume_convexHull_lattice_triangle
+      (fanTriangle P i.val i.isLt).a
+      (fanTriangle P i.val i.isLt).b
+      (fanTriangle P i.val i.isLt).c
+    simpa [fanTriangleRegion, Triangle.shoelace] using h
+  simp_rw [hterm]
+  have hnonneg : ∀ i : Fin (P.nVertices - 2),
+      0 ≤ ((fanTriangle P i.val i.isLt).shoelace : ℝ) := fun i =>
+    triangleShoelace_nonneg _ _ _
+  rw [← ENNReal.ofReal_sum_of_nonneg fun i _ => hnonneg i]
+  congr 1
+  -- ∑ᵢ (fanTriangle i).shoelace = P.shoelace
+  have hadd := shoelace_eq_sum_fan_shoelace P hnn hinj
+  -- Reindex fanTriangles Finset sum to Fin sum
+  have hre :
+      ∑ t ∈ fanTriangles P, t.shoelace =
+        ∑ i : Fin (P.nVertices - 2), (fanTriangle P i.val i.isLt).shoelace := by
+    dsimp [fanTriangles]
+    have hinj' : Function.Injective
+        (fun i : { x // x ∈ Finset.range (P.nVertices - 2) } =>
+          fanTriangle P i.1 (Finset.mem_range.mp i.2)) := fun a b h =>
+      Subtype.ext (fanTriangle_eq_of_eq P (Finset.mem_range.mp a.2)
+        (Finset.mem_range.mp b.2) hinj h)
+    rw [Finset.sum_image (fun _ _ _ _ h => hinj' h)]
+    let e : Fin (P.nVertices - 2) ≃
+        { x // x ∈ Finset.range (P.nVertices - 2) } :=
+      { toFun := fun i => ⟨i.val, Finset.mem_range.mpr i.isLt⟩
+        invFun := fun ⟨i, hi⟩ => ⟨i, Finset.mem_range.mp hi⟩
+        left_inv := fun _ => Fin.ext rfl
+        right_inv := fun _ => rfl }
+    exact (Fintype.sum_equiv e
+      (fun i => (fanTriangle P i.val i.isLt).shoelace)
+      (fun i => (fanTriangle P i.1 (Finset.mem_range.mp i.2)).shoelace)
+      (fun _ => rfl)).symm
+  have hcast :
+      (∑ i : Fin (P.nVertices - 2),
+          ((fanTriangle P i.val i.isLt).shoelace : ℝ)) =
+        ((∑ i : Fin (P.nVertices - 2),
+          (fanTriangle P i.val i.isLt).shoelace : ℚ) : ℝ) := by
+    simp only [Rat.cast_sum]
+  rw [hcast, ← hre, ← hadd]
+
+
+/-- Geometric volume Pick-form: Haar = `ofReal(#I + B/2 − 1)` under
+`StrictlyConvexCCW` + injective + `PrimitiveEdges` + combinatorial interior Finset.
+Not classical Pick (EP→planar / triangulation existence still open). -/
+theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one
+    (P : LatticePolygon) (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    volume P.convexHullRegion =
+      ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) := by
+  refine volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace P S ?hvol ?hcomb
+  · exact volume_convexHullRegion_eq_ofReal_shoelace P hsc hverts
+  · exact LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one
+      P S hS hverts hedge hsc
 
 end
 end LatticeArea
