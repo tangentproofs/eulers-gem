@@ -942,3 +942,47 @@ MetricRegular / EdgeVertices untouched.
 | On-spoke adjacent `det=2` / exclusion / unified I=2 | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (on-spoke det=2 + unified I=2 Pick-form; still FAIL for classical Pick)
+
+Landed in `EulersGem/OnSpoke.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem natAbs_latticeDet_eq_one_of_onSpoke_left/right
+    (TwoInterior P q r) (r ∈ edgeLatticePoints q vₖ) … :
+    Int.natAbs (latticeDet q r w) = 1   -- half-ear emptiness
+
+theorem interiorFanDet_eq_two_of_onSpoke_left/right … :
+    interiorFanDet P q k = 2           -- / prevIdx k = 2
+
+theorem eq_of_mem_interiorFan_of_twoInterior_onSpoke … :
+    j = k ∨ j = prevIdx k              -- non-adjacent exclusion
+
+theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke … :
+    P.shoelace = 2 + B/2 - 1
+
+theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior … :
+    P.shoelace = 2 + B/2 - 1           -- unified Off ∨ on-spoke
+```
+
+Results exports: `results_natAbs_latticeDet_eq_one_of_onSpoke_left`,
+`results_interiorFanDet_eq_two_of_onSpoke_{left,right}`,
+`results_eq_of_mem_interiorFan_of_twoInterior_onSpoke`,
+`results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke`,
+`results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior`.
+
+**Prize progress:** under `TwoInterior`, covering ear is Off (det=3 path) or
+on-spoke (adjacent dets=2, others=1); both give fan sum `n+2` and
+`shoelace = 2 + B/2 − 1`. Still **not** classical Pick: shoelace ≠ Haar;
+EP→planar Euler open; no triangulation existence; I>2 open. Claude Platonic /
+Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| On-spoke half-ear `|det|=1` | **Green** |
+| Adjacent ears `det=2` | **Green** |
+| Non-adjacent exclusion | **Green** |
+| Unified I=2 Pick-form (Off ∨ on-spoke) | **Green** |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |

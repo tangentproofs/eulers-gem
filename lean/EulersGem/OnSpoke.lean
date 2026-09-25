@@ -17,9 +17,9 @@ The right-spoke disjunct keeps the `OffTriangleBoundary` edge orientation
 
 Edge helpers green: `edgeGcd`/`edgeLatticePoints` symmetry, unique midpoint when
 `edgeGcd=2`, det-doubling along an occupied spoke, and `edgeGcd(q,r)=1`.
-On-spoke det bookkeeping (`det = 2` on the two adjacent ears), non-adjacent
-ear exclusion, and unified Off/on-spoke Pick-form remain open.
-Classical Pick FAIL.
+On-spoke half-ear emptiness ⇒ `|det|=1`; adjacent ears `interiorFanDet = 2`;
+non-adjacent exclusion; unified `TwoInterior ⇒ shoelace = 2+B/2-1` **green**.
+Still **not** classical Pick (no Haar; EP→planar open). Classical Pick FAIL.
 -/
 
 namespace EulersGem
@@ -355,6 +355,588 @@ lemma mem_interiorFan_of_onSpoke_right {q r : ℤ × ℤ} (k : Fin P.nVertices)
   simpa [P.nextIdx_prevIdx] using
     memClosedTriangle_of_mem_edgeLatticePoints_ca q (P.vertex (P.prevIdx k))
       (P.vertex k) r hs'
+
+
+/-! ### Small-triangle emptiness + adjacent det=2 (not classical Pick)
+
+When `r` is the unique midpoint of spoke `q—vₖ`, the half-ears `△(q,r,vₖ₊₁)` and
+`△(q,vₖ₋₁,r)` are empty of extra lattice points, so `|det|=1`. Doubling along the
+spoke then gives adjacent fan ears `interiorFanDet = 2`. Non-adjacent ears exclude
+`r`, hence `det = 1`. Fan sum `n+2` ⇒ `shoelace = 2 + B/2 − 1`.
+-/
+
+/-- Determinant doubles when the third vertex is scaled along the `a—c` spoke. -/
+lemma latticeDet_eq_two_mul_ac_of_edgeGcd_eq_two_mem
+    (a b c r : ℤ × ℤ) (hd : edgeGcd a c = 2)
+    (hr : r ∈ edgeLatticePoints a c) (hne_a : r ≠ a) (hne_c : r ≠ c) :
+    latticeDet a b c = 2 * latticeDet a b r := by
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a c r hd hr hne_a hne_c
+  simp only [latticeDet]
+  have hx' : c.1 - a.1 = 2 * (r.1 - a.1) := by linarith
+  have hy' : c.2 - a.2 = 2 * (r.2 - a.2) := by linarith
+  rw [hx', hy']; ring
+
+/-- Midpoint of `a—b` (edgeGcd=2): closed △`(a,r,c)` sits inside △`(a,b,c)`. -/
+lemma memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_two_mem
+    (a b c r p : ℤ × ℤ) (hd : edgeGcd a b = 2)
+    (hr : r ∈ edgeLatticePoints a b) (hne_a : r ≠ a) (hne_b : r ≠ b)
+    (hp : MemClosedTriangle a r c p) :
+    MemClosedTriangle a b c p := by
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a b r hd hr hne_a hne_b
+  have hr1 : (r.1 : ℝ) = (a.1 : ℝ) + (1 / 2) * ((b.1 : ℝ) - a.1) := by
+    have : (2 : ℤ) * (r.1 - a.1) = b.1 - a.1 := hx
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  have hr2 : (r.2 : ℝ) = (a.2 : ℝ) + (1 / 2) * ((b.2 : ℝ) - a.2) := by
+    have : (2 : ℤ) * (r.2 - a.2) = b.2 - a.2 := hy
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  refine ⟨α + β / 2, β / 2, γ, by linarith, by linarith, hγ, by linarith, ?_⟩
+  apply Prod.ext
+  · have h1 := congrArg Prod.fst heq
+    simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+    calc
+      (α + β / 2) * (a.1 : ℝ) + (β / 2) * b.1 + γ * c.1
+          = α * a.1 + β * ((a.1 : ℝ) + (1 / 2) * (b.1 - a.1)) + γ * c.1 := by ring
+      _ = α * a.1 + β * r.1 + γ * c.1 := by rw [← hr1]
+      _ = p.1 := h1
+  · have h2 := congrArg Prod.snd heq
+    simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+    calc
+      (α + β / 2) * (a.2 : ℝ) + (β / 2) * b.2 + γ * c.2
+          = α * a.2 + β * ((a.2 : ℝ) + (1 / 2) * (b.2 - a.2)) + γ * c.2 := by ring
+      _ = α * a.2 + β * r.2 + γ * c.2 := by rw [← hr2]
+      _ = p.2 := h2
+
+/-- Same inclusion with midpoint on the `a—c` spoke (right-adjacent half-ear). -/
+lemma memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_two_mem_ac
+    (a b c r p : ℤ × ℤ) (hd : edgeGcd a c = 2)
+    (hr : r ∈ edgeLatticePoints a c) (hne_a : r ≠ a) (hne_c : r ≠ c)
+    (hp : MemClosedTriangle a b r p) :
+    MemClosedTriangle a b c p := by
+  -- Rewrite via swap: MemClosed a b r ↔ MemClosed a r b after permute, then use ab form.
+  -- Direct barycentric with midpoint on a—c.
+  obtain ⟨α, β, γ, hα, hβ, hγ, hsum, heq⟩ := hp
+  obtain ⟨hx, hy⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a c r hd hr hne_a hne_c
+  have hr1 : (r.1 : ℝ) = (a.1 : ℝ) + (1 / 2) * ((c.1 : ℝ) - a.1) := by
+    have : (2 : ℤ) * (r.1 - a.1) = c.1 - a.1 := hx
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  have hr2 : (r.2 : ℝ) = (a.2 : ℝ) + (1 / 2) * ((c.2 : ℝ) - a.2) := by
+    have : (2 : ℤ) * (r.2 - a.2) = c.2 - a.2 := hy
+    have := congrArg (fun z : ℤ => (z : ℝ)) this
+    push_cast at this ⊢; linarith
+  refine ⟨α + γ / 2, β, γ / 2, by linarith, hβ, by linarith, by linarith, ?_⟩
+  apply Prod.ext
+  · have h1 := congrArg Prod.fst heq
+    simp only [Prod.smul_def, smul_eq_mul] at h1 ⊢
+    calc
+      (α + γ / 2) * (a.1 : ℝ) + β * b.1 + (γ / 2) * c.1
+          = α * a.1 + β * b.1 + γ * ((a.1 : ℝ) + (1 / 2) * (c.1 - a.1)) := by ring
+      _ = α * a.1 + β * b.1 + γ * r.1 := by rw [← hr1]
+      _ = p.1 := h1
+  · have h2 := congrArg Prod.snd heq
+    simp only [Prod.smul_def, smul_eq_mul] at h2 ⊢
+    calc
+      (α + γ / 2) * (a.2 : ℝ) + β * b.2 + (γ / 2) * c.2
+          = α * a.2 + β * b.2 + γ * ((a.2 : ℝ) + (1 / 2) * (c.2 - a.2)) := by ring
+      _ = α * a.2 + β * b.2 + γ * r.2 := by rw [← hr2]
+      _ = p.2 := h2
+
+/-- Spoke endpoints agree when they share the same strict intermediate lattice point
+with `edgeGcd = 2`. -/
+lemma eq_vertex_of_mem_edgeLatticePoints_of_edgeGcd_eq_two
+    (a b c r : ℤ × ℤ) (hdb : edgeGcd a b = 2) (hdc : edgeGcd a c = 2)
+    (hrb : r ∈ edgeLatticePoints a b) (hrc : r ∈ edgeLatticePoints a c)
+    (hne_a : r ≠ a) (hne_b : r ≠ b) (hne_c : r ≠ c) :
+    b = c := by
+  obtain ⟨hx1, hy1⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a b r hdb hrb hne_a hne_b
+  obtain ⟨hx2, hy2⟩ :=
+    two_mul_sub_of_mem_edgeLatticePoints_of_edgeGcd_eq_two a c r hdc hrc hne_a hne_c
+  apply Prod.ext <;> linarith
+
+/-- Left half-ear △`(q,r,w)` under on-spoke is empty of extra lattice points. -/
+theorem eq_vertices_of_memClosedTriangle_onSpoke_left
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    {p : ℤ × ℤ}
+    (hp : MemClosedTriangle q r (P.vertex (P.nextIdx k)) p) :
+    p = q ∨ p = r ∨ p = P.vertex (P.nextIdx k) := by
+  classical
+  set v := P.vertex k
+  set w := P.vertex (P.nextIdx k)
+  have hd : edgeGcd q v = 2 :=
+    edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hDbig : 0 < latticeDet q v w := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det, v, w] using hpos k
+  have hdouble : latticeDet q v w = 2 * latticeDet q r w :=
+    latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem q v w r hd hs hne_q hne_v
+  have hDsmall : 0 < latticeDet q r w := by
+    have : 0 < 2 * latticeDet q r w := by rwa [← hdouble]
+    omega
+  have hp_big : MemClosedTriangle q v w p :=
+    memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_two_mem q v w r p hd hs
+      hne_q hne_v hp
+  rcases eq_vertices_or_r_of_mem_interiorFan_of_twoInterior P hsc hinj hedge h k
+      (by simpa [interiorFanTriangle, v, w] using hp_big) with h1 | h2 | h3 | h4
+  · exact Or.inl h1
+  · -- p = v: weight-zero on edge q—r of the small triangle
+    subst h2
+    have hγ0 : latticeDet q r v = 0 := by
+      have : latticeDet q v r = 0 := latticeDet_eq_zero_of_mem_edge_ab q v r hs
+      have hsw : latticeDet q r v = -latticeDet q v r := by unfold latticeDet; ring
+      linarith
+    have hedge_qr : v ∈ edgeLatticePoints q r :=
+      mem_edgeLatticePoints_of_weight_zero_ab q r w v hp hDsmall hγ0
+    have hprim : edgeGcd q r = 1 :=
+      edgeGcd_eq_one_left_of_edgeGcd_eq_two_mem q v r hd hs hne_q hne_v
+    have hend := eq_endpoints_of_mem_segment_of_edgeGcd_eq_one q r v hprim
+      (mem_segment_of_mem_edgeLatticePoints q r v hedge_qr)
+    refine False.elim (hend.elim ?_ ?_)
+    · intro hvq
+      have hq_int := mem_interior_of_twoInterior_left P h
+      have hv_bd : v ∈ P.boundaryLatticePoints := by
+        have : v ∈ P.vertexFinset := by
+          rw [vertexFinset_eq_univ_image]
+          exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+        exact P.vertices_mem_boundary (List.mem_toFinset.mp this)
+      exact hq_int.2 (hvq ▸ hv_bd)
+    · intro hvr
+      exact (hne_v hvr.symm).elim
+  · exact Or.inr (Or.inr h3)
+  · exact Or.inr (Or.inl h4)
+
+/-- Right half-ear △`(q,v_prev,r)` under on-spoke is empty of extra lattice points. -/
+theorem eq_vertices_of_memClosedTriangle_onSpoke_right
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    {p : ℤ × ℤ}
+    (hp : MemClosedTriangle q (P.vertex (P.prevIdx k)) r p) :
+    p = q ∨ p = P.vertex (P.prevIdx k) ∨ p = r := by
+  classical
+  set v := P.vertex k
+  set u := P.vertex (P.prevIdx k)
+  have hd : edgeGcd q v = 2 :=
+    edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hDbig : 0 < latticeDet q u v := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det, u, v,
+      P.nextIdx_prevIdx] using hpos (P.prevIdx k)
+  have hdouble : latticeDet q u v = 2 * latticeDet q u r :=
+    latticeDet_eq_two_mul_ac_of_edgeGcd_eq_two_mem q u v r hd hs hne_q hne_v
+  have hDsmall : 0 < latticeDet q u r := by
+    have : 0 < 2 * latticeDet q u r := by rwa [← hdouble]
+    omega
+  have hp_big : MemClosedTriangle q u v p :=
+    memClosedTriangle_of_memClosedTriangle_of_edgeGcd_eq_two_mem_ac q u v r p hd hs
+      hne_q hne_v hp
+  rcases eq_vertices_or_r_of_mem_interiorFan_of_twoInterior P hsc hinj hedge h
+      (P.prevIdx k) (by simpa [interiorFanTriangle, u, v, P.nextIdx_prevIdx]
+        using hp_big) with h1 | h2 | h3 | h4
+  · exact Or.inl h1
+  · exact Or.inr (Or.inl h2)
+  · -- p = v: β-weight vanishes ⇒ on edge q—r
+    have hpv : p = v := by simpa [v, P.nextIdx_prevIdx] using h3
+    have hp' : MemClosedTriangle q u r v := by simpa [hpv] using hp
+    have hβ0 : latticeDet q v r = 0 :=
+      latticeDet_eq_zero_of_mem_edge_ab q v r hs
+    have hedge_rq : v ∈ edgeLatticePoints r q :=
+      mem_edgeLatticePoints_of_weight_zero_ca q u r v hp' hDsmall hβ0
+    have hedge_qr : v ∈ edgeLatticePoints q r := mem_edgeLatticePoints_comm hedge_rq
+    have hprim : edgeGcd q r = 1 :=
+      edgeGcd_eq_one_left_of_edgeGcd_eq_two_mem q v r hd hs hne_q hne_v
+    have hend := eq_endpoints_of_mem_segment_of_edgeGcd_eq_one q r v hprim
+      (mem_segment_of_mem_edgeLatticePoints q r v hedge_qr)
+    refine False.elim (hend.elim ?_ ?_)
+    · intro hvq
+      have hq_int := mem_interior_of_twoInterior_left P h
+      have hv_bd : v ∈ P.boundaryLatticePoints := by
+        have : v ∈ P.vertexFinset := by
+          rw [vertexFinset_eq_univ_image]
+          exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+        exact P.vertices_mem_boundary (List.mem_toFinset.mp this)
+      exact hq_int.2 (hvq ▸ hv_bd)
+    · intro hvr
+      exact (hne_v hvr.symm).elim
+  · exact Or.inr (Or.inr h4)
+
+/-- Left half-ear is det-primitive: `|det(q,r,w)| = 1`. -/
+theorem natAbs_latticeDet_eq_one_of_onSpoke_left
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    Int.natAbs (latticeDet q r (P.vertex (P.nextIdx k))) = 1 := by
+  classical
+  set v := P.vertex k
+  set w := P.vertex (P.nextIdx k)
+  have hd : edgeGcd q v = 2 :=
+    edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hDbig : 0 < latticeDet q v w := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det, v, w] using hpos k
+  have hdouble : latticeDet q v w = 2 * latticeDet q r w :=
+    latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem q v w r hd hs hne_q hne_v
+  have hDne : latticeDet q r w ≠ 0 := by
+    have : 0 < 2 * latticeDet q r w := by rwa [← hdouble]
+    omega
+  refine natAbs_det_eq_one_of_memClosedTriangle_eq_vertices q r w hDne ?_
+  intro p hp
+  exact eq_vertices_of_memClosedTriangle_onSpoke_left P hsc hinj hedge h k hs
+    hne_q hne_v hp
+
+/-- Right half-ear is det-primitive: `|det(q,u,r)| = 1`. -/
+theorem natAbs_latticeDet_eq_one_of_onSpoke_right
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    Int.natAbs (latticeDet q (P.vertex (P.prevIdx k)) r) = 1 := by
+  classical
+  set v := P.vertex k
+  set u := P.vertex (P.prevIdx k)
+  have hd : edgeGcd q v = 2 :=
+    edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hDbig : 0 < latticeDet q u v := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det, u, v,
+      P.nextIdx_prevIdx] using hpos (P.prevIdx k)
+  have hdouble : latticeDet q u v = 2 * latticeDet q u r :=
+    latticeDet_eq_two_mul_ac_of_edgeGcd_eq_two_mem q u v r hd hs hne_q hne_v
+  have hDne : latticeDet q u r ≠ 0 := by
+    have : 0 < 2 * latticeDet q u r := by rwa [← hdouble]
+    omega
+  refine natAbs_det_eq_one_of_memClosedTriangle_eq_vertices q u r hDne ?_
+  intro p hp
+  exact eq_vertices_of_memClosedTriangle_onSpoke_right P hsc hinj hedge h k hs
+    hne_q hne_v hp
+
+/-- Left-adjacent on-spoke ear has `interiorFanDet = 2`. -/
+theorem interiorFanDet_eq_two_of_onSpoke_left
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    interiorFanDet P q k = 2 := by
+  classical
+  set v := P.vertex k
+  set w := P.vertex (P.nextIdx k)
+  have hd : edgeGcd q v = 2 :=
+    edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hDbig : 0 < latticeDet q v w := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det, v, w] using hpos k
+  have hdouble : latticeDet q v w = 2 * latticeDet q r w :=
+    latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem q v w r hd hs hne_q hne_v
+  have hnat :=
+    natAbs_latticeDet_eq_one_of_onSpoke_left P hsc hinj hedge h k hs hne_q hne_v
+  have hnn : 0 ≤ latticeDet q r w := by
+    have : 0 < 2 * latticeDet q r w := by rwa [← hdouble]
+    omega
+  have hz : latticeDet q r w = (Int.natAbs (latticeDet q r w) : ℤ) :=
+    (Int.natAbs_of_nonneg hnn).symm
+  have h1 : latticeDet q r w = 1 := by rw [hz, hnat]; norm_num
+  have : latticeDet q v w = 2 := by rw [hdouble, h1]; norm_num
+  simpa [interiorFanDet, interiorFanTriangle, Triangle.det, v, w] using this
+
+/-- Right-adjacent on-spoke ear has `interiorFanDet = 2`. -/
+theorem interiorFanDet_eq_two_of_onSpoke_right
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    interiorFanDet P q (P.prevIdx k) = 2 := by
+  classical
+  set v := P.vertex k
+  set u := P.vertex (P.prevIdx k)
+  have hd : edgeGcd q v = 2 :=
+    edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hDbig : 0 < latticeDet q u v := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det, u, v,
+      P.nextIdx_prevIdx] using hpos (P.prevIdx k)
+  have hdouble : latticeDet q u v = 2 * latticeDet q u r :=
+    latticeDet_eq_two_mul_ac_of_edgeGcd_eq_two_mem q u v r hd hs hne_q hne_v
+  have hnat :=
+    natAbs_latticeDet_eq_one_of_onSpoke_right P hsc hinj hedge h k hs hne_q hne_v
+  have hnn : 0 ≤ latticeDet q u r := by
+    have : 0 < 2 * latticeDet q u r := by rwa [← hdouble]
+    omega
+  have hz : latticeDet q u r = (Int.natAbs (latticeDet q u r) : ℤ) :=
+    (Int.natAbs_of_nonneg hnn).symm
+  have h1 : latticeDet q u r = 1 := by rw [hz, hnat]; norm_num
+  have : latticeDet q u v = 2 := by rw [hdouble, h1]; norm_num
+  simpa [interiorFanDet, interiorFanTriangle, Triangle.det, u, v,
+    P.nextIdx_prevIdx] using this
+
+/-- Foreign ear containing on-spoke `r` is `OffTriangleBoundary` (spokes force
+adjacency). -/
+lemma OffTriangleBoundary_of_mem_interiorFan_of_onSpoke_ne_adjacent
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k j : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (_hrj : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r)
+    (hne_k : j ≠ k) (hne_prev : j ≠ P.prevIdx k) :
+    OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) r := by
+  classical
+  set vj := P.vertex j
+  set wj := P.vertex (P.nextIdx j)
+  set vk := P.vertex k
+  refine ⟨?_, ?_, ?_⟩
+  · -- not on spoke edge q—vj
+    intro hspoke
+    have hne_vj : r ≠ vj := by
+      intro heq
+      have hv_bd : vj ∈ P.boundaryLatticePoints := by
+        have : vj ∈ P.vertexFinset := by
+          rw [vertexFinset_eq_univ_image]
+          exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+        exact P.vertices_mem_boundary (List.mem_toFinset.mp this)
+      exact (mem_interior_of_twoInterior_right P h).2 (heq ▸ hv_bd)
+    have hdj : edgeGcd q vj = 2 :=
+      edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h j hspoke hne_q hne_vj
+    have hdk : edgeGcd q vk = 2 :=
+      edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+    have heq :=
+      eq_vertex_of_mem_edgeLatticePoints_of_edgeGcd_eq_two q vj vk r hdj hdk
+        hspoke hs hne_q hne_vj hne_v
+    exact hne_k (hinj heq)
+  · -- not on polygon base
+    exact not_mem_polygon_edge_of_mem_interior P
+      (mem_interior_of_twoInterior_right P h) j
+  · -- not on spoke edge wj—q
+    intro hspoke
+    have hs' : r ∈ edgeLatticePoints q wj := mem_edgeLatticePoints_comm hspoke
+    have hne_wj : r ≠ wj := by
+      intro heq
+      have hv_bd : wj ∈ P.boundaryLatticePoints := by
+        have : wj ∈ P.vertexFinset := by
+          rw [vertexFinset_eq_univ_image]
+          exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+        exact P.vertices_mem_boundary (List.mem_toFinset.mp this)
+      exact (mem_interior_of_twoInterior_right P h).2 (heq ▸ hv_bd)
+    have hdj : edgeGcd q wj = 2 :=
+      edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h (P.nextIdx j) hs'
+        hne_q hne_wj
+    have hdk : edgeGcd q vk = 2 :=
+      edgeGcd_eq_two_of_twoInterior_onSpoke P hsc hinj hedge h k hs hne_q hne_v
+    have heq :=
+      eq_vertex_of_mem_edgeLatticePoints_of_edgeGcd_eq_two q wj vk r hdj hdk
+        hs' hs hne_q hne_wj hne_v
+    -- wj = vk ⇒ nextIdx j = k ⇒ j = prevIdx k
+    have : P.nextIdx j = k := hinj heq
+    have : j = P.prevIdx k := by
+      rw [← this, prevIdx_nextIdx]
+    exact hne_prev this
+
+/-- On-spoke `r` occupies exactly the two adjacent fan ears. -/
+theorem eq_of_mem_interiorFan_of_twoInterior_onSpoke
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k j : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (hrj : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r) :
+    j = k ∨ j = P.prevIdx k := by
+  classical
+  by_cases hjk : j = k
+  · exact Or.inl hjk
+  · by_cases hjp : j = P.prevIdx k
+    · exact Or.inr hjp
+    · have hoff :=
+        OffTriangleBoundary_of_mem_interiorFan_of_onSpoke_ne_adjacent
+          P hsc hinj hedge h k j hs hne_q hne_v hrj hjk hjp
+      have hrk : MemClosedTriangle q (P.vertex k) (P.vertex (P.nextIdx k)) r :=
+        mem_interiorFan_of_onSpoke_left P k hs
+      have : k = j :=
+        eq_of_mem_interiorFan_of_twoInterior_offBoundary
+          P hsc hinj hedge h j k hrj hoff hrk
+      exact (hjk this.symm).elim
+
+/-- Non-adjacent on-spoke ears have `interiorFanDet = 1`. -/
+theorem interiorFanDet_eq_one_of_onSpoke_not_adjacent
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k j : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (hne_k : j ≠ k) (hne_prev : j ≠ P.prevIdx k) :
+    interiorFanDet P q j = 1 := by
+  have hrj :
+      ¬ MemClosedTriangle (interiorFanTriangle P q j).a
+        (interiorFanTriangle P q j).b (interiorFanTriangle P q j).c r := by
+    intro hj
+    have hj' : MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) r := by
+      simpa [interiorFanTriangle] using hj
+    rcases eq_of_mem_interiorFan_of_twoInterior_onSpoke P hsc hinj hedge h k j
+        hs hne_q hne_v hj' with h1 | h2
+    · exact hne_k h1
+    · exact hne_prev h2
+  exact interiorFanDet_eq_one_of_twoInterior_of_not_mem_r P hsc hinj hedge h j hrj
+
+/-- **I = 2 shoelace Pick-form** under on-spoke occupation (not classical Pick).
+
+Adjacent ears contribute `det = 2`; all others `det = 1`; fan sum `n + 2`;
+`B = n` ⇒ `shoelace = 2 + B/2 − 1`. -/
+theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (hs : r ∈ edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hpos := InteriorFanDetsPos_of_twoInterior_left P hsc hinj hedge h
+  have hdetL : interiorFanDet P q k = 2 :=
+    interiorFanDet_eq_two_of_onSpoke_left P hsc hinj hedge h k hs hne_q hne_v
+  have hdetR : interiorFanDet P q (P.prevIdx k) = 2 :=
+    interiorFanDet_eq_two_of_onSpoke_right P hsc hinj hedge h k hs hne_q hne_v
+  have hne_adj : k ≠ P.prevIdx k := by
+    intro heq
+    have hnext : P.nextIdx k = k := by
+      have h1 : P.nextIdx k = P.nextIdx (P.prevIdx k) := congrArg P.nextIdx heq
+      rw [h1, P.nextIdx_prevIdx]
+    have hD : 0 < latticeDet q (P.vertex k) (P.vertex (P.nextIdx k)) := by
+      simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos k
+    rw [hnext] at hD
+    have hz : latticeDet q (P.vertex k) (P.vertex k) = 0 := by
+      simp only [latticeDet]; ring
+    exact (ne_of_gt hD) hz
+  have hdet1 : ∀ j : Fin P.nVertices, j ≠ k → j ≠ P.prevIdx k →
+      interiorFanDet P q j = 1 :=
+    fun j h1 h2 =>
+      interiorFanDet_eq_one_of_onSpoke_not_adjacent P hsc hinj hedge h k j
+        hs hne_q hne_v h1 h2
+  have hsum :
+      (∑ j : Fin P.nVertices, interiorFanDet P q j) = (P.nVertices : ℤ) + 2 := by
+    set S := (Finset.univ.erase k).erase (P.prevIdx k)
+    have hk_mem : k ∈ Finset.univ := Finset.mem_univ k
+    have hprev_mem : P.prevIdx k ∈ Finset.univ.erase k :=
+      Finset.mem_erase.mpr ⟨hne_adj.symm, Finset.mem_univ _⟩
+    have hdecomp1 :
+        (∑ j : Fin P.nVertices, interiorFanDet P q j) =
+          interiorFanDet P q k +
+            ∑ j ∈ Finset.univ.erase k, interiorFanDet P q j := by
+      rw [add_comm]
+      exact (Finset.sum_erase_add (s := Finset.univ) (interiorFanDet P q) hk_mem).symm
+    have hdecomp2 :
+        ∑ j ∈ Finset.univ.erase k, interiorFanDet P q j =
+          interiorFanDet P q (P.prevIdx k) +
+            ∑ j ∈ S, interiorFanDet P q j := by
+      dsimp [S]
+      rw [add_comm]
+      exact (Finset.sum_erase_add (s := Finset.univ.erase k) (interiorFanDet P q)
+        hprev_mem).symm
+    have hrest : ∑ j ∈ S, interiorFanDet P q j = ∑ j ∈ S, (1 : ℤ) := by
+      refine Finset.sum_congr rfl fun j hj => ?_
+      have hj' : j ∈ (Finset.univ.erase k).erase (P.prevIdx k) := hj
+      have ⟨hne_p, hj2⟩ := Finset.mem_erase.mp hj'
+      have ⟨hne_kk, _⟩ := Finset.mem_erase.mp hj2
+      exact hdet1 j hne_kk hne_p
+    have hcard : S.card = P.nVertices - 2 := by
+      dsimp [S]
+      have h1 : (Finset.univ.erase k).card = P.nVertices - 1 := by
+        rw [Finset.card_erase_of_mem hk_mem, Finset.card_univ, Fintype.card_fin]
+      have h2 : ((Finset.univ.erase k).erase (P.prevIdx k)).card =
+          (Finset.univ.erase k).card - 1 :=
+        Finset.card_erase_of_mem hprev_mem
+      have : 2 ≤ P.nVertices := by
+        have : 3 ≤ P.nVertices := P.length_ge; omega
+      omega
+    calc
+      ∑ j : Fin P.nVertices, interiorFanDet P q j
+          = interiorFanDet P q k +
+              ∑ j ∈ Finset.univ.erase k, interiorFanDet P q j := hdecomp1
+      _ = 2 + (interiorFanDet P q (P.prevIdx k) + ∑ j ∈ S, interiorFanDet P q j) := by
+            rw [hdetL, hdecomp2]
+      _ = 2 + (2 + ∑ j ∈ S, (1 : ℤ)) := by rw [hdetR, hrest]
+      _ = 4 + (S.card : ℤ) := by simp; ring
+      _ = 4 + ((P.nVertices - 2 : ℕ) : ℤ) := by rw [hcard]
+      _ = (P.nVertices : ℤ) + 2 := by
+            have : 2 ≤ P.nVertices := by
+              have : 3 ≤ P.nVertices := P.length_ge; omega
+            have hcast : ((P.nVertices - 2 : ℕ) : ℤ) = (P.nVertices : ℤ) - 2 :=
+              Nat.cast_sub this
+            rw [hcast]; ring
+  have hshoelaceSum : P.shoelaceSum = (P.nVertices : ℤ) + 2 := by
+    rw [← sum_interiorFanDet_eq_shoelaceSum P q, hsum]
+  have hB : P.B = P.nVertices := B_eq_nVertices_of_primitive_edges P hedge hinj
+  have hnn : 0 ≤ P.shoelaceSum := by
+    have : 0 ≤ (P.nVertices : ℤ) + 2 := by
+      have : 3 ≤ P.nVertices := P.length_ge; omega
+    simpa [hshoelaceSum] using this
+  have hnat : Int.natAbs P.shoelaceSum = P.nVertices + 2 := by
+    apply Int.natCast_inj.mp
+    rw [Int.natAbs_of_nonneg hnn, hshoelaceSum]
+    push_cast; ring
+  calc
+    P.shoelace = (Int.natAbs P.shoelaceSum : ℚ) / 2 := rfl
+    _ = ((P.nVertices + 2 : ℕ) : ℚ) / 2 := by
+          have : (Int.natAbs P.shoelaceSum : ℚ) = ((P.nVertices + 2 : ℕ) : ℚ) := by
+            exact_mod_cast hnat
+          rw [this]
+    _ = (P.nVertices : ℚ) / 2 + 1 := by push_cast; ring
+    _ = (2 : ℚ) + (P.B : ℚ) / 2 - 1 := by rw [hB]; ring
+
+/-- Strict on-spoke endpoints: interior point ≠ apex / vertex. -/
+lemma ne_endpoints_of_twoInterior_onSpoke
+    {q r : ℤ × ℤ} (h : TwoInterior P q r) (k : Fin P.nVertices)
+    (_hs : r ∈ edgeLatticePoints q (P.vertex k)) :
+    r ≠ q ∧ r ≠ P.vertex k := by
+  refine ⟨?_, ?_⟩
+  · exact h.1.symm
+  · intro heq
+    have hv_bd : P.vertex k ∈ P.boundaryLatticePoints := by
+      have : P.vertex k ∈ P.vertexFinset := by
+        rw [vertexFinset_eq_univ_image]
+        exact Finset.mem_image_of_mem _ (Finset.mem_univ _)
+      exact P.vertices_mem_boundary (List.mem_toFinset.mp this)
+    exact (mem_interior_of_twoInterior_right P h).2 (heq ▸ hv_bd)
+
+/-- **Unified I = 2 shoelace Pick-form** (Off or on-spoke; not classical Pick).
+
+Covering ear is OffTriangleBoundary or on-spoke; both paths give
+`shoelace = 2 + B/2 − 1`. Still **not** classical Pick (no Haar; EP→planar open). -/
+theorem shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) :
+    P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  obtain ⟨i, hi⟩ :=
+    exists_mem_interiorFanTriangle_of_twoInterior P hsc hinj hedge h
+  rcases offBoundary_or_onSpoke_of_mem_interiorFan_of_twoInterior P h i hi with
+    hoff | hsL | hsR
+  · exact shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
+      P hsc hinj hedge h i hi hoff
+  · obtain ⟨hne_q, hne_v⟩ := ne_endpoints_of_twoInterior_onSpoke P h i hsL
+    exact shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke
+      P hsc hinj hedge h i hsL hne_q hne_v
+  · -- right-spoke orientation (vᵢ₊₁, q): rewrite as on-spoke to nextIdx i
+    have hs : r ∈ edgeLatticePoints q (P.vertex (P.nextIdx i)) :=
+      mem_edgeLatticePoints_comm hsR
+    obtain ⟨hne_q, hne_v⟩ :=
+      ne_endpoints_of_twoInterior_onSpoke P h (P.nextIdx i) hs
+    exact shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke
+      P hsc hinj hedge h (P.nextIdx i) hs hne_q hne_v
 
 end InteriorFan
 end LatticeFan

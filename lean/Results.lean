@@ -897,9 +897,9 @@ theorem results_eq_of_mem_interiorFan_of_twoInterior_offBoundary
     P hsc hinj hedge h i j hri hoff hrj
 
 /-- **I = 2 shoelace Pick-form** with ear-uniqueness discharged from
-`OffTriangleBoundary` (not classical Pick). On-spoke helpers (symmetry / midpoint /
-det-doubling / adjacent-ear membership) green; adjacent `det=2` bookkeeping and
-unified Off/onSpoke Pick-form still open. -/
+`OffTriangleBoundary` (not classical Pick). On-spoke adjacent `det=2` /
+non-adjacent exclusion / unified Off/onSpoke Pick-form also green; still
+**not** classical Pick. -/
 theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
     (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
     (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
@@ -974,6 +974,90 @@ theorem results_latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem
   EulersGem.Picks.LatticeFan.InteriorFan.latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem
     a b c r hd hr hne_a hne_b
 
+/-- On-spoke left half-ear is det-primitive: `|det(q,r,w)| = 1` (not classical Pick). -/
+theorem results_natAbs_latticeDet_eq_one_of_onSpoke_left
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    Int.natAbs (EulersGem.Picks.LatticeTriangle.latticeDet q r
+      (P.vertex (P.nextIdx k))) = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.natAbs_latticeDet_eq_one_of_onSpoke_left
+    P hsc hinj hedge h k hs hne_q hne_v
+
+/-- Adjacent on-spoke ears have `interiorFanDet = 2` (not classical Pick). -/
+theorem results_interiorFanDet_eq_two_of_onSpoke_left
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q k = 2 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_two_of_onSpoke_left
+    P hsc hinj hedge h k hs hne_q hne_v
+
+theorem results_interiorFanDet_eq_two_of_onSpoke_right
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet P q (P.prevIdx k) = 2 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.interiorFanDet_eq_two_of_onSpoke_right
+    P hsc hinj hedge h k hs hne_q hne_v
+
+/-- On-spoke `r` occupies exactly the two adjacent fan ears (not classical Pick). -/
+theorem results_eq_of_mem_interiorFan_of_twoInterior_onSpoke
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (k j : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k)
+    (hrj : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex j)
+      (P.vertex (P.nextIdx j)) r) :
+    j = k ∨ j = P.prevIdx k :=
+  EulersGem.Picks.LatticeFan.InteriorFan.eq_of_mem_interiorFan_of_twoInterior_onSpoke
+    P hsc hinj hedge h k j hs hne_q hne_v hrj
+
+/-- **I = 2 shoelace Pick-form** under on-spoke occupation (not classical Pick). -/
+theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k))
+    (hne_q : r ≠ q) (hne_v : r ≠ P.vertex k) :
+    P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_onSpoke
+    P hsc hinj hedge h k hs hne_q hne_v
+
+/-- **Unified I = 2 shoelace Pick-form** (Off or on-spoke; not classical Pick).
+
+Still **not** classical Pick: shoelace ≠ Haar; EP→planar Euler open. -/
+theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r) :
+    P.shoelace = (2 : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior
+    P hsc hinj hedge h
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
