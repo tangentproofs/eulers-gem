@@ -11,6 +11,7 @@ import EulersGem.Embed
 import EulersGem.Platonic
 import EulersGem.PlatonicOfEuler
 import EulersGem.PolytopeFaces
+import EulersGem.EdgeVertices
 import EulersGem.SimplexFaces
 import EulersGem.GeometricPlatonic
 import EulersGem.Octahedron
@@ -555,10 +556,11 @@ hypothesis), the theorems in this section obtain `V − E + F = 2` from
 double-counting identities from face-lattice incidence. Statements use the `EulersGem`
 polytope/face API that Mathlib lacks (see `MATHLIB_SURVEY.md`).
 
-Honesty: `results_platonic_schlafli_geometric` still assumes two *polytope facts* as
-incidence hypotheses — every edge lies in two 2-faces, every edge has two 0-faces — on top
-of the genuine regularity hypotheses. Both are **proved** for the geometric tetrahedron in
-`results_tetrahedron_platonic`, so the hypotheses are not vacuous. Four of the five solids
+Honesty: `results_platonic_schlafli_geometric` still assumes one *polytope fact* as an
+incidence hypothesis — every edge lies in two 2-faces (the diamond property) — on top of the
+genuine regularity hypotheses. "Every edge has two vertices" used to be assumed as well and is
+now **proved** (`results_edge_has_two_vertices`). The diamond property is proved for each of
+the three geometric solids below, so the hypothesis is not vacuous. Two of the five solids
 still have no geometric construction. See `PLATONIC_CLAUDE_AUDIT.md`.
 -/
 
@@ -593,9 +595,7 @@ theorem results_platonic_counts_geometric
     (hedge_faces : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
       {f ∈ EulersGem.Platonic.facesOfDim p 2 | e ⊆ f}.ncard = 2)
     (hvert_edges : ∀ v ∈ EulersGem.Platonic.facesOfDim p 0,
-      {e ∈ EulersGem.Platonic.facesOfDim p 1 | v ⊆ e}.ncard = m)
-    (hedge_verts : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
-      {v ∈ EulersGem.Platonic.facesOfDim p 0 | v ⊆ e}.ncard = 2) :
+      {e ∈ EulersGem.Platonic.facesOfDim p 1 | v ⊆ e}.ncard = m) :
     s * (EulersGem.Platonic.facesOfDim p 2).ncard
         = 2 * (EulersGem.Platonic.facesOfDim p 1).ncard ∧
       m * (EulersGem.Platonic.facesOfDim p 0).ncard
@@ -604,7 +604,7 @@ theorem results_platonic_counts_geometric
         - (EulersGem.Platonic.facesOfDim p 1).ncard
         + (EulersGem.Platonic.facesOfDim p 2).ncard = 2 :=
   EulersGem.Platonic.regular_polytope_counts hH hp hP hdim hEdim
-    hface_edges hedge_faces hvert_edges hedge_verts
+    hface_edges hedge_faces hvert_edges
 
 /-- **Schläfli classification with Euler discharged from Euler–Poincaré.**
 A combinatorially regular convex 3-polytope (every 2-face an `s`-gon, `m` edges at each
@@ -628,13 +628,11 @@ theorem results_platonic_schlafli_geometric
     (hedge_faces : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
       {f ∈ EulersGem.Platonic.facesOfDim p 2 | e ⊆ f}.ncard = 2)
     (hvert_edges : ∀ v ∈ EulersGem.Platonic.facesOfDim p 0,
-      {e ∈ EulersGem.Platonic.facesOfDim p 1 | v ⊆ e}.ncard = m)
-    (hedge_verts : ∀ e ∈ EulersGem.Platonic.facesOfDim p 1,
-      {v ∈ EulersGem.Platonic.facesOfDim p 0 | v ⊆ e}.ncard = 2) :
+      {e ∈ EulersGem.Platonic.facesOfDim p 1 | v ⊆ e}.ncard = m) :
     (s, m) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
   simpa [EulersGem.Platonic.schlafliPairs] using
     EulersGem.Platonic.schlafli_pair_mem_of_regular_polytope hH hp hP hdim hEdim hs hm
-      hface_edges hedge_faces hvert_edges hedge_verts
+      hface_edges hedge_faces hvert_edges
 
 /-! ### The geometric tetrahedron
 
@@ -682,9 +680,8 @@ theorem results_tetrahedron_platonic
         - (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 1).ncard
         + (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 2).ncard = 2 ∧
       ((3 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
-  obtain ⟨h1, h2, h3, h4⟩ := EulersGem.Simplex.tetrahedron_platonic b hE
-  refine ⟨h1, h2, h3, ?_⟩
-  simpa [EulersGem.Platonic.schlafliPairs] using h4
+  obtain ⟨h1, h2, h3, -⟩ := EulersGem.Simplex.tetrahedron_platonic b hE
+  exact ⟨h1, h2, h3, by decide⟩
 
 /-- Every 3-dimensional real inner product space contains a geometric tetrahedron, so the
 statements above are not about an empty class. -/
@@ -736,9 +733,8 @@ theorem results_octahedron_platonic
         - (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 1).ncard
         + (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 2).ncard = 2 ∧
       ((3 : ℕ), (4 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
-  obtain ⟨h1, h2, h3, h4⟩ := EulersGem.Octahedron.octahedron_platonic b
-  refine ⟨h1, h2, h3, ?_⟩
-  simpa [EulersGem.Platonic.schlafliPairs] using h4
+  obtain ⟨h1, h2, h3, -⟩ := EulersGem.Octahedron.octahedron_platonic b
+  exact ⟨h1, h2, h3, by decide⟩
 
 /-- Every 3-dimensional real inner product space contains a geometric octahedron. -/
 theorem results_exists_octahedron
