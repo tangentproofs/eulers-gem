@@ -18,9 +18,31 @@ Euler–Poincaré (faceEulerSum / V−E+F=2 for convex polytopes)
 - Forbidden: Pick via Ehrhart / generating functions / other routes that bypass Euler.
 - Forbidden: naming classical Pick or geometric Platonic until the statement matches.
 
+## Platonic lane — status (2026-09-25)
+
+**Euler is discharged.** `RegularNumbers.hEuler` is no longer assumed anywhere in a final
+claim: `PlatonicOfEuler.regular_polytope_counts` gets `V−E+F=2` from
+`euler_relation_convex_3polytope`, proves `s·F=2·E` and `m·V=2·E` by double counting over
+face-lattice incidence, and derives `0 < E`;
+`schlafli_pair_mem_of_regular_polytope` then gives the five pairs.
+
+**Three of the five solids are geometric**, each with its face lattice computed and all four
+incidence counts proved, and each obtaining `V−E+F=2` from `Euler_Poincare_full`:
+
+| solid | file | `V, E, F` | pair |
+|---|---|---|---|
+| tetrahedron | `SimplexFaces.lean` + `GeometricPlatonic.lean` | 4, 6, 4 | `{3,3}` |
+| octahedron | `Octahedron.lean` | 6, 12, 8 | `{3,4}` |
+| cube | `Cube.lean` | 8, 12, 6 | `{4,3}` |
+
+Still open on this lane: the dodecahedron `{5,3}` and icosahedron `{3,5}` (golden-ratio
+coordinates — the face lattice is not `decide`-able there); two *polytope facts* are still
+hypotheses of the general classification (every edge in two 2-faces, every edge with two
+vertices) though both are proved for all three solids; metric regularity and uniqueness up to
+similarity are not formalized. Details and the naming verdict: `PLATONIC_CLAUDE_AUDIT.md`.
+
 ## Current gap
 - `euler_relation_convex_3polytope` — real geometric EP (root OK).
-- Platonic `RegularNumbers.hEuler` — **assumed**, not discharged from EP.
 - Pick Funkenbusch identities — **assume** `heuler` in the general count form;
   unit-square / fan disks now prove planar Euler concretely (still not a call to
   `Euler_Poincare_full` for arbitrary disks).
