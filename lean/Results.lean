@@ -897,8 +897,9 @@ theorem results_eq_of_mem_interiorFan_of_twoInterior_offBoundary
     P hsc hinj hedge h i j hri hoff hrj
 
 /-- **I = 2 shoelace Pick-form** with ear-uniqueness discharged from
-`OffTriangleBoundary` (not classical Pick). On-spoke det bookkeeping still open;
-case-split Off/onSpoke and `edgeGcd=2` green. -/
+`OffTriangleBoundary` (not classical Pick). On-spoke helpers (symmetry / midpoint /
+det-doubling / adjacent-ear membership) green; adjacent `det=2` bookkeeping and
+unified Off/onSpoke Pick-form still open. -/
 theorem results_shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary
     (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
     (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
@@ -943,6 +944,35 @@ theorem results_edgeGcd_eq_two_of_twoInterior_onSpoke
     EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) = 2 :=
   EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_two_of_twoInterior_onSpoke
     P hsc hinj hedge h k hs hne_q hne_v
+
+/-- Adjacent ears both contain an on-spoke second interior point (not classical Pick). -/
+theorem results_mem_interiorFan_of_onSpoke_left
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k)) :
+    EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex k)
+      (P.vertex (P.nextIdx k)) r :=
+  EulersGem.Picks.LatticeFan.InteriorFan.mem_interiorFan_of_onSpoke_left P k hs
+
+theorem results_mem_interiorFan_of_onSpoke_right
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (k : Fin P.nVertices)
+    (hs : r ∈ EulersGem.Picks.edgeLatticePoints q (P.vertex k)) :
+    EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex (P.prevIdx k))
+      (P.vertex k) r :=
+  EulersGem.Picks.LatticeFan.InteriorFan.mem_interiorFan_of_onSpoke_right P k hs
+
+/-- Occupied spoke with `edgeGcd = 2` doubles the opposite-vertex determinant
+(not classical Pick). -/
+theorem results_latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem
+    (a b c r : ℤ × ℤ)
+    (hd : EulersGem.Picks.LatticeTriangle.edgeGcd a b = 2)
+    (hr : r ∈ EulersGem.Picks.edgeLatticePoints a b)
+    (hne_a : r ≠ a) (hne_b : r ≠ b) :
+    EulersGem.Picks.LatticeTriangle.latticeDet a b c =
+      2 * EulersGem.Picks.LatticeTriangle.latticeDet a r c :=
+  EulersGem.Picks.LatticeFan.InteriorFan.latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem
+    a b c r hd hr hne_a hne_b
 
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)

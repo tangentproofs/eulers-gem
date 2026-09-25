@@ -908,3 +908,37 @@ Cube / MetricRegular / EdgeVertices untouched.
 | On-spoke det bookkeeping / unified I=2 Pick-form | Open |
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (on-spoke edge helpers + adjacent-ear membership; still FAIL for classical Pick)
+
+Landed in `EulersGem/OnSpoke.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma edgeGcd_comm / mem_edgeLatticePoints_comm / mem_segment_of_mem_edgeLatticePoints
+lemma eq_step_one_of_mem_edgeLatticePoints_of_edgeGcd_eq_two
+lemma latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem
+lemma edgeGcd_eq_one_left_of_edgeGcd_eq_two_mem
+lemma mem_interiorFan_of_onSpoke_left / mem_interiorFan_of_onSpoke_right
+```
+
+Results exports: `results_mem_interiorFan_of_onSpoke_{left,right}`,
+`results_latticeDet_eq_two_mul_of_edgeGcd_eq_two_mem` (prior Off/onSpoke +
+`edgeGcd=2` retained).
+
+**Prize progress:** occupied spoke with `edgeGcd=2` has unique midpoint; fan
+determinant along that spoke doubles as `det(q,v,w)=2·det(q,r,w)`; both adjacent
+ears contain `r`. Still **not** classical Pick: adjacent-ear `det=2` via small-
+triangle emptiness; non-adjacent ear exclusion; unified
+`TwoInterior => shoelace = 2+B/2-1`; Haar; EP→planar. Claude Platonic / Cube /
+MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Case-split Off vs on-spoke | Green |
+| Occupied spoke `edgeGcd=2` | Green |
+| Spoke symmetry / midpoint / det-doubling | **Green** |
+| Adjacent ears contain on-spoke `r` | **Green** |
+| On-spoke adjacent `det=2` / exclusion / unified I=2 | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

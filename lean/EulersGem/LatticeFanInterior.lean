@@ -1859,9 +1859,10 @@ Still open on this spine (classical Pick FAIL):
    `shoelace_eq_two_add_B_div_two_sub_one_of_twoInterior_occupied_offBoundary`).
 6. ~~Case-split OffTriangleBoundary vs on-spoke + occupied-spoke `edgeGcd=2`~~:
    **green** (`EulersGem.OnSpoke`).
-7. On-spoke det bookkeeping (`det=2` on adjacent ears) / unified I=2 Pick-form:
-   open.
-8. Shoelace = Haar/Lebesgue; EP → planar Euler.
+7. On-spoke helpers (symmetry / midpoint / det-doubling / adjacent membership):
+   **green** (`EulersGem.OnSpoke`).
+8. On-spoke adjacent `det=2` / non-adjacent exclusion / unified I=2 Pick-form: open.
+9. Shoelace = Haar/Lebesgue; EP → planar Euler.
 -/
 
 end InteriorFan
