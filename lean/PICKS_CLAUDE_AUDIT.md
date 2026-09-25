@@ -1896,3 +1896,49 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (I=4 / I≤4 geometric without spokes-empty; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem spokeInterior_eq_empty_of_earOffInterior_card_eq_three_of_card_eq_four
+    -- parent #S=4 and #earOff=3 ⇒ every spoke from apex empty
+
+theorem shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three_of_card_eq_four
+    -- ear Pick for parent I=4: #earOff≤2 ⇒ triangle I≤2 (no PrimitiveEdges);
+    -- #earOff=3 ⇒ adjacent spokes empty ⇒ I≤3 ear lemma
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four
+    (StrictlyConvexCCW + PrimitiveEdges parent + Injective)
+    (S.card = 4) (S = interior) :
+    shoelace = #S + B/2 - 1
+    -- no spokes-empty hyp; any apex; ears may have non-primitive sides
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four
+    -- I∈{0..4} packaging
+```
+
+Results exports: `results_spokeInterior_eq_empty_of_earOffInterior_card_eq_three_of_card_eq_four`,
+`results_shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three_of_card_eq_four`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four`.
+
+**Prize progress:** geometric I=4 Finset Pick-form drops the spokes-empty apex hyp.
+Fan from any `q∈S`; `#earOff≤3`; apply triangle I≤2 without PrimitiveEdges on ear
+sides, or inherit PrimitiveEdges when `#earOff=3` (forces all remaining interiors Off
+in that ear ⇒ spokes empty). Discharged hbook closes fan-ear IH. Still **not**
+classical Pick: I≥5 / general induction; Haar; EP→planar. Claude Platonic / Cube /
+MetricRegular / EdgeVertices untouched. Classical Pick **FAIL** — no rename.
+
+| Item | Status |
+|------|--------|
+| Empty / UniqueInterior / TwoInterior / I≤2 triangle w/o PrimitiveEdges | Green |
+| I=4 under spokes-empty apex | Green (prior) |
+| I=4 without spokes-empty hyp | **Green** |
+| I≤4 without spokes-empty hyp | **Green** |
+| I≥5 / general fan-ear induction | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |

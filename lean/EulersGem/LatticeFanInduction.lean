@@ -24,7 +24,7 @@ Off-adj-left/right + two-spoke-nonadjacent + adjacent-two-spoke (vacuous under
 `PrimitiveEdges`: shared base `edgeGcd ≥ 2`) green; unified Finset card=3 under
 covered hyp green. Off-free Finset card=3 discharged from ThreeInteriorCovered_of_threeInterior.
 I≤3 Finset unify + general-I fan-ear induction scaffold (conditional ear IH) green.
-Triangle B=∑edgeGcd + hbook discharged (hpart+hspoke). earOff↔triangle interior + I=4 under spokes-empty apex green; I=4 without spokes-empty open.
+Triangle B=∑edgeGcd + hbook discharged (hpart+hspoke). earOff↔triangle interior + I=4 under spokes-empty apex green; I=4 without spokes-empty in TrianglePick.
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 

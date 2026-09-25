@@ -18,7 +18,9 @@ chord-interior, `edgeGcd ≤ 2`, half-inheritance, both-halves-empty when
 `edgeGcd(chord)=2`, g=1 locate-half, and `|det|` induction reassembly to
 `shoelace = 1 + B/2 − 1`. TwoInterior / I≤2 triangle Pick without
 `PrimitiveEdges` via edgeStep locate (empty / UniqueInterior / TwoInterior
-halves) and `|det|` induction. I=4 without spokes-empty still open.
+halves) and `|det|` induction. I=4 / I≤4 Finset Pick-form without
+spokes-empty (ears may have non-primitive sides; use triangle I≤2 or
+PrimitiveEdges inheritance when `#earOff=3`) green.
 Shoelace ≠ Haar. Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -2592,6 +2594,142 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two_triangle
       (trianglePolygon a b c).shoelace
           = (2 : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := harea
       _ = (S.card : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 := by simp [h2]
+
+
+/-! ## I = 4 geometric fan-ear without spokes-empty (not classical Pick)
+
+Parent `#S = 4`: pick any apex `q ∈ S`, fan into ears. Each `#earOff ≤ 3`.
+* `#earOff ≤ 2` ⇒ triangle I≤2 Pick without `PrimitiveEdges` on ear sides.
+* `#earOff = 3` ⇒ the three non-apex interior points all lie Off in that ear, so
+  every spoke from `q` is empty; ear inherits `PrimitiveEdges` and I≤3 applies.
+Discharged hbook closes the fan-ear step. Shoelace ≠ Haar. Classical Pick FAIL.
+-/
+
+variable (P : LatticePolygon)
+
+/-- Parent `#S = 4` and `#earOff = 3` ⇒ every spoke from the apex is empty
+(all three remaining interior points lie Off in that ear). -/
+theorem spokeInterior_eq_empty_of_earOffInterior_card_eq_three_of_card_eq_four
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hq : q ∈ S) (i : Fin P.nVertices)
+    (hcardS : S.card = 4)
+    (hcardE : (earOffInterior P q i S).card = 3)
+    (k : Fin P.nVertices) :
+    spokeInterior P q k S = ∅ := by
+  classical
+  refine Finset.eq_empty_iff_forall_notMem.mpr fun p hp => ?_
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hp' : p ∈ S ∧ p ≠ q ∧ p ≠ P.vertex k ∧ p ∈ edgeLatticePoints q (P.vertex k) := by
+    simpa [spokeInterior] using hp
+  have hsub : earOffInterior P q i S ⊆ S.erase q := by
+    intro r hr
+    have hr' : r ∈ S ∧ r ≠ q ∧
+        MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r ∧
+          OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r := by
+      simpa [earOffInterior] using hr
+    exact Finset.mem_erase.mpr ⟨hr'.2.1, hr'.1⟩
+  have herase : (S.erase q).card = 3 := by
+    rw [Finset.card_erase_of_mem hq, hcardS]
+  have heq : earOffInterior P q i S = S.erase q :=
+    Finset.eq_of_subset_of_card_le hsub (by omega)
+  have hp_ear : p ∈ earOffInterior P q i S := by
+    have : p ∈ S.erase q := Finset.mem_erase.mpr ⟨hp'.2.1, hp'.1⟩
+    simpa [heq] using this
+  exact false_of_mem_earOffInterior_of_mem_spokeInterior
+    P hsc hinj hedge hqI S hp_ear hp
+
+/-- Ear Pick-form for parent `#S = 4` without a spokes-empty hyp
+(not classical Pick).
+
+Uses triangle I≤2 when `#earOff ≤ 2` (no `PrimitiveEdges` on ear sides); when
+`#earOff = 3`, adjacent spokes are empty so the existing I≤3 ear lemma applies. -/
+theorem shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three_of_card_eq_four
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hq : q ∈ S) (i : Fin P.nVertices)
+    (hcardS : S.card = 4)
+    (hcard : (earOffInterior P q i S).card ≤ 3) :
+    (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+      ((earOffInterior P q i S).card : ℚ) +
+        ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1 := by
+  classical
+  set T := trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))
+  set S_ear := earOffInterior P q i S
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hpos := InteriorFanDetsPos_of_mem_interior P hsc hinj hedge hqI
+  have hD : 0 < latticeDet q (P.vertex i) (P.vertex (P.nextIdx i)) := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+  have hS_ear : (S_ear : Set (ℤ × ℤ)) = T.interiorLatticePoints :=
+    coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon
+      P S hS hsc hinj hedge hq i
+  by_cases hle2 : S_ear.card ≤ 2
+  · simpa [T, S_ear] using
+      (shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_two_triangle
+        q (P.vertex i) (P.vertex (P.nextIdx i)) hD S_ear hS_ear hle2)
+  · have h3 : S_ear.card = 3 := by omega
+    have h3' : (earOffInterior P q i S).card = 3 := by simpa [S_ear] using h3
+    have hL : spokeInterior P q i S = ∅ :=
+      spokeInterior_eq_empty_of_earOffInterior_card_eq_three_of_card_eq_four
+        P S hS hsc hinj hedge hq i hcardS h3' i
+    have hR : spokeInterior P q (P.nextIdx i) S = ∅ :=
+      spokeInterior_eq_empty_of_earOffInterior_card_eq_three_of_card_eq_four
+        P S hS hsc hinj hedge hq i hcardS h3' (P.nextIdx i)
+    simpa [T, S_ear] using
+      (shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three
+        P S hS hsc hinj hedge hq i hL hR hcard)
+
+/-- **I = 4 shoelace Pick-form** without spokes-empty hyp (not classical Pick).
+
+Hyps: geometric polygon (`StrictlyConvexCCW`, injective, parent `PrimitiveEdges`),
+interior Finset `#S = 4`. Any apex works: fan-ear IH with triangle I≤2 /
+PrimitiveEdges-on-`#earOff=3` ears and discharged hbook. Ears may have
+non-primitive sides. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 4)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  have hne : S.Nonempty := Finset.card_pos.mp (by omega)
+  obtain ⟨q, hq⟩ := hne
+  refine shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
+    P S hS q hq hverts hedge hsc ?hIH
+    (hbook_of_fan_ear_partition_of_interior P S hS hsc hverts hedge hq)
+  intro i
+  exact shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three_of_card_eq_four
+    P S hS hsc hverts hedge hq i hcard
+    (card_earOffInterior_le_three_of_card_eq_four P q i S hq hcard)
+
+/-- **I ≤ 4 shoelace Pick-form** without spokes-empty hyp (not classical Pick).
+
+Combines geometric I ≤ 3 with I = 4. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 4)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  by_cases hle3 : S.card ≤ 3
+  · exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+      P S hS hle3 hverts hedge hsc
+  · have h4 : S.card = 4 := by omega
+    exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four
+      P S hS h4 hverts hedge hsc
 
 
 end InteriorFan
