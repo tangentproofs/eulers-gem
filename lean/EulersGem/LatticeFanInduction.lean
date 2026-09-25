@@ -19,8 +19,9 @@ Shoelace ≠ Haar/Lebesgue. EP→planar open. General I induction open.
 Same-ear Off occupation reuses I=2 on the ear triangle. Unified Off I=3
 (two-ear ∨ same-ear) and Finset `card=3` under Off-apex hyp are green.
 On-spoke I=3: classification + `edgeGcd=2` + one-on-spoke/Off-nonadjacent
-Pick-form green; same-spoke `edgeGcd=3` + adjacent `det=3` green;
-same-spoke Pick-form / Off-adjacent / two-spoke / Off-free Finset card=3 open.
+Pick-form green; same-spoke `edgeGcd=3` + adjacent `det=3` + Pick-form green;
+unified Finset card=3 under covered (Off ∨ onSpoke-Off ∨ sameSpoke) hyp green.
+Off-adjacent (`det=4`) / two-spoke / Off-free Finset card=3 still open.
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -1067,7 +1068,7 @@ non-adjacent ear, adjacent ears contribute `det = 2` (I=2 doubling + empty
 half-ears), the Off ear contributes `det = 3`, and the rest `det = 1`, so the
 fan sum is `n + 4` and `shoelace = 3 + B/2 − 1`.
 
-Same-spoke / both-on-spoke / Off-in-adjacent-ear still open. Shoelace ≠ Haar.
+Same-spoke Pick-form green; Off-adjacent / two-spoke still open. Shoelace ≠ Haar.
 Classical Pick FAIL.
 -/
 
@@ -2593,6 +2594,61 @@ theorem shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpoke
           rw [this]
     _ = (P.nVertices : ℚ) / 2 + 2 := by push_cast; ring
     _ = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by rw [hB]; ring
+
+
+/-! ### Finset card=3 under covered I=3 cases (not classical Pick)
+
+Unifies Off (same-ear ∨ two-ear), on-spoke+Off-nonadjacent, and same-spoke into
+one Finset `card = 3` statement. Off-adjacent (`det = 4`) and two distinct spokes
+still open — those are the remaining gaps before an Off-free Finset card=3.
+Shoelace ≠ Haar. Classical Pick FAIL.
+-/
+
+/-- Covered I=3 configurations from apex `q` that already have Pick-form. -/
+def ThreeInteriorCovered (q r s : ℤ × ℤ) : Prop :=
+  ThreeInterior P q r s ∧ (
+    (∃ i j : Fin P.nVertices,
+      MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r ∧
+        OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r ∧
+          MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) s ∧
+            OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) s) ∨
+    (∃ k j : Fin P.nVertices,
+      r ∈ edgeLatticePoints q (P.vertex k) ∧ r ≠ q ∧ r ≠ P.vertex k ∧
+        MemClosedTriangle q (P.vertex j) (P.vertex (P.nextIdx j)) s ∧
+          OffTriangleBoundary q (P.vertex j) (P.vertex (P.nextIdx j)) s ∧
+            j ≠ k ∧ j ≠ P.prevIdx k) ∨
+    (∃ k : Fin P.nVertices,
+      r ∈ edgeLatticePoints q (P.vertex k) ∧ s ∈ edgeLatticePoints q (P.vertex k) ∧
+        r ≠ q ∧ r ≠ P.vertex k ∧ s ≠ q ∧ s ≠ P.vertex k ∧ r ≠ s))
+
+/-- **I = 3 shoelace Pick-form** under covered configurations (not classical Pick).
+
+Finset `card = 3` when the three interior points form a `ThreeInteriorCovered`
+configuration (Off / on-spoke+Off-nonadjacent / same-spoke). Off-adjacent and
+two-spoke still open. Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
+    (S : Finset (ℤ × ℤ))
+    (_hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 3)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P)
+    (hcov : ∃ q r s : ℤ × ℤ, S = {q, r, s} ∧ ThreeInteriorCovered P q r s) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  obtain ⟨q, r, s, _hSeq, ⟨hThree, hcases⟩⟩ := hcov
+  have harea : P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := by
+    rcases hcases with ⟨i, j, hr, hoff_r, hs, hoff_s⟩ | ⟨k, j, hr, hne_q, hne_v, hs, hoff_s, hne_k, hne_prev⟩ | ⟨k, hr, hs, hne_rq, hne_rv, hne_sq, hne_sv, hne_rs⟩
+    · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_off
+        P hsc hverts hedge hThree i j hr hoff_r hs hoff_s
+    · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_onSpoke_off
+        P hsc hverts hedge hThree k j hr hne_q hne_v hs hoff_s hne_k hne_prev
+    · exact shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpoke
+        P hsc hverts hedge hThree k hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
+  calc
+    P.shoelace = (3 : ℚ) + (P.B : ℚ) / 2 - 1 := harea
+    _ = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by simp [hcard]
+
 
 end InteriorFan
 end LatticeFan

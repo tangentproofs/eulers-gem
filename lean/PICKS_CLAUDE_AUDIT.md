@@ -1262,3 +1262,41 @@ card=3; Haar; EP→planar. Claude Platonic / Cube / MetricRegular / EdgeVertices
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (I=3 Finset covered unify Off∨onSpoke∨sameSpoke; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+def ThreeInteriorCovered (q r s : ℤ × ℤ) : Prop
+    -- Off (same-ear ∨ two-ear) ∨ on-spoke+Off-nonadjacent ∨ same-spoke
+
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
+    (↑S = interior) (S.card = 3) (StrictlyConvexCCW) (PrimitiveEdges)
+    (∃ q r s, S = {q,r,s} ∧ ThreeInteriorCovered P q r s) :
+    P.shoelace = #S + B/2 − 1
+```
+
+Results exports: `results_ThreeInteriorCovered`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered`
+(prior Off-only Finset card=3 + sameSpoke / onSpoke_off retained).
+
+**Prize progress:** Three green I=3 geometric configurations (all-Off, on-spoke+Off
+nonadjacent, same-spoke) folded into one Finset `card=3` statement under a covered
+hyp (weaker than Off-only apex). Still **not** classical Pick: Off-adjacent
+(`det=4`); two distinct spokes; Off-free Finset card=3; Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Same-spoke Pick-form (fan sum n+4) | Green |
+| Off I=3 (same-ear ∨ two-ear) | Green |
+| On-spoke + Off nonadjacent | Green |
+| Finset card=3 under covered hyp | **Green** |
+| Off-adjacent (det=4 bookkeeping) | Open |
+| Two different spokes | Open |
+| Finset card=3 without Off/covered hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

@@ -1563,6 +1563,30 @@ theorem results_shoelace_eq_three_add_B_div_two_sub_one_of_threeInterior_sameSpo
     P hsc hinj hedge h k hr hs hne_rq hne_rv hne_sq hne_sv hne_rs
 
 
+/-- **I = 3 shoelace Pick-form** under covered configurations (not classical Pick).
+
+Finset `card = 3` when interior points form a `ThreeInteriorCovered` configuration
+(Off / on-spoke+Off-nonadjacent / same-spoke). Off-adjacent and two-spoke still open.
+Shoelace ≠ Haar. Classical Pick FAIL. -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 3)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hcov : ∃ q r s : ℤ × ℤ, S = {q, r, s} ∧
+      EulersGem.Picks.LatticeFan.InteriorFan.ThreeInteriorCovered P q r s) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_three_covered
+    P S hS hcard hverts hedge hsc hcov
+
+/-- Covered I=3 configuration predicate (Off ∨ onSpoke-Off ∨ sameSpoke). -/
+def results_ThreeInteriorCovered :=
+  @EulersGem.Picks.LatticeFan.InteriorFan.ThreeInteriorCovered
+
+
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
