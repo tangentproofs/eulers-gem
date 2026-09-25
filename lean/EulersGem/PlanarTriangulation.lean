@@ -245,5 +245,67 @@ def PlanarDiskEulerCounts.ofTriangulation {α : Type*} [DecidableEq α]
   E := G.E
   T := G.T
 
+/-! ## Concrete inhabited example: unit square → two triangles
+
+Shows `CombinatorialDiskTriangulation` is inhabited on a non-toy lattice
+polygon (unit square with diagonal). Does **not** prove triangulation
+existence for arbitrary polygons. -/
+
+namespace UnitSquareTriangulation
+
+/-- Vertices of the unit square. -/
+def v00 : ℤ × ℤ := (0, 0)
+def v10 : ℤ × ℤ := (1, 0)
+def v11 : ℤ × ℤ := (1, 1)
+def v01 : ℤ × ℤ := (0, 1)
+
+/-- Lower-right triangle `{(0,0),(1,0),(1,1)}`. -/
+def tLower : Finset (ℤ × ℤ) := {v00, v10, v11}
+
+/-- Upper-left triangle `{(0,0),(1,1),(0,1)}`. -/
+def tUpper : Finset (ℤ × ℤ) := {v00, v11, v01}
+
+def e_bottom : Finset (ℤ × ℤ) := {v00, v10}
+def e_right : Finset (ℤ × ℤ) := {v10, v11}
+def e_top : Finset (ℤ × ℤ) := {v11, v01}
+def e_left : Finset (ℤ × ℤ) := {v01, v00}
+def e_diag : Finset (ℤ × ℤ) := {v00, v11}
+
+private lemma tLower_card : tLower.card = 3 := by native_decide
+private lemma tUpper_card : tUpper.card = 3 := by native_decide
+
+/-- Combinatorial disk triangulation of the unit square (two triangles, one diagonal). -/
+def unitSquare : CombinatorialDiskTriangulation (ℤ × ℤ) where
+  triangles := {tLower, tUpper}
+  edges := {e_bottom, e_right, e_top, e_left, e_diag}
+  boundaryEdges := {e_bottom, e_right, e_top, e_left}
+  triangle_card := by
+    intro t ht
+    simp only [Finset.mem_insert, Finset.mem_singleton] at ht
+    rcases ht with rfl | rfl
+    · exact tLower_card
+    · exact tUpper_card
+  edge_card := by native_decide
+  boundary_subset := by native_decide
+  triangle_edges_mem := by
+    intro t ht
+    simp only [Finset.mem_insert, Finset.mem_singleton] at ht
+    rcases ht with rfl | rfl <;> native_decide
+  edge_incidence := by
+    intro e he
+    -- Five edges; decide membership and filter card by computation
+    simp only [Finset.mem_insert, Finset.mem_singleton] at he
+    rcases he with h | h | h | h | h <;> subst h <;> native_decide
+
+theorem unitSquare_T : unitSquare.T = 2 := by native_decide
+theorem unitSquare_E : unitSquare.E = 5 := by native_decide
+theorem unitSquare_B : unitSquare.B = 4 := by native_decide
+
+/-- Concrete check: handshaking holds on the unit square (`2·5 = 3·2 + 4`). -/
+theorem unitSquare_handshaking : 2 * unitSquare.E = 3 * unitSquare.T + unitSquare.B :=
+  unitSquare.two_E_eq_three_T_add_B
+
+end UnitSquareTriangulation
+
 end Picks
 end EulersGem

@@ -190,6 +190,14 @@ theorem results_triangulation_count_identity_of_disk_triangulation
   EulersGem.Picks.triangulation_count_identity I G.B V G.E G.T F A
     hV hF heuler G.two_E_eq_three_T_add_B_int harea
 
+/-- Concrete inhabited example: unit-square disk triangulation satisfies handshaking.
+Not classical Pick; just shows the incidence API is realizable on a lattice square. -/
+theorem results_unit_square_disk_triangulation_handshaking :
+    2 * EulersGem.Picks.UnitSquareTriangulation.unitSquare.E =
+      3 * EulersGem.Picks.UnitSquareTriangulation.unitSquare.T +
+        EulersGem.Picks.UnitSquareTriangulation.unitSquare.B :=
+  EulersGem.Picks.UnitSquareTriangulation.unitSquare_handshaking
+
 /-! ## Witness-conditional shoelace Pick-form (not classical Pick)
 
 Geometric primitive triangulation witness + EP-spine planar Euler hyp.
