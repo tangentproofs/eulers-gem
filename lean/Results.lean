@@ -2024,6 +2024,131 @@ theorem results_hbook_of_fan_ear_partition_of_interior
   EulersGem.Picks.LatticeFan.InteriorFan.hbook_of_fan_ear_partition_of_interior
     P S hS hsc hinj hedge hq
 
+
+/-! ### earOffInterior ↔ triangle interior + I = 4 (not classical Pick) -/
+
+/-- Closed-triangle Off points = `trianglePolygon` interior lattice points. -/
+theorem results_mem_interiorLatticePoints_trianglePolygon_iff
+    (a b c p : ℤ × ℤ) :
+    p ∈ (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).interiorLatticePoints ↔
+      EulersGem.Picks.LatticeTriangle.MemClosedTriangle a b c p ∧
+        EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary a b c p :=
+  EulersGem.Picks.LatticeFan.InteriorFan.mem_interiorLatticePoints_trianglePolygon_iff a b c p
+
+/-- **`earOffInterior` equals the ear triangle interior** (not classical Pick). -/
+theorem results_coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    {q : ℤ × ℤ} (hq : q ∈ S) (i : Fin P.nVertices) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S : Set (ℤ × ℤ)) =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        q (P.vertex i) (P.vertex (P.nextIdx i))).interiorLatticePoints :=
+  EulersGem.Picks.LatticeFan.InteriorFan.coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon
+    P S hS hsc hinj hedge hq i
+
+/-- Parent `#S = 4` ⇒ each ear Off-interior has card ≤ 3. -/
+theorem results_card_earOffInterior_le_three_of_card_eq_four
+    (P : EulersGem.Picks.LatticePolygon)
+    (q : ℤ × ℤ) (i : Fin P.nVertices) (S : Finset (ℤ × ℤ))
+    (hq : q ∈ S) (hcard : S.card = 4) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card ≤ 3 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.card_earOffInterior_le_three_of_card_eq_four
+    P q i S hq hcard
+
+/-- Empty spoke-interior ⇒ `edgeGcd = 1`. -/
+theorem results_edgeGcd_eq_one_of_spokeInterior_empty
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    {q : ℤ × ℤ} (hq : q ∈ S) (k : Fin P.nVertices)
+    (hempty : EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S = ∅) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd q (P.vertex k) = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_one_of_spokeInterior_empty
+    P S hS hsc hinj hedge hq k hempty
+
+/-- Ear inherits `PrimitiveEdges` when both adjacent spokes are empty. -/
+theorem results_PrimitiveEdges_trianglePolygon_ear_of_spokeInterior_empty
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    {q : ℤ × ℤ} (hq : q ∈ S) (i : Fin P.nVertices)
+    (hL : EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q i S = ∅)
+    (hR : EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q (P.nextIdx i) S = ∅) :
+    EulersGem.Picks.LatticeFan.PrimitiveEdges
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        q (P.vertex i) (P.vertex (P.nextIdx i))) :=
+  EulersGem.Picks.LatticeFan.InteriorFan.PrimitiveEdges_trianglePolygon_ear_of_spokeInterior_empty
+    P S hS hsc hinj hedge hq i hL hR
+
+/-- Ear Pick-form under empty adjacent spokes and `#earOff ≤ 3` (not classical Pick). -/
+theorem results_shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    {q : ℤ × ℤ} (hq : q ∈ S) (i : Fin P.nVertices)
+    (hL : EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q i S = ∅)
+    (hR : EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q (P.nextIdx i) S = ∅)
+    (hcard : (EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card ≤ 3) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+      ((EulersGem.Picks.LatticeFan.InteriorFan.earOffInterior P q i S).card : ℚ) +
+        ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three
+    P S hS hsc hinj hedge hq i hL hR hcard
+
+/-- **I = 4 shoelace Pick-form under empty spokes from apex** (not classical Pick).
+
+Ear IH discharged via I ≤ 3 on ears with inherited `PrimitiveEdges`; hbook already
+discharged. Full I = 4 without spokes-empty hyp remains open. Classical Pick FAIL. -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four_of_spokes_empty
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 4)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (q : ℤ × ℤ) (hq : q ∈ S)
+    (hspokeEmpty :
+      ∀ k : Fin P.nVertices,
+        EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S = ∅) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four_of_spokes_empty
+    P S hS hcard hverts hedge hsc q hq hspokeEmpty
+
+/-- **I ≤ 4 shoelace Pick-form** under empty-spokes apex when `#S = 4`
+(not classical Pick). Classical Pick FAIL. -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_empty
+    (P : EulersGem.Picks.LatticePolygon)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 4)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hfour :
+      S.card = 4 →
+        ∃ q ∈ S, ∀ k : Fin P.nVertices,
+          EulersGem.Picks.LatticeFan.InteriorFan.spokeInterior P q k S = ∅) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_empty
+    P S hS hcard hverts hedge hsc hfour
+
+
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
 Mathlib lacks IsPolytope / polytope face_of / set-level affDim / hyperplane

@@ -1633,3 +1633,49 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (earOff ↔ triangle interior + I=4 spokes-empty; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInduction.lean` (honest names; **not** classical Pick):
+
+```lean
+lemma mem_interiorLatticePoints_trianglePolygon_iff
+theorem coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon
+    -- ↑(earOffInterior q i S) = (trianglePolygon q vᵢ vᵢ₊₁).interiorLatticePoints
+theorem card_earOffInterior_le_three_of_card_eq_four
+theorem edgeGcd_eq_one_of_spokeInterior_empty
+theorem PrimitiveEdges_trianglePolygon_ear_of_spokeInterior_empty
+theorem shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three
+    -- ear IH under empty adjacent spokes + #earOff ≤ 3 via I≤3
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four_of_spokes_empty
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_empty
+```
+
+Results exports: `results_coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon`,
+`results_card_earOffInterior_le_three_of_card_eq_four`,
+`results_edgeGcd_eq_one_of_spokeInterior_empty`,
+`results_PrimitiveEdges_trianglePolygon_ear_of_spokeInterior_empty`,
+`results_shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four_of_spokes_empty`,
+`results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_empty`.
+
+**Prize progress:** geometric identification of `earOffInterior` with ear-triangle
+interior; parent `#S=4` ⇒ `#earOff≤3`; empty spokes ⇒ ear inherits `PrimitiveEdges`
+⇒ apply I≤3 Pick-form on ears; discharged hbook + ear IH ⇒ I=4 (and I≤4) under
+spokes-empty apex. Still **not** classical Pick: I=4 without spokes-empty hyp
+(non-primitive ear sides / triangle Pick without `PrimitiveEdges`); Haar; EP→planar.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Discharged hbook for interior Finset | Green |
+| `earOffInterior` = triangle interior | **Green** |
+| `#earOff ≤ 3` when `#S = 4` | **Green** |
+| Ear `PrimitiveEdges` under empty spokes | **Green** |
+| Ear I≤3 Pick-form under empty spokes | **Green** |
+| I=4 / I≤4 under spokes-empty apex | **Green** |
+| I=4 without spokes-empty hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

@@ -24,7 +24,7 @@ Off-adj-left/right + two-spoke-nonadjacent + adjacent-two-spoke (vacuous under
 `PrimitiveEdges`: shared base `edgeGcd ≥ 2`) green; unified Finset card=3 under
 covered hyp green. Off-free Finset card=3 discharged from ThreeInteriorCovered_of_threeInterior.
 I≤3 Finset unify + general-I fan-ear induction scaffold (conditional ear IH) green.
-Triangle B=∑edgeGcd + conditional hbook from partition/spoke-gcd (discharge of partition + spoke cards still open).
+Triangle B=∑edgeGcd + hbook discharged (hpart+hspoke). earOff↔triangle interior + I=4 under spokes-empty apex green; I=4 without spokes-empty open.
 Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -6251,6 +6251,252 @@ theorem hbook_of_fan_ear_partition_of_interior
   exact hbook_of_fan_ear_partition P S q hsc hinj hedge hqI
     (hpart_of_interior_finset P S hS hsc hinj hedge hq)
     (hspoke_of_interior_finset P S hS hsc hinj hedge hq)
+
+
+
+/-! ## earOffInterior ↔ triangle interior + I = 4 ear IH (not classical Pick)
+
+Relate `earOffInterior q i S` to `(trianglePolygon q vᵢ vᵢ₊₁).interiorLatticePoints`.
+For parent `#S = 4`, each ear has `#earOff ≤ 3`; under empty spokes the ear inherits
+`StrictlyConvexCCW` / `PrimitiveEdges` and the I ≤ 3 Pick-form applies. Discharged
+hbook + ear IH ⇒ I = 4 shoelace Pick-form when all spokes from the apex are empty.
+Shoelace ≠ Haar. Classical Pick FAIL.
+-/
+
+/-- Closed-triangle Off points are exactly the interior lattice points of
+`trianglePolygon`. -/
+lemma mem_interiorLatticePoints_trianglePolygon_iff (a b c p : ℤ × ℤ) :
+    p ∈ (trianglePolygon a b c).interiorLatticePoints ↔
+      MemClosedTriangle a b c p ∧ OffTriangleBoundary a b c p := by
+  classical
+  set T := trianglePolygon a b c
+  constructor
+  · intro hp
+    have hhull : toReal p ∈ T.convexHullRegion := hp.1
+    have hnb : p ∉ T.boundaryLatticePoints := hp.2
+    have hmem : MemClosedTriangle a b c p := by
+      have : toReal p ∈ convexHull ℝ ({toReal a, toReal b, toReal c} : Set (ℝ × ℝ)) := by
+        rwa [trianglePolygon_convexHullRegion] at hhull
+      exact memClosedTriangle_of_mem_convexHull a b c p this
+    have hoff : OffTriangleBoundary a b c p := by
+      have hbd :
+          T.boundaryLatticePoints =
+            edgeLatticePoints a b ∪ edgeLatticePoints b c ∪ edgeLatticePoints c a :=
+        boundaryLatticePoints_trianglePolygon a b c
+      have : p ∉ edgeLatticePoints a b ∪ edgeLatticePoints b c ∪ edgeLatticePoints c a := by
+        simpa [hbd] using hnb
+      refine ⟨?_, ?_, ?_⟩
+      · exact fun h => this (Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inl h))))
+      · exact fun h => this (Finset.mem_union.mpr (Or.inl (Finset.mem_union.mpr (Or.inr h))))
+      · exact fun h => this (Finset.mem_union.mpr (Or.inr h))
+    exact ⟨hmem, hoff⟩
+  · intro ⟨hmem, hoff⟩
+    refine ⟨?_, not_mem_boundary_trianglePolygon_of_OffTriangleBoundary hoff⟩
+    rw [trianglePolygon_convexHullRegion]
+    exact mem_convexHull_of_memClosedTriangle a b c p hmem
+
+/-- **`earOffInterior` equals the ear triangle's interior lattice set**
+(not classical Pick). -/
+theorem coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hq : q ∈ S) (i : Fin P.nVertices) :
+    (earOffInterior P q i S : Set (ℤ × ℤ)) =
+      (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).interiorLatticePoints := by
+  classical
+  set v := P.vertex i
+  set w := P.vertex (P.nextIdx i)
+  set T := trianglePolygon q v w
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hq_bd : q ∈ T.boundaryLatticePoints := by
+    refine (mem_boundaryLatticePoints_iff T q).mpr ⟨⟨0, by simp [T, trianglePolygon_nVertices]⟩, ?_⟩
+    simpa [T, trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using self_mem_edgeLatticePoints q v
+  have hv_bd : v ∈ T.boundaryLatticePoints := by
+    refine (mem_boundaryLatticePoints_iff T v).mpr ⟨⟨0, by simp [T, trianglePolygon_nVertices]⟩, ?_⟩
+    simpa [T, trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices, v] using other_mem_edgeLatticePoints q v
+  have hw_bd : w ∈ T.boundaryLatticePoints := by
+    refine (mem_boundaryLatticePoints_iff T w).mpr ⟨⟨1, by simp [T, trianglePolygon_nVertices]⟩, ?_⟩
+    simpa [T, trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices, w] using other_mem_edgeLatticePoints v w
+  ext p
+  constructor
+  · intro hp
+    have hp' : p ∈ S ∧ p ≠ q ∧ MemClosedTriangle q v w p ∧ OffTriangleBoundary q v w p := by
+      simpa [earOffInterior, Finset.mem_filter, v, w] using hp
+    exact (mem_interiorLatticePoints_trianglePolygon_iff q v w p).mpr ⟨hp'.2.2.1, hp'.2.2.2⟩
+  · intro hp
+    have hp' := (mem_interiorLatticePoints_trianglePolygon_iff q v w p).mp hp
+    have hmem : MemClosedTriangle q v w p := hp'.1
+    have hoff : OffTriangleBoundary q v w p := hp'.2
+    have hnb : p ∉ T.boundaryLatticePoints := hp.2
+    have hmemFan :
+        MemClosedTriangle (interiorFanTriangle P q i).a
+          (interiorFanTriangle P q i).b (interiorFanTriangle P q i).c p := by
+      simpa [interiorFanTriangle, v, w] using hmem
+    have hclass :=
+      eq_vertices_or_interior_of_mem_interiorFan P hsc hinj hedge hqI i hmemFan
+    have hpI : p ∈ P.interiorLatticePoints := by
+      rcases hclass with h_eq_q | h_eq_v | h_eq_w | hI
+      · exact (hnb (by simpa [h_eq_q] using hq_bd)).elim
+      · exact (hnb (by simpa [h_eq_v] using hv_bd)).elim
+      · exact (hnb (by simpa [h_eq_w] using hw_bd)).elim
+      · exact hI
+    have hpS : p ∈ S := by
+      have : p ∈ (S : Set (ℤ × ℤ)) := by simpa [hS] using hpI
+      exact this
+    have hne : p ≠ q := by
+      intro hpq
+      exact hoff.1 (by simpa [hpq] using self_mem_edgeLatticePoints q v)
+    refine Finset.mem_filter.mpr ?_
+    refine ⟨hpS, hne, ?_⟩
+    exact ⟨by simpa [v, w] using hmem, by simpa [v, w] using hoff⟩
+
+theorem card_earOffInterior_le_three_of_card_eq_four
+    (q : ℤ × ℤ) (i : Fin P.nVertices) (S : Finset (ℤ × ℤ))
+    (hq : q ∈ S) (hcard : S.card = 4) :
+    (earOffInterior P q i S).card ≤ 3 := by
+  have hlt := card_earOffInterior_lt P q i S hq
+  omega
+
+/-- Empty spoke-interior ⇒ `edgeGcd = 1` on that spoke. -/
+theorem edgeGcd_eq_one_of_spokeInterior_empty
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hq : q ∈ S) (k : Fin P.nVertices)
+    (hempty : spokeInterior P q k S = ∅) :
+    edgeGcd q (P.vertex k) = 1 := by
+  have hcard := card_spokeInterior_eq_edgeGcd_sub_one P S hS hsc hinj hedge hq k
+  have hz : (spokeInterior P q k S).card = 0 := by simp [hempty]
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hne := ne_vertex_of_mem_interior P hinj hedge hqI k
+  have hne0 : edgeGcd q (P.vertex k) ≠ 0 := by
+    intro h0
+    exact hne ((edgeGcd_eq_zero_iff q (P.vertex k)).mp h0)
+  have hpos : 1 ≤ edgeGcd q (P.vertex k) := Nat.pos_of_ne_zero hne0
+  omega
+
+/-- Ear inherits `PrimitiveEdges` when both adjacent spokes are empty
+(not classical Pick). -/
+theorem PrimitiveEdges_trianglePolygon_ear_of_spokeInterior_empty
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hq : q ∈ S) (i : Fin P.nVertices)
+    (hL : spokeInterior P q i S = ∅)
+    (hR : spokeInterior P q (P.nextIdx i) S = ∅) :
+    PrimitiveEdges (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))) := by
+  classical
+  have hL' := edgeGcd_eq_one_of_spokeInterior_empty P S hS hsc hinj hedge hq i hL
+  have hR' := edgeGcd_eq_one_of_spokeInterior_empty P S hS hsc hinj hedge hq (P.nextIdx i) hR
+  have hbase : edgeGcd (P.vertex i) (P.vertex (P.nextIdx i)) = 1 := hedge i
+  intro j
+  fin_cases j
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using hL'
+  · simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using hbase
+  · have hRc : edgeGcd (P.vertex (P.nextIdx i)) q = 1 := by
+      simpa [edgeGcd_comm q (P.vertex (P.nextIdx i))] using hR'
+    simpa [trianglePolygon, LatticePolygon.edgePair, LatticePolygon.vertex,
+      LatticePolygon.nextIdx, LatticePolygon.nVertices] using hRc
+
+/-- Ear Pick-form under empty adjacent spokes and `#earOff ≤ 3`
+(not classical Pick). -/
+theorem shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q : ℤ × ℤ}
+    (hq : q ∈ S) (i : Fin P.nVertices)
+    (hL : spokeInterior P q i S = ∅)
+    (hR : spokeInterior P q (P.nextIdx i) S = ∅)
+    (hcard : (earOffInterior P q i S).card ≤ 3) :
+    (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).shoelace =
+      ((earOffInterior P q i S).card : ℚ) +
+        ((trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))).B : ℚ) / 2 - 1 := by
+  classical
+  set T := trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))
+  set S_ear := earOffInterior P q i S
+  have hqI : q ∈ P.interiorLatticePoints := by
+    have : q ∈ (S : Set (ℤ × ℤ)) := hq
+    rwa [hS] at this
+  have hpos := InteriorFanDetsPos_of_mem_interior P hsc hinj hedge hqI
+  have hD : 0 < latticeDet q (P.vertex i) (P.vertex (P.nextIdx i)) := by
+    simpa [interiorFanDet, interiorFanTriangle, Triangle.det] using hpos i
+  have hS_ear : (S_ear : Set (ℤ × ℤ)) = T.interiorLatticePoints :=
+    coe_earOffInterior_eq_interiorLatticePoints_trianglePolygon
+      P S hS hsc hinj hedge hq i
+  have hscT : StrictlyConvexCCW T := StrictlyConvexCCW_trianglePolygon _ _ _ hD
+  have hinjT : Function.Injective T.vertex :=
+    injective_vertex_trianglePolygon _ _ _ (ne_of_gt hD)
+  have hedgeT : PrimitiveEdges T :=
+    PrimitiveEdges_trianglePolygon_ear_of_spokeInterior_empty
+      P S hS hsc hinj hedge hq i hL hR
+  simpa [T, S_ear] using
+    (shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+      T S_ear hS_ear hcard hinjT hedgeT hscT)
+
+/-- **I = 4 shoelace Pick-form under empty spokes from apex** (not classical Pick).
+
+Hyps: geometric polygon, `#S = 4`, apex `q ∈ S` with every `spokeInterior` empty.
+Each ear then has `#earOff ≤ 3` and inherits `PrimitiveEdges`, so I ≤ 3 applies on
+ears; discharged hbook closes the fan-ear IH step. Shoelace ≠ Haar. Classical Pick
+FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four_of_spokes_empty
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card = 4)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P)
+    (q : ℤ × ℤ) (hq : q ∈ S)
+    (hspokeEmpty : ∀ k : Fin P.nVertices, spokeInterior P q k S = ∅) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  refine shoelace_eq_cardI_add_B_div_two_sub_one_of_fan_ear_IH
+    P S hS q hq hverts hedge hsc ?hIH
+    (hbook_of_fan_ear_partition_of_interior P S hS hsc hverts hedge hq)
+  intro i
+  exact shoelace_trianglePolygon_ear_eq_card_earOff_add_B_div_two_sub_one_of_I_le_three
+    P S hS hsc hverts hedge hq i (hspokeEmpty i) (hspokeEmpty (P.nextIdx i))
+    (card_earOffInterior_le_three_of_card_eq_four P q i S hq hcard)
+
+/-- **I ≤ 4 shoelace Pick-form under empty-spokes apex when `#S = 4`**
+(not classical Pick).
+
+Combines geometric I ≤ 3 with the spokes-empty I = 4 case. Full I = 4 without the
+spokes-empty hyp (non-primitive ear sides) remains open. Shoelace ≠ Haar.
+Classical Pick FAIL. -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_empty
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
+    (hcard : S.card ≤ 4)
+    (hverts : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P)
+    (hsc : StrictlyConvexCCW P)
+    (hfour :
+      S.card = 4 →
+        ∃ q ∈ S, ∀ k : Fin P.nVertices, spokeInterior P q k S = ∅) :
+    P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 := by
+  classical
+  by_cases hle3 : S.card ≤ 3
+  · exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_three
+      P S hS hle3 hverts hedge hsc
+  · have h4 : S.card = 4 := by omega
+    obtain ⟨q, hq, hempty⟩ := hfour h4
+    exact shoelace_eq_cardI_add_B_div_two_sub_one_of_I_eq_four_of_spokes_empty
+      P S hS h4 hverts hedge hsc q hq hempty
 
 
 end InteriorFan
