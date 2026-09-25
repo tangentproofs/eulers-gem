@@ -1679,3 +1679,42 @@ Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
 
+
+## Update 2026-09-25 (edge-split substrate toward non-primitive ears; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanTrianglePick.lean` (honest names; **not** classical Pick):
+
+```lean
+def edgeStep
+lemma edgeStep_mem_edgeLatticePoints / edgeStep_ne_left / edgeStep_ne_right
+lemma edgeGcd_edgeStep_left / edgeGcd_edgeStep_right
+lemma latticeDet_edgeStep_mul / latticeDet_edgeStep_pos / latticeDet_edgeStep_right_pos
+lemma shoelace_add_of_edgeStep
+lemma B_add_of_edgeStep  -- needs edgeGcd(edgeStep,c)=1
+theorem edgeGcd_eq_one_of_empty_interior_edgeStep
+```
+
+Results exports: `results_edgeStep_mem_edgeLatticePoints`,
+`results_edgeGcd_edgeStep_left/right`, `results_shoelace_add_of_edgeStep`,
+`results_B_add_of_edgeStep`, `results_edgeGcd_eq_one_of_empty_interior_edgeStep`.
+
+**Prize progress:** edge-split arithmetic for dropping `PrimitiveEdges` on triangle
+ears. Empty-interior ⇒ new chord after `edgeStep` is primitive. Still **not**
+classical Pick / hyp-light I=4: need EmptyInterior inheritance on sub-triangles +
+`|det|` induction for empty (then I≤2) triangle Pick without PrimitiveEdges; then
+ear IH under nonempty spokes; then drop spokes-empty hyp on I=4.
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| I=4 / I≤4 under spokes-empty apex | Green |
+| `edgeStep` + gcd / det / shoelace split | **Green** |
+| B-additivity of edge-step (prim chord) | **Green** |
+| Empty-interior ⇒ `edgeGcd(edgeStep,c)=1` | **Green** |
+| Empty-interior triangle Pick w/o PrimitiveEdges | Open |
+| I≤2 triangle Pick w/o PrimitiveEdges | Open |
+| I=4 without spokes-empty hyp | Open |
+| Shoelace = Haar | Open |
+| EP → planar Euler | Open |
+| Classical Pick | **Still FAIL** |
+

@@ -24,6 +24,7 @@ import EulersGem.LatticeFanInterior
 import EulersGem.EarUniqueness
 import EulersGem.OnSpoke
 import EulersGem.LatticeFanInduction
+import EulersGem.LatticeFanTrianglePick
 import EulersGem.LatticeTriangleEmpty
 import EulersGem.PolytopeFaces
 import EulersGem.PlatonicOfEuler

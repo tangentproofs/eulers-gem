@@ -26,6 +26,7 @@ import EulersGem.LatticeFanInterior
 import EulersGem.EarUniqueness
 import EulersGem.OnSpoke
 import EulersGem.LatticeFanInduction
+import EulersGem.LatticeFanTrianglePick
 import EulersGem.LatticeTriangleEmpty
 
 /-!
@@ -2147,6 +2148,73 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_e
     P.shoelace = (S.card : ℚ) + (P.B : ℚ) / 2 - 1 :=
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_four_of_spokes_empty
     P S hS hcard hverts hedge hsc hfour
+
+
+/-! ### Edge-split substrate toward non-primitive ear Pick (not classical Pick) -/
+
+/-- First open lattice point on a non-primitive edge. -/
+theorem results_edgeStep_mem_edgeLatticePoints
+    (a b : ℤ × ℤ) (hd : 1 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b) :
+    EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b ∈
+      EulersGem.Picks.edgeLatticePoints a b :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeStep_mem_edgeLatticePoints a b hd
+
+/-- Left half of an edge-step is primitive. -/
+theorem results_edgeGcd_edgeStep_left
+    (a b : ℤ × ℤ) (hd : 1 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd a
+      (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_edgeStep_left a b hd
+
+/-- Right residual content after an edge-step. -/
+theorem results_edgeGcd_edgeStep_right
+    (a b : ℤ × ℤ) (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd
+      (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b =
+      EulersGem.Picks.LatticeTriangle.edgeGcd a b - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_edgeStep_right a b hd
+
+/-- Shoelace adds across an edge-step split (not classical Pick). -/
+theorem results_shoelace_add_of_edgeStep
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a
+          (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c).shoelace +
+        (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+          (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b c).shoelace :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_add_of_edgeStep a b c hD hd
+
+/-- B adds across an edge-step split when the new internal edge is primitive. -/
+theorem results_B_add_of_edgeStep
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    (hpc : EulersGem.Picks.LatticeTriangle.edgeGcd
+      (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c = 1) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a
+        (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c).B +
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon
+        (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) b c).B =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B + 2 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.B_add_of_edgeStep a b c hD hd hpc
+
+/-- **Empty-interior ⇒ new chord after edge-step is primitive** (not classical Pick).
+
+Key discharge for edge-split induction toward triangle Pick without
+`PrimitiveEdges`. Hyp-light I = 4 still open. Classical Pick FAIL. -/
+theorem results_edgeGcd_eq_one_of_empty_interior_edgeStep
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (hd : 2 ≤ EulersGem.Picks.LatticeTriangle.edgeGcd a b)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c)) :
+    EulersGem.Picks.LatticeTriangle.edgeGcd
+      (EulersGem.Picks.LatticeFan.InteriorFan.edgeStep a b) c = 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.edgeGcd_eq_one_of_empty_interior_edgeStep
+    a b c hD hd hI
+
 
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
