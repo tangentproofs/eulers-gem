@@ -2749,9 +2749,10 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one
 Bridge from combinatorial shoelace arithmetic toward Lebesgue `volume` on
 `ℝ × ℝ`. Unit / origin / arbitrary lattice triangles green; `trianglePolygon`
 volume = shoelace; fan-ear volume sum = `ofReal(P.shoelace)` under
-`FanDetsNonneg`. Polygon hull = almost-disjoint fan union (to discharge
-`volume(P) = ofReal(shoelace)`) remains open. Classical Pick FAIL —
-see `PICKS_CLAUDE_AUDIT.md`.
+`FanDetsNonneg`. Under `StrictlyConvexCCW` + injective vertices,
+`convexHullRegion = ⋃ fanTriangleRegion`. Pairwise AEDisjoint /
+`volume(P) = ∑ volume(ears)` (discharge `hvol`) remains open. Classical Pick
+FAIL — see `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 /-- Standard basis parallelepiped Haar equals product Lebesgue on `ℝ × ℝ`. -/
@@ -2834,6 +2835,35 @@ theorem results_volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
       ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) :=
   EulersGem.Picks.LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
     P S hvol hcomb
+
+/-- Fan-ear region sits inside the polygon convex hull. -/
+theorem results_fanTriangleRegion_subset_convexHullRegion
+    (P : EulersGem.Picks.LatticePolygon)
+    (i : ℕ) (hi : i < P.nVertices - 2) :
+    EulersGem.Picks.LatticeArea.fanTriangleRegion P i hi ⊆ P.convexHullRegion :=
+  EulersGem.Picks.LatticeArea.fanTriangleRegion_subset_convexHullRegion P i hi
+
+/-- Every hull point lies in some apex-`v₀` fan-ear region. -/
+theorem results_exists_mem_fanTriangleRegion_of_mem_hull
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) {p : ℝ × ℝ}
+    (hp : p ∈ P.convexHullRegion) :
+    ∃ (i : ℕ) (hi : i < P.nVertices - 2),
+      p ∈ EulersGem.Picks.LatticeArea.fanTriangleRegion P i hi :=
+  EulersGem.Picks.LatticeArea.exists_mem_fanTriangleRegion_of_mem_hull P hsc hinj hp
+
+/-- Under `StrictlyConvexCCW` + injective vertices, polygon hull equals the
+union of apex-`v₀` fan-ear regions. Not classical Pick (AEDisjoint / `hvol`
+open). -/
+theorem results_convexHullRegion_eq_iUnion_fanTriangleRegion
+    (P : EulersGem.Picks.LatticePolygon)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    P.convexHullRegion =
+      ⋃ (i : ℕ) (hi : i < P.nVertices - 2),
+        EulersGem.Picks.LatticeArea.fanTriangleRegion P i hi :=
+  EulersGem.Picks.LatticeArea.convexHullRegion_eq_iUnion_fanTriangleRegion P hsc hinj
 
 /-- Triangle volume Pick-form for I ≤ 1: Haar = `ofReal(#I + B/2 − 1)`.
 

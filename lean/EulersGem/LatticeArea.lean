@@ -33,8 +33,9 @@ Lebesgue / Haar on `ℝ × ℝ`:
   (translate to origin + origin theorem)
 
 Also: `trianglePolygon` volume = `ofReal(shoelace)`; fan triangle volumes sum to
-`ofReal(P.shoelace)` under `FanDetsNonneg`. Polygon hull = fan-union (measure
-additivity) and full compose with combinatorial Finset Pick-form remain open.
+`ofReal(P.shoelace)` under `FanDetsNonneg`; under `StrictlyConvexCCW` + injective
+vertices, `P.convexHullRegion = ⋃ᵢ fanTriangleRegion i`. Pairwise AEDisjoint /
+`volume(P) = ∑ volume(ears)` (discharge `hvol`) remains open.
 **Not** classical Pick — see `PICKS_CLAUDE_AUDIT.md`.
 -/
 
@@ -403,8 +404,433 @@ theorem volume_eq_ofReal_cardI_add_B_div_two_sub_one_of_shoelace
       ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) := by
   rw [hvol, hcomb]; norm_cast
 
-/- Polygon hull = almost-disjoint fan union (⇒ discharge `hvol` above) remains open.
-Classical Pick still FAIL. -/
+/-! ## Fan triangle regions (convex hulls of ears) -/
+
+/-- Euclidean region of fan ear `i`. -/
+def fanTriangleRegion (P : LatticePolygon) (i : ℕ) (hi : i < P.nVertices - 2) : Set V :=
+  convexHull ℝ
+    ({toReal (fanTriangle P i hi).a,
+      toReal (fanTriangle P i hi).b,
+      toReal (fanTriangle P i hi).c} : Set V)
+
+lemma fanTriangleRegion_eq_convexHull_trianglePolygon
+    (P : LatticePolygon) (i : ℕ) (hi : i < P.nVertices - 2) :
+    fanTriangleRegion P i hi =
+      (trianglePolygon (fanTriangle P i hi).a (fanTriangle P i hi).b
+        (fanTriangle P i hi).c).convexHullRegion := by
+  rw [fanTriangleRegion, trianglePolygon_convexHullRegion]
+
+/-- Each fan-ear region sits inside the polygon convex hull. -/
+theorem fanTriangleRegion_subset_convexHullRegion
+    (P : LatticePolygon) (i : ℕ) (hi : i < P.nVertices - 2) :
+    fanTriangleRegion P i hi ⊆ P.convexHullRegion := by
+  intro p hp
+  have hv := fanTriangle_vertices_mem_vertexFinset P i hi
+  have hsub :
+      ({toReal (fanTriangle P i hi).a,
+        toReal (fanTriangle P i hi).b,
+        toReal (fanTriangle P i hi).c} : Set V) ⊆
+        toReal '' (P.vertexFinset : Set (ℤ × ℤ)) := by
+    intro x hx
+    simp only [mem_insert_iff, mem_singleton_iff] at hx
+    rcases hx with rfl | rfl | rfl
+    · exact mem_image_of_mem toReal hv.1
+    · exact mem_image_of_mem toReal hv.2.1
+    · exact mem_image_of_mem toReal hv.2.2
+  have : p ∈ convexHull ℝ (toReal '' (P.vertexFinset : Set (ℤ × ℤ))) :=
+    (convexHull_mono hsub) hp
+  simpa [LatticePolygon.convexHullRegion] using this
+
+/-! ## Real half-planes + barycentric triangle membership -/
+
+lemma detR_area_sum (a b c p : V) :
+    detR a b c = detR b c p + detR a p c + detR a b p := by
+  dsimp [detR]; ring
+
+lemma detR_swap_right' (a b c : V) : detR a b c = -detR a c b := by
+  dsimp [detR]; ring
+
+lemma detR_cycle (a b c : V) : detR a b c = detR b c a := by
+  dsimp [detR]; ring
+
+lemma detR_swap_first (a b c : V) : detR a b c = -detR b a c := by
+  calc
+    detR a b c = detR b c a := detR_cycle a b c
+    _ = -detR b a c := detR_swap_right' b c a
+
+lemma detR_barycentric_x (a b c p : V) :
+    detR a b c * p.1 =
+      detR b c p * a.1 + detR a p c * b.1 + detR a b p * c.1 := by
+  dsimp [detR]; ring
+
+lemma detR_barycentric_y (a b c p : V) :
+    detR a b c * p.2 =
+      detR b c p * a.2 + detR a p c * b.2 + detR a b p * c.2 := by
+  dsimp [detR]; ring
+
+/-- Oriented areas nonneg ⇒ point lies in the Euclidean triangle. -/
+theorem mem_convexHull_of_detR_nonneg (a b c p : V)
+    (hD : 0 < detR a b c)
+    (hα : 0 ≤ detR b c p)
+    (hβ : 0 ≤ detR a p c)
+    (hγ : 0 ≤ detR a b p) :
+    p ∈ convexHull ℝ ({a, b, c} : Set V) := by
+  set α : ℝ := detR b c p / detR a b c
+  set β : ℝ := detR a p c / detR a b c
+  set γ : ℝ := detR a b p / detR a b c
+  have hD0 : detR a b c ≠ 0 := ne_of_gt hD
+  have hα0 : 0 ≤ α := div_nonneg hα (le_of_lt hD)
+  have hβ0 : 0 ≤ β := div_nonneg hβ (le_of_lt hD)
+  have hγ0 : 0 ≤ γ := div_nonneg hγ (le_of_lt hD)
+  have hsum : α + β + γ = 1 := by
+    dsimp [α, β, γ]
+    have : (detR b c p + detR a p c + detR a b p) / detR a b c = 1 := by
+      rw [← detR_area_sum a b c p, div_self hD0]
+    convert this using 1; ring
+  have heq : α • a + β • b + γ • c = p := by
+    apply Prod.ext
+    · change α * a.1 + β * b.1 + γ * c.1 = p.1
+      dsimp [α, β, γ]
+      have hid := detR_barycentric_x a b c p
+      have :
+          (detR b c p * a.1 + detR a p c * b.1 + detR a b p * c.1) / detR a b c =
+            p.1 := by
+        calc
+          _ = (detR a b c * p.1) / detR a b c := by congr 1; linarith
+          _ = p.1 := by field_simp [hD0]
+      convert this using 1; ring
+    · change α * a.2 + β * b.2 + γ * c.2 = p.2
+      dsimp [α, β, γ]
+      have hid := detR_barycentric_y a b c p
+      have :
+          (detR b c p * a.2 + detR a p c * b.2 + detR a b p * c.2) / detR a b c =
+            p.2 := by
+        calc
+          _ = (detR a b c * p.2) / detR a b c := by congr 1; linarith
+          _ = p.2 := by field_simp [hD0]
+      convert this using 1; ring
+  refine mem_convexHull_of_exists_fintype
+    (w := ![α, β, γ]) (z := ![a, b, c]) ?_ ?_ ?_ ?_
+  · intro i; fin_cases i <;> simp [hα0, hβ0, hγ0]
+  · simp [Fin.sum_univ_three, hsum]
+  · intro i; fin_cases i <;> simp
+  · simpa [Fin.sum_univ_three] using heq
+
+/-- Hull points lie weakly left of every directed edge (real form). -/
+theorem detR_edge_nonneg_of_ConvexCCW_of_mem_hull
+    (P : LatticePolygon) (h : ConvexCCW P) {p : V}
+    (hp : p ∈ P.convexHullRegion) (i : Fin P.nVertices) :
+    0 ≤ detR (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i))) p := by
+  classical
+  obtain ⟨ι, _, w, z, hw0, hw1, hz, hsum⟩ :=
+    (mem_convexHull_iff_exists_fintype (R := ℝ) (E := V)).1 hp
+  set A := toReal (P.vertex i)
+  set B := toReal (P.vertex (P.nextIdx i))
+  have hφ_nonneg : ∀ j : Fin P.nVertices, 0 ≤ detR A B (toReal (P.vertex j)) := by
+    intro j
+    have hZ := h i j
+    have : (0 : ℝ) ≤ (latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j) : ℝ) :=
+      Int.cast_nonneg hZ
+    simpa [A, B, detR_toReal] using this
+  have hz' : ∀ k, ∃ j : Fin P.nVertices, z k = toReal (P.vertex j) := by
+    intro k
+    obtain ⟨pt, hpt, heq⟩ := (mem_image _ _ _).1 (hz k)
+    have hpV : pt ∈ (Finset.univ : Finset (Fin P.nVertices)).image P.vertex := by
+      rw [← vertexFinset_eq_univ_image P]; exact hpt
+    obtain ⟨j, _, hj⟩ := Finset.mem_image.mp hpV
+    exact ⟨j, by rw [← heq, ← hj]⟩
+  have hφz : ∀ k, 0 ≤ detR A B (z k) := by
+    intro k; obtain ⟨j, hj⟩ := hz' k; simpa [hj] using hφ_nonneg j
+  have hφ_sum : detR A B p = ∑ k, w k * detR A B (z k) := by
+    have := detR_sum_smul A B w z hw1
+    simpa [hsum] using this
+  have hnn : 0 ≤ ∑ k, w k * detR A B (z k) :=
+    Finset.sum_nonneg fun k _ => mul_nonneg (hw0 k) (hφz k)
+  simpa [hφ_sum] using hnn
+
+/-- Collinear hull point on a polygon edge lies on that edge segment. -/
+theorem mem_segment_of_detR_eq_zero_of_mem_hull
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) {p : V}
+    (hp : p ∈ P.convexHullRegion) (i : Fin P.nVertices)
+    (hdet : detR (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i))) p = 0) :
+    p ∈ segment ℝ (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i))) := by
+  classical
+  obtain ⟨ι, _, w, z, hw0, hw1, hz, hsum⟩ :=
+    (mem_convexHull_iff_exists_fintype (R := ℝ) (E := V)).1 hp
+  set A := toReal (P.vertex i)
+  set B := toReal (P.vertex (P.nextIdx i))
+  have hext := VerticesExtreme_of_strictlyConvexCCW P hsc hinj
+  have hABne : A ≠ B := by
+    intro h
+    have hv : P.vertex i = P.vertex (P.nextIdx i) :=
+      toReal_injective (by simpa [A, B] using h)
+    exact (InteriorFan.nextIdx_ne P i) (Eq.symm (hinj hv))
+  have hφ_nonneg : ∀ j : Fin P.nVertices, 0 ≤ detR A B (toReal (P.vertex j)) := by
+    intro j
+    have hZ := hsc.1 i j
+    have : (0 : ℝ) ≤ (latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j) : ℝ) :=
+      Int.cast_nonneg hZ
+    simpa [A, B, detR_toReal] using this
+  have hz' : ∀ k, ∃ j : Fin P.nVertices, z k = toReal (P.vertex j) := by
+    intro k
+    obtain ⟨pt, hpt, heq⟩ := (mem_image _ _ _).1 (hz k)
+    have hpV : pt ∈ (Finset.univ : Finset (Fin P.nVertices)).image P.vertex := by
+      rw [← vertexFinset_eq_univ_image P]; exact hpt
+    obtain ⟨j, _, hj⟩ := Finset.mem_image.mp hpV
+    exact ⟨j, by rw [← heq, ← hj]⟩
+  have hφz : ∀ k, 0 ≤ detR A B (z k) := by
+    intro k; obtain ⟨j, hj⟩ := hz' k; simpa [hj] using hφ_nonneg j
+  have hφ_sum : ∑ k, w k * detR A B (z k) = 0 := by
+    have := detR_sum_smul A B w z hw1
+    simpa [hsum, hdet] using this.symm
+  have hφ_term : ∀ k, w k * detR A B (z k) = 0 := by
+    intro k
+    have hnn : ∀ k ∈ (Finset.univ : Finset ι), 0 ≤ w k * detR A B (z k) :=
+      fun k _ => mul_nonneg (hw0 k) (hφz k)
+    exact (Finset.sum_eq_zero_iff_of_nonneg hnn).mp hφ_sum k (Finset.mem_univ k)
+  have hsupp : ∀ k, 0 < w k → z k = A ∨ z k = B := by
+    intro k hwk
+    have hdetz : detR A B (z k) = 0 :=
+      (mul_eq_zero.mp (hφ_term k)).resolve_left (ne_of_gt hwk)
+    obtain ⟨j, hj⟩ := hz' k
+    have hdetj : latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j) = 0 := by
+      have : (latticeDet (P.vertex i) (P.vertex (P.nextIdx i)) (P.vertex j) : ℝ) = 0 := by
+        simpa [A, B, hj, detR_toReal] using hdetz
+      exact_mod_cast this
+    by_cases hij : j = i
+    · exact Or.inl (by simp [hj, hij, A])
+    · by_cases hijn : j = P.nextIdx i
+      · exact Or.inr (by simp [hj, hijn, B])
+      · exact (not_collinear_of_VerticesExtreme P hext hinj i (P.nextIdx i) j
+            (InteriorFan.nextIdx_ne P i).symm (Ne.symm hij) (Ne.symm hijn) hdetj).elim
+  have hterm : ∀ k, w k • z k =
+      (if z k = A then w k else 0) • A + (if z k = B then w k else 0) • B := by
+    intro k
+    by_cases hw : w k = 0
+    · simp [hw]
+    · have hwp : 0 < w k := lt_of_le_of_ne (hw0 k) (Ne.symm hw)
+      rcases hsupp k hwp with hzA | hzB
+      · rw [hzA]; simp [hABne]
+      · rw [hzB]; simp [show ¬ B = A from fun h => hABne h.symm]
+  have hsumAB :
+      p =
+        (∑ k, if z k = A then w k else 0) • A +
+          (∑ k, if z k = B then w k else 0) • B := by
+    calc
+      p = ∑ k, w k • z k := hsum.symm
+      _ = ∑ k, ((if z k = A then w k else 0) • A +
+            (if z k = B then w k else 0) • B) := by
+              refine Finset.sum_congr rfl fun k _ => hterm k
+      _ = (∑ k, (if z k = A then w k else 0) • A) +
+            (∑ k, (if z k = B then w k else 0) • B) := by
+              simp only [Finset.sum_add_distrib]
+      _ = (∑ k, if z k = A then w k else 0) • A +
+            (∑ k, if z k = B then w k else 0) • B := by
+              simp only [Finset.sum_smul]
+  set wA := ∑ k, if z k = A then w k else 0
+  set wB := ∑ k, if z k = B then w k else 0
+  have hwA0 : 0 ≤ wA :=
+    Finset.sum_nonneg fun k _ => by split_ifs <;> simp [hw0 k]
+  have hwB0 : 0 ≤ wB :=
+    Finset.sum_nonneg fun k _ => by split_ifs <;> simp [hw0 k]
+  have hwAB1 : wA + wB = 1 := by
+    have : wA + wB = ∑ k, w k := by
+      dsimp [wA, wB]
+      rw [← Finset.sum_add_distrib]
+      refine Finset.sum_congr rfl fun k _ => ?_
+      by_cases hA : z k = A
+      · simp [hA, hABne]
+      · by_cases hB : z k = B
+        · have hBA : ¬ B = A := fun h => hABne h.symm
+          simp [hB, hBA]
+        · by_cases hw : 0 < w k
+          · exact (hsupp k hw).elim (fun h => (hA h).elim) (fun h => (hB h).elim)
+          · have hw0' : w k = 0 := le_antisymm (le_of_not_gt hw) (hw0 k)
+            simp [hA, hB, hw0']
+    simpa [this] using hw1
+  refine ⟨wA, wB, hwA0, hwB0, hwAB1, ?_⟩
+  simpa [wA, wB] using hsumAB.symm
+
+/-! ## Continuous fan covering under StrictlyConvexCCW -/
+
+private lemma nextIdx_zero (P : LatticePolygon) :
+    P.nextIdx ⟨0, P.nVertices_pos⟩ =
+      ⟨1, by
+        have hn : 3 ≤ P.nVertices := P.length_ge
+        omega⟩ := by
+  apply Fin.ext
+  have hn : 3 ≤ P.nVertices := P.length_ge
+  have h1 : 1 < P.nVertices := by omega
+  simp [LatticePolygon.nextIdx, Nat.mod_eq_of_lt h1]
+
+private lemma nextIdx_last (P : LatticePolygon) :
+    P.nextIdx ⟨P.nVertices - 1, by
+        have hn : 3 ≤ P.nVertices := P.length_ge
+        omega⟩ =
+      ⟨0, P.nVertices_pos⟩ := by
+  apply Fin.ext
+  have hn : 3 ≤ P.nVertices := P.length_ge
+  have : P.nVertices - 1 + 1 = P.nVertices := by omega
+  simp [LatticePolygon.nextIdx, this]
+
+private lemma nextIdx_val_of_lt (P : LatticePolygon) (i : Fin P.nVertices)
+    (h : i.val + 1 < P.nVertices) :
+    (P.nextIdx i).val = i.val + 1 := by
+  simp [LatticePolygon.nextIdx, Nat.mod_eq_of_lt h]
+
+private lemma fanTriangleRegion_eq_of_vertices
+    (P : LatticePolygon) (j : ℕ) (hj : j < P.nVertices - 2)
+    (b c : ℤ × ℤ)
+    (hb : P.vertex ⟨j + 1, by omega⟩ = b)
+    (hc : P.vertex ⟨j + 2, by omega⟩ = c) :
+    fanTriangleRegion P j hj =
+      convexHull ℝ ({toReal (P.vertex ⟨0, P.nVertices_pos⟩), toReal b, toReal c} : Set V) := by
+  dsimp [fanTriangleRegion, fanTriangle]
+  have hb' : toReal (P.vertex ⟨j + 1, by omega⟩) = toReal b := congrArg toReal hb
+  have hc' : toReal (P.vertex ⟨j + 2, by omega⟩) = toReal c := congrArg toReal hc
+  rw [hb', hc']
+
+/-- Every hull point lies in some apex-`v₀` fan-ear region. -/
+theorem exists_mem_fanTriangleRegion_of_mem_hull
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) {p : V}
+    (hp : p ∈ P.convexHullRegion) :
+    ∃ (i : ℕ) (hi : i < P.nVertices - 2), p ∈ fanTriangleRegion P i hi := by
+  classical
+  set A : V := toReal (P.vertex ⟨0, P.nVertices_pos⟩)
+  set f : Fin P.nVertices → ℝ := fun i => detR A (toReal (P.vertex i)) p
+  have hf0 : f ⟨0, P.nVertices_pos⟩ = 0 := by
+    dsimp [f, A, detR]; ring
+  have hge : ∃ i, 0 ≤ f i := ⟨⟨0, P.nVertices_pos⟩, by simp [hf0]⟩
+  have hle : ∃ i, f i ≤ 0 := ⟨⟨0, P.nVertices_pos⟩, by simp [hf0]⟩
+  obtain ⟨i, hi_ge, hi_le⟩ := exists_cyclic_nonneg_nonpos_transition P f hge hle
+  have hpos := FanDetsPos_of_strictlyConvexCCW P hsc hinj
+  by_cases hi0 : i.val = 0
+  · -- Spoke `v₀v₁`.
+    have hi_eq : i = ⟨0, P.nVertices_pos⟩ := Fin.ext hi0
+    have hnext := nextIdx_zero P
+    have hedge : 0 ≤ f ⟨1, by have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩ := by
+      have h := detR_edge_nonneg_of_ConvexCCW_of_mem_hull P hsc.1 hp
+        ⟨0, P.nVertices_pos⟩
+      simpa [f, A, hnext] using h
+    have hf1' : f ⟨1, by have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩ = 0 := by
+      have hle' : f ⟨1, by have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩ ≤ 0 := by
+        simpa [hi_eq, hnext] using hi_le
+      exact le_antisymm hle' hedge
+    have hdet0 : detR A (toReal (P.vertex (P.nextIdx ⟨0, P.nVertices_pos⟩))) p = 0 := by
+      simpa [A, f, hnext] using hf1'
+    have hseg : p ∈
+        segment ℝ A (toReal (P.vertex ⟨1, by have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩)) := by
+      have h := mem_segment_of_detR_eq_zero_of_mem_hull P hsc hinj hp
+        ⟨0, P.nVertices_pos⟩ hdet0
+      simpa [A, hnext] using h
+    have hi_fan : (0 : ℕ) < P.nVertices - 2 := by have hn : 3 ≤ P.nVertices := P.length_ge; omega
+    refine ⟨0, hi_fan, ?_⟩
+    have ha : A ∈ fanTriangleRegion P 0 hi_fan :=
+      subset_convexHull _ _ (by simp [fanTriangleRegion, fanTriangle, A])
+    have hb : toReal (P.vertex ⟨1, by have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩) ∈
+        fanTriangleRegion P 0 hi_fan :=
+      subset_convexHull _ _ (by simp [fanTriangleRegion, fanTriangle])
+    exact (convex_convexHull ℝ _).segment_subset ha hb hseg
+  · by_cases hilast : i.val = P.nVertices - 1
+    · -- Closing spoke `v_{n-1}v₀`.
+      have hi_eq : i = ⟨P.nVertices - 1, by have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩ :=
+        Fin.ext hilast
+      have hnext := nextIdx_last P
+      have hedge : 0 ≤ detR (toReal (P.vertex i)) A p := by
+        have h := detR_edge_nonneg_of_ConvexCCW_of_mem_hull P hsc.1 hp i
+        simpa [hi_eq, hnext, A] using h
+      have hswap : detR (toReal (P.vertex i)) A p = -f i := by
+        dsimp [f]; exact detR_swap_first _ _ _
+      have hf0' : f i = 0 := by linarith
+      have hseg : p ∈ segment ℝ (toReal (P.vertex i)) A := by
+        have h := mem_segment_of_detR_eq_zero_of_mem_hull P hsc hinj hp i (by
+          have : detR (toReal (P.vertex i)) A p = 0 := by
+            rw [hswap, hf0', neg_zero]
+          simpa [hi_eq, hnext, A] using this)
+        simpa [hi_eq, hnext, A] using h
+      set j : ℕ := P.nVertices - 3
+      have hj : j < P.nVertices - 2 := by have hn : 3 ≤ P.nVertices := P.length_ge; omega
+      refine ⟨j, hj, ?_⟩
+      have hA : A ∈ fanTriangleRegion P j hj :=
+        subset_convexHull _ _ (by simp [fanTriangleRegion, fanTriangle, A])
+      have hVi : toReal (P.vertex i) ∈ fanTriangleRegion P j hj := by
+        apply subset_convexHull
+        have hj2 : j + 2 = i.val := by
+          simp only [j, hi_eq]; omega
+        have hc : P.vertex ⟨j + 2, by
+            have hn : 3 ≤ P.nVertices := P.length_ge; omega⟩ = P.vertex i := by
+          apply congrArg; exact Fin.ext hj2
+        simp only [fanTriangle, mem_insert_iff, mem_singleton_iff]
+        exact Or.inr (Or.inr (congrArg toReal hc.symm))
+      exact (convex_convexHull ℝ _).segment_subset hVi hA hseg
+    · -- Generic outer-edge transition.
+      have hi_lt : i.val + 1 < P.nVertices := by
+        have : i.val ≠ P.nVertices - 1 := hilast
+        have : i.val < P.nVertices := i.isLt
+        omega
+      have hnext_val := nextIdx_val_of_lt P i hi_lt
+      set j : ℕ := i.val - 1
+      have hj : j < P.nVertices - 2 := by omega
+      have hj1 : j + 1 = i.val := by omega
+      have hj2 : j + 2 = i.val + 1 := by omega
+      have hγ : 0 ≤ detR A (toReal (P.vertex i)) p := by simpa [f] using hi_ge
+      have hβ : 0 ≤ detR A p (toReal (P.vertex (P.nextIdx i))) := by
+        have hfn : f (P.nextIdx i) ≤ 0 := hi_le
+        have hswap : detR A p (toReal (P.vertex (P.nextIdx i))) =
+            -f (P.nextIdx i) := by
+          dsimp [f]
+          exact detR_swap_right' A p (toReal (P.vertex (P.nextIdx i)))
+        linarith
+      have hα : 0 ≤ detR (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i))) p :=
+        detR_edge_nonneg_of_ConvexCCW_of_mem_hull P hsc.1 hp i
+      have hb_vert : P.vertex ⟨j + 1, by omega⟩ = P.vertex i := by
+        apply congrArg; exact Fin.ext hj1
+      have hc_vert : P.vertex ⟨j + 2, by omega⟩ = P.vertex (P.nextIdx i) := by
+        apply congrArg
+        apply Fin.ext
+        calc
+          j + 2 = i.val + 1 := hj2
+          _ = (P.nextIdx i).val := hnext_val.symm
+      have hD : 0 < detR A (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i))) := by
+        have hfan : 0 < fanDet P j hj := hpos j hj
+        have hdet : fanDet P j hj =
+            latticeDet (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex i)
+              (P.vertex (P.nextIdx i)) := by
+          simp only [fanDet, Triangle.det, fanTriangle, hb_vert, hc_vert]
+        have : (0 : ℝ) <
+            (latticeDet (P.vertex ⟨0, P.nVertices_pos⟩) (P.vertex i)
+              (P.vertex (P.nextIdx i)) : ℝ) :=
+          by exact_mod_cast (hdet ▸ hfan)
+        simpa [A, detR_toReal] using this
+      refine ⟨j, hj, ?_⟩
+      have hmem := mem_convexHull_of_detR_nonneg A
+        (toReal (P.vertex i)) (toReal (P.vertex (P.nextIdx i))) p hD hα hβ hγ
+      have hreg := fanTriangleRegion_eq_of_vertices P j hj
+        (P.vertex i) (P.vertex (P.nextIdx i)) hb_vert hc_vert
+      simpa [hreg, A] using hmem
+
+/-- Under `StrictlyConvexCCW` + injective vertices, the polygon hull equals the
+union of apex-`v₀` fan-ear regions. -/
+theorem convexHullRegion_eq_iUnion_fanTriangleRegion
+    (P : LatticePolygon) (hsc : StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex) :
+    P.convexHullRegion =
+      ⋃ (i : ℕ) (hi : i < P.nVertices - 2), fanTriangleRegion P i hi := by
+  ext p
+  constructor
+  · intro hp
+    obtain ⟨i, hi, hmem⟩ := exists_mem_fanTriangleRegion_of_mem_hull P hsc hinj hp
+    exact mem_iUnion.2 ⟨i, mem_iUnion.2 ⟨hi, hmem⟩⟩
+  · intro hp
+    rcases mem_iUnion.1 hp with ⟨i, hi'⟩
+    rcases mem_iUnion.1 hi' with ⟨hi, hmem⟩
+    exact fanTriangleRegion_subset_convexHullRegion P i hi hmem
+
+/- Pairwise AEDisjoint of fan ears (⇒ `volume(P) = ∑ volume(ears)` ⇒ discharge
+`hvol`) remains open. Landed: `convexHullRegion = ⋃ fanTriangleRegion` under
+`StrictlyConvexCCW` + injective vertices. Classical Pick still FAIL. -/
 
 end
 end LatticeArea

@@ -2133,3 +2133,37 @@ theorem results_volume_trianglePolygon_eq_ofReal_cardI_add_B_div_two_sub_one_of_
       ofReal (#S + B/2 - 1)
 ```
 
+## Update 2026-09-25 (fan hull = ⋃ ears; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeArea.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem fanTriangleRegion_subset_convexHullRegion (P) (i) (hi) :
+    fanTriangleRegion P i hi ⊆ P.convexHullRegion
+
+theorem exists_mem_fanTriangleRegion_of_mem_hull
+    (P) (hsc : StrictlyConvexCCW P) (hinj) {p} (hp : p ∈ P.convexHullRegion) :
+    ∃ i hi, p ∈ fanTriangleRegion P i hi
+
+theorem convexHullRegion_eq_iUnion_fanTriangleRegion
+    (P) (hsc : StrictlyConvexCCW P) (hinj) :
+    P.convexHullRegion = ⋃ (i) (hi : i < n-2), fanTriangleRegion P i hi
+```
+
+Proof: sector sign-change of `detR(v₀, vᵢ, p)` around the apex (reuse
+`exists_cyclic_nonneg_nonpos_transition`) + edge half-planes from `ConvexCCW` +
+barycentric reconstitution via `mem_convexHull_of_detR_nonneg`; spoke cases
+(`i=0` / `i=n-1`) collapse to edge segments inside the first/last ear.
+
+Results exports: `results_fanTriangleRegion_subset_convexHullRegion`,
+`results_exists_mem_fanTriangleRegion_of_mem_hull`,
+`results_convexHullRegion_eq_iUnion_fanTriangleRegion`.
+
+**Still open for classical Pick:**
+* Pairwise AEDisjoint of fan-ear regions (interiors disjoint / shared spokes
+  Haar-null) ⇒ `volume(P) = ∑ volume(ears)` ⇒ discharge `hvol`
+* EP → planar Euler; general triangulation existence
+
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+Classical Pick **FAIL** — no rename.
+
