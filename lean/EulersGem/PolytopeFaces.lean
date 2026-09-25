@@ -183,6 +183,13 @@ lemma inner_le_of_mem_convexHull {V : Set E} {a : E} {c : ℝ}
     ∀ x ∈ convexHull ℝ V, ⟪a, x⟫ ≤ c := fun _ hx =>
   convexHull_min (fun v hv => h v hv) (convex_halfSpace_le (isLinearMap_inner a) c) hx
 
+/-- A functional constant on the generators is constant on the hull. -/
+lemma inner_eq_of_mem_convexHull {V : Set E} {a : E} {c : ℝ}
+    (h : ∀ v ∈ V, ⟪a, v⟫ = c) :
+    ∀ x ∈ convexHull ℝ V, ⟪a, x⟫ = c := fun _ hx =>
+  convexHull_min (fun v hv => h v hv)
+    (convex_hyperplane (f := fun y => ⟪a, y⟫) (isLinearMap_inner a) c) hx
+
 /-- **The supported face of a V-polytope is the hull of the generators it contains.** -/
 theorem inter_hyperplane_eq_convexHull_argmax {V : Set E} {a : E} {c : ℝ}
     (hle : ∀ v ∈ V, ⟪a, v⟫ ≤ c) :

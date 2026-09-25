@@ -238,5 +238,267 @@ lemma face_nonempty (c : Fin n → Option Bool) : (face b c).Nonempty :=
 lemma face_subset_body (c : Fin n → Option Bool) : face b c ⊆ body b :=
   convexHull_mono (by rintro y ⟨σ, -, rfl⟩; exact ⟨σ, rfl⟩)
 
+/-! ## Every subcube is a face -/
+
+lemma sgn_injective {s t : Bool} (h : sgn s = sgn t) : s = t := by
+  cases s <;> cases t
+  · rfl
+  · exfalso; rw [sgn_false, sgn_true] at h; norm_num at h
+  · exfalso; rw [sgn_true, sgn_false] at h; norm_num at h
+  · rfl
+
+/-- The supporting functional of `c` evaluated at a corner. -/
+lemma inner_normal_corner (c : Fin n → Option Bool) (σ : Fin n → Bool) :
+    ⟪normal b c, corner b σ⟫ = ∑ i, coeff c i * sgn (σ i) := by
+  rw [normal_eq_sum, sum_inner]
+  refine Finset.sum_congr rfl fun i _ => ?_
+  rw [real_inner_smul_left, inner_b_corner]
+
+lemma coeff_mul_sgn_le_one (c : Fin n → Option Bool) (σ : Fin n → Bool) (i : Fin n)
+    (hi : i ∈ supp c) : coeff c i * sgn (σ i) ≤ 1 := by
+  rcases hc : c i with _ | s
+  · exact absurd (mem_supp.mp hi) (by rw [hc]; simp)
+  · rw [coeff_some hc]
+    exact sgn_mul_sgn_le_one _ _
+
+lemma sum_coeff_mul_sgn_eq_supp (c : Fin n → Option Bool) (σ : Fin n → Bool) :
+    ∑ i, coeff c i * sgn (σ i) = ∑ i ∈ supp c, coeff c i * sgn (σ i) :=
+  (Finset.sum_subset (Finset.subset_univ _) fun i _ hi => by
+    rw [coeff_eq_zero_of_notMem_supp hi, zero_mul]).symm
+
+lemma inner_normal_corner_le (c : Fin n → Option Bool) (σ : Fin n → Bool) :
+    ⟪normal b c, corner b σ⟫ ≤ ((supp c).card : ℝ) := by
+  rw [inner_normal_corner, sum_coeff_mul_sgn_eq_supp]
+  calc ∑ i ∈ supp c, coeff c i * sgn (σ i) ≤ ∑ _i ∈ supp c, (1 : ℝ) :=
+        Finset.sum_le_sum fun i hi => coeff_mul_sgn_le_one c σ i hi
+    _ = ((supp c).card : ℝ) := by simp
+
+/-- The functional `normal b c` attains its bound `|supp c|` exactly at the corners
+selected by `c`. -/
+lemma inner_normal_corner_eq_iff (c : Fin n → Option Bool) (σ : Fin n → Bool) :
+    ⟪normal b c, corner b σ⟫ = ((supp c).card : ℝ) ↔ Agrees c σ := by
+  rw [inner_normal_corner, sum_coeff_mul_sgn_eq_supp]
+  constructor
+  · intro heq i s hs
+    by_contra hne
+    have hi : i ∈ supp c := mem_supp.mpr (by rw [hs]; rfl)
+    have hterm : coeff c i * sgn (σ i) < 1 := by
+      rw [coeff_some hs, sgn_mul_sgn_of_ne (fun h => hne h.symm)]
+      norm_num
+    have hstrict : ∑ j ∈ supp c, coeff c j * sgn (σ j) < ∑ _j ∈ supp c, (1 : ℝ) :=
+      Finset.sum_lt_sum (fun j hj => coeff_mul_sgn_le_one c σ j hj) ⟨i, hi, hterm⟩
+    rw [heq] at hstrict
+    simp at hstrict
+  · intro hagree
+    have hterm : ∀ i ∈ supp c, coeff c i * sgn (σ i) = 1 := by
+      intro i hi
+      rcases hc : c i with _ | s
+      · exact absurd (mem_supp.mp hi) (by rw [hc]; simp)
+      · rw [coeff_some hc, hagree i s hc]
+        exact sgn_mul_self _
+    rw [Finset.sum_congr rfl hterm]
+    simp
+
+lemma argmax_eq_image_cornerIdx (c : Fin n → Option Bool) :
+    {v ∈ Set.range (corner b) | ⟪normal b c, v⟫ = ((supp c).card : ℝ)}
+      = corner b '' ↑(cornerIdx c) := by
+  ext y
+  constructor
+  · rintro ⟨⟨σ, rfl⟩, hσ⟩
+    exact ⟨σ, Finset.mem_coe.mpr (mem_cornerIdx.mpr
+      ((inner_normal_corner_eq_iff b c σ).mp hσ)), rfl⟩
+  · rintro ⟨σ, hσ, rfl⟩
+    exact ⟨⟨σ, rfl⟩, (inner_normal_corner_eq_iff b c σ).mpr
+      (mem_cornerIdx.mp (Finset.mem_coe.mp hσ))⟩
+
+/-- **Every subcube is a face of the cube**, cut out by the supporting hyperplane of `c`. -/
+theorem isFaceOf_face (c : Fin n → Option Bool) : IsFaceOf (body b) (face b c) := by
+  have h := isFaceOf_convexHull_argmax (V := Set.range (corner b)) (a := normal b c)
+    (c := ((supp c).card : ℝ))
+    (fun v hv => by
+      obtain ⟨σ, rfl⟩ := hv
+      exact inner_normal_corner_le b c σ)
+  rw [argmax_eq_image_cornerIdx b c] at h
+  exact h
+
+/-! ## Coordinates are constant on a face -/
+
+/-- On a face, the coordinates fixed by `c` take the prescribed values. -/
+lemma inner_b_eq_of_mem_face {c : Fin n → Option Bool} {i : Fin n} {s : Bool}
+    (hc : c i = some s) {x : E} (hx : x ∈ face b c) : ⟪b i, x⟫ = sgn s := by
+  refine inner_eq_of_mem_convexHull (fun v hv => ?_) x hx
+  obtain ⟨σ, hσ, rfl⟩ := hv
+  rw [inner_b_corner, mem_cornerIdx.mp (Finset.mem_coe.mp hσ) i s hc]
+
+lemma corner_mem_face_iff {c : Fin n → Option Bool} {σ : Fin n → Bool} :
+    corner b σ ∈ face b c ↔ σ ∈ cornerIdx c := by
+  refine ⟨fun h => mem_cornerIdx.mpr fun i s hs => ?_,
+    fun h => subset_convexHull ℝ _ ⟨σ, Finset.mem_coe.mpr h, rfl⟩⟩
+  have h1 := inner_b_eq_of_mem_face b hs h
+  rw [inner_b_corner] at h1
+  exact sgn_injective h1
+
+lemma face_subset_iff {c c' : Fin n → Option Bool} :
+    face b c ⊆ face b c' ↔ cornerIdx c ⊆ cornerIdx c' := by
+  refine ⟨fun h σ hσ => ?_, fun h => convexHull_mono (Set.image_mono (by exact_mod_cast h))⟩
+  exact (corner_mem_face_iff b).mp (h ((corner_mem_face_iff b).mpr hσ))
+
+/-! ## The indexing is injective -/
+
+lemma update_mem_cornerIdx {c : Fin n → Option Bool} {i : Fin n} (hc : c i = none)
+    (σ : Fin n → Bool) (hσ : σ ∈ cornerIdx c) (v : Bool) :
+    Function.update σ i v ∈ cornerIdx c := by
+  refine mem_cornerIdx.mpr fun j s hs => ?_
+  by_cases hij : j = i
+  · rw [hij, hc] at hs; exact absurd hs (by simp)
+  · rw [Function.update_of_ne hij]
+    exact mem_cornerIdx.mp hσ j s hs
+
+lemma eq_some_of_forall_eq {c : Fin n → Option Bool} {i : Fin n} {s : Bool}
+    (h : ∀ σ ∈ cornerIdx c, σ i = s) : c i = some s := by
+  rcases hc : c i with _ | s'
+  · exfalso
+    have h1 := h _ (update_mem_cornerIdx hc (pick c) (pick_mem_cornerIdx c) (!s))
+    rw [Function.update_self] at h1
+    exact (Bool.not_ne_self s) h1
+  · have h2 := h _ (pick_mem_cornerIdx c)
+    have hps : pick c i = s' := by simp [pick, hc]
+    rw [hps] at h2
+    rw [h2]
+
+lemma cornerIdx_injective : Function.Injective (cornerIdx (n := n)) := by
+  intro c c' h
+  funext i
+  refine Option.ext fun s => ?_
+  constructor
+  · intro hs
+    refine eq_some_of_forall_eq (c := c') fun σ hσ => ?_
+    rw [← h] at hσ
+    exact mem_cornerIdx.mp hσ i s hs
+  · intro hs
+    refine eq_some_of_forall_eq (c := c) fun σ hσ => ?_
+    rw [h] at hσ
+    exact mem_cornerIdx.mp hσ i s hs
+
+lemma face_injective : Function.Injective (face b) := fun c c' h =>
+  cornerIdx_injective (Finset.Subset.antisymm ((face_subset_iff b).mp h.subset)
+    ((face_subset_iff b).mp h.symm.subset))
+
+
+/-! ## Dimension of a face: `n` minus the number of fixed coordinates -/
+
+/-- Coordinates left free by `c`. -/
+def freeIdx (c : Fin n → Option Bool) : Finset (Fin n) :=
+  Finset.univ.filter fun i => ¬ ((c i).isSome = true)
+
+lemma mem_freeIdx {c : Fin n → Option Bool} {i : Fin n} :
+    i ∈ freeIdx c ↔ c i = none := by
+  simp [freeIdx, Option.isSome_iff_exists, Option.eq_none_iff_forall_ne_some]
+
+lemma card_freeIdx_add_card_supp (c : Fin n → Option Bool) :
+    (freeIdx c).card + (supp c).card = n := by
+  have h := Finset.card_filter_add_card_filter_not
+    (s := (Finset.univ : Finset (Fin n))) (p := fun i => ((c i).isSome = true))
+  simp only [Finset.card_univ, Fintype.card_fin] at h
+  rw [supp, freeIdx]
+  omega
+
+/-- Changing one coordinate of a corner moves it along that basis vector. -/
+lemma corner_sub_corner_update (σ : Fin n → Bool) (j : Fin n) (v : Bool) :
+    corner b σ - corner b (Function.update σ j v) = (sgn (σ j) - sgn v) • b j := by
+  have h : ∀ i : Fin n, sgn (σ i) • b i - sgn (Function.update σ j v i) • b i
+      = if i = j then (sgn (σ j) - sgn v) • b j else 0 := by
+    intro i
+    by_cases hij : i = j
+    · subst hij
+      rw [Function.update_self, if_pos rfl, sub_smul]
+    · rw [Function.update_of_ne hij, if_neg hij, sub_self]
+  calc corner b σ - corner b (Function.update σ j v)
+      = ∑ i, (sgn (σ i) • b i - sgn (Function.update σ j v i) • b i) := by
+        rw [corner, corner, Finset.sum_sub_distrib]
+    _ = ∑ i, (if i = j then (sgn (σ j) - sgn v) • b j else 0) :=
+        Finset.sum_congr rfl fun i _ => h i
+    _ = (sgn (σ j) - sgn v) • b j := by simp
+
+lemma sgn_sub_sgn_not (s : Bool) : sgn s - sgn (!s) = 2 * sgn s := by
+  cases s <;> norm_num [sgn]
+
+/-- A free basis direction lies in the direction of the face. -/
+lemma b_mem_vectorSpan_face {c : Fin n → Option Bool} {j : Fin n} (hj : c j = none) :
+    b j ∈ vectorSpan ℝ (face b c) := by
+  have h1 : corner b (pick c) ∈ face b c :=
+    (corner_mem_face_iff b).mpr (pick_mem_cornerIdx c)
+  have h2 : corner b (Function.update (pick c) j (!(pick c j))) ∈ face b c :=
+    (corner_mem_face_iff b).mpr
+      (update_mem_cornerIdx hj (pick c) (pick_mem_cornerIdx c) _)
+  have hdiff := vsub_mem_vectorSpan ℝ h1 h2
+  rw [vsub_eq_sub, corner_sub_corner_update, sgn_sub_sgn_not] at hdiff
+  have hne : (2 : ℝ) * sgn (pick c j) ≠ 0 := by
+    have := sgn_mul_self (pick c j)
+    intro h0
+    rcases mul_eq_zero.mp h0 with h | h
+    · norm_num at h
+    · rw [h] at this; norm_num at this
+  have := Submodule.smul_mem _ ((2 * sgn (pick c j))⁻¹) hdiff
+  rwa [smul_smul, inv_mul_cancel₀ hne, one_smul] at this
+
+/-- Differences within a face are supported on the free coordinates. -/
+lemma vectorSpan_face_le (c : Fin n → Option Bool) :
+    vectorSpan ℝ (face b c) ≤ Submodule.span ℝ (b '' ↑(freeIdx c)) := by
+  rw [vectorSpan_def, Submodule.span_le]
+  rintro z ⟨x, hx, y, hy, rfl⟩
+  have hzero : ∀ i ∈ supp c, ⟪b i, x -ᵥ y⟫ = 0 := by
+    intro i hi
+    rcases hc : c i with _ | s
+    · exact absurd (mem_supp.mp hi) (by rw [hc]; simp)
+    · rw [vsub_eq_sub, inner_sub_right, inner_b_eq_of_mem_face b hc hx,
+        inner_b_eq_of_mem_face b hc hy, sub_self]
+  have hrepr : ∑ i, ⟪b i, x -ᵥ y⟫ • b i = x -ᵥ y := b.sum_repr' (x -ᵥ y)
+  have hsuppOf : ∀ i : Fin n, i ∉ freeIdx c → i ∈ supp c := by
+    intro i hi
+    rcases hc : c i with _ | s
+    · exact absurd (mem_freeIdx.mpr hc) hi
+    · exact mem_supp.mpr (by rw [hc]; rfl)
+  have hrestrict : ∑ i ∈ freeIdx c, ⟪b i, x -ᵥ y⟫ • b i = x -ᵥ y := by
+    have hsub : ∑ i ∈ freeIdx c, ⟪b i, x -ᵥ y⟫ • b i
+        = ∑ i ∈ (Finset.univ : Finset (Fin n)), ⟪b i, x -ᵥ y⟫ • b i :=
+      Finset.sum_subset (f := fun i => ⟪b i, x -ᵥ y⟫ • b i) (Finset.subset_univ _)
+        fun i _ hi => by rw [hzero i (hsuppOf i hi), zero_smul]
+    rw [hsub, hrepr]
+  show (x -ᵥ y) ∈ Submodule.span ℝ (b '' ↑(freeIdx c))
+  rw [← hrestrict]
+  refine Submodule.sum_mem _ fun i hi => Submodule.smul_mem _ _ ?_
+  exact Submodule.subset_span ⟨i, Finset.mem_coe.mpr hi, rfl⟩
+
+lemma vectorSpan_face_eq (c : Fin n → Option Bool) :
+    vectorSpan ℝ (face b c) = Submodule.span ℝ (b '' ↑(freeIdx c)) := by
+  refine le_antisymm (vectorSpan_face_le b c) ?_
+  rw [Submodule.span_le]
+  rintro y ⟨j, hj, rfl⟩
+  exact b_mem_vectorSpan_face b (mem_freeIdx.mp (Finset.mem_coe.mp hj))
+
+lemma finrank_span_free (c : Fin n → Option Bool) :
+    Module.finrank ℝ (Submodule.span ℝ (b '' ↑(freeIdx c))) = (freeIdx c).card := by
+  classical
+  have hlin : LinearIndependent ℝ fun j : (↑(freeIdx c) : Set (Fin n)) => b (j : Fin n) :=
+    (b.orthonormal.comp _ Subtype.val_injective).linearIndependent
+  have hrange : Set.range (fun j : (↑(freeIdx c) : Set (Fin n)) => b (j : Fin n))
+      = b '' ↑(freeIdx c) := by
+    rw [Set.image_eq_range]
+  have := finrank_span_eq_card hlin
+  rw [hrange] at this
+  rw [this]
+  simp
+
+/-- **`affDim (face b c) = n − |supp c|`**: fixing `k` coordinates drops the dimension
+by `k`. -/
+theorem affDim_face (c : Fin n → Option Bool) :
+    affDim (face b c) = (n : ℤ) - (supp c).card := by
+  rw [affDim_eq_finrank_direction (face_nonempty b c), direction_affineSpan,
+    vectorSpan_face_eq b c, finrank_span_free b c]
+  have h := card_freeIdx_add_card_supp c
+  omega
+
+
 end Cube
 end EulersGem
