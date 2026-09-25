@@ -13,6 +13,7 @@ import EulersGem.PlatonicOfEuler
 import EulersGem.PolytopeFaces
 import EulersGem.SimplexFaces
 import EulersGem.GeometricPlatonic
+import EulersGem.Octahedron
 import EulersGem.Picks
 import EulersGem.PicksTriangulation
 import EulersGem.PlanarTriangulation
@@ -612,6 +613,80 @@ theorem results_exists_tetrahedron
     [FiniteDimensional ℝ E] (hE : Module.finrank ℝ E = 3) :
     Nonempty (AffineBasis (Fin 4) ℝ E) :=
   EulersGem.Simplex.exists_tetrahedron hE
+
+
+/-! ### The geometric octahedron
+
+`EulersGem.Octahedron.body b` is the cross-polytope `convexHull ℝ {±b i}` of an orthonormal
+basis `b : OrthonormalBasis (Fin 3) ℝ E` — a geometric octahedron. Its face lattice is
+computed in `Octahedron.lean` (faces = partial sign assignments, plus the body), so all
+hypotheses below are discharged. This is the first solid here whose face lattice is *not* a
+subset lattice.
+-/
+
+/-- **Geometric octahedron face counts: `V = 6`, `E = 12`, `F = 8`.** -/
+theorem results_octahedron_face_counts
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) :
+    (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 0).ncard = 6 ∧
+      (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 1).ncard = 12 ∧
+      (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 2).ncard = 8 :=
+  EulersGem.Octahedron.octahedron_face_counts b
+
+/-- **`V − E + F = 2` for a geometric octahedron, from Euler–Poincaré.** -/
+theorem results_octahedron_euler_relation
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) :
+    ((EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 2).ncard = 2 :=
+  EulersGem.Octahedron.octahedron_euler_relation b
+
+/-- **A geometric octahedron is Platonic `{3,4}` on the Euler–Poincaré spine.**
+Double counting from face incidence, Euler from `Euler_Poincare_full`, and `(3,4)` among the
+five Schläfli pairs. -/
+theorem results_octahedron_platonic
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (b : OrthonormalBasis (Fin 3) ℝ E) :
+    3 * (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 2).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 1).ncard ∧
+      4 * (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 0).ncard
+        = 2 * (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 1).ncard ∧
+      ((EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body b) 2).ncard = 2 ∧
+      ((3 : ℕ), (4 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) := by
+  obtain ⟨h1, h2, h3, h4⟩ := EulersGem.Octahedron.octahedron_platonic b
+  refine ⟨h1, h2, h3, ?_⟩
+  simpa [EulersGem.Platonic.schlafliPairs] using h4
+
+/-- Every 3-dimensional real inner product space contains a geometric octahedron. -/
+theorem results_exists_octahedron
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+    (hE : Module.finrank ℝ E = 3) :
+    Nonempty (OrthonormalBasis (Fin 3) ℝ E) :=
+  EulersGem.Octahedron.exists_octahedron_basis hE
+
+/-- **Two of the five Platonic solids, geometrically, with Euler from EP.**
+The Schläfli pairs `{3,3}` (tetrahedron) and `{3,4}` (octahedron) are each realized by a
+geometric solid whose face counts, incidence counts and Euler relation are all proved.
+The remaining three pairs — `{3,5}`, `{4,3}`, `{5,3}` — have no geometric construction here;
+see `PLATONIC_CLAUDE_AUDIT.md`. This is **not** a classification of geometric solids. -/
+theorem results_two_geometric_platonic_solids
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E] (hE : Module.finrank ℝ E = 3)
+    (b : AffineBasis (Fin 4) ℝ E) (o : OrthonormalBasis (Fin 3) ℝ E) :
+    (((EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Simplex.body b) 2).ncard = 2) ∧
+      (((EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 0).ncard : ℤ)
+        - (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 1).ncard
+        + (EulersGem.Platonic.facesOfDim (EulersGem.Octahedron.body o) 2).ncard = 2) ∧
+      ((3 : ℕ), (3 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) ∧
+      ((3 : ℕ), (4 : ℕ)) ∈ ({(3, 3), (3, 4), (3, 5), (4, 3), (5, 3)} : Finset (ℕ × ℕ)) :=
+  ⟨EulersGem.Simplex.tetrahedron_euler_relation b hE,
+    EulersGem.Octahedron.octahedron_euler_relation o,
+    by decide, by decide⟩
 
 
 end Results

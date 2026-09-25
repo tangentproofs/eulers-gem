@@ -36,6 +36,13 @@ from EP inside `schlafli_pair_mem_of_regular_polytope`, never assumed at the top
 | tetrahedron `V − E + F = 2` | `GeometricPlatonic.tetrahedron_euler_relation` | from EP, for any tetrahedron in any 3-dim inner product space |
 | tetrahedron incidence counts | `GeometricPlatonic.tetrahedron_incidence` | all four, from the face lattice |
 | tetrahedron is `{3,3}` | `GeometricPlatonic.tetrahedron_platonic` | double counting + Euler + Schläfli membership |
+| cross-polytope H-rep | `Octahedron.body_eq_iInter_closedHalfspace` | padding trick; lets EP apply to the octahedron |
+| cross-polytope face lattice | `Octahedron.lean` | faces = partial sign assignments (`face b c`) plus the body; `eq_face_or_eq_body` |
+| octahedron `V=6, E=12, F=8` | `Octahedron.octahedron_face_counts` | geometric face counts |
+| octahedron `V − E + F = 2` | `Octahedron.octahedron_euler_relation` | from EP; `6 − 12 + 8 = 2` is a cross-check, not an input |
+| octahedron incidence counts | `Octahedron.octahedron_incidence` | all four, from the face lattice |
+| octahedron is `{3,4}` | `Octahedron.octahedron_platonic` | double counting + Euler + Schläfli membership |
+| supporting-hyperplane face tool | `PolytopeFaces.isFaceOf_convexHull_argmax` | face lattice recipe for any explicit V-polytope |
 
 Axiom check: `#print axioms EulersGem.Simplex.tetrahedron_platonic` gives
 `[propext, Classical.choice, Quot.sound]` — no `sorry`, and no `native_decide` axiom
@@ -63,12 +70,13 @@ are open items in this development.
 
 ## Open
 
-1. **The other four solids.** Only the tetrahedron has a geometric construction with a
-   computed face lattice. The cube, octahedron, dodecahedron and icosahedron still exist
-   only as `Platonic.RegularNumbers` witnesses (Euler bookkeeping, `(V,E,F)` integers) —
-   those are explicitly **not** geometric constructions. The simplex machinery in
-   `SimplexFaces.lean` does not extend to them: a cube's face lattice is a product
-   lattice, not a subset lattice.
+1. **The other three solids.** Two of five are geometric: the tetrahedron `{3,3}`
+   (`SimplexFaces` + `GeometricPlatonic`) and the octahedron `{3,4}` (`Octahedron.lean`).
+   The cube `{4,3}`, dodecahedron `{5,3}` and icosahedron `{3,5}` still exist only as
+   `Platonic.RegularNumbers` witnesses (Euler bookkeeping, `(V,E,F)` integers) — those are
+   explicitly **not** geometric constructions. The cube's face lattice is a subcube lattice
+   (needs a coordinate-transfer argument); the dodecahedron and icosahedron need
+   golden-ratio coordinates and are not attempted.
 2. **Regularity itself.** `hface_edges`/`hvert_edges` state *combinatorial* regularity of
    the face lattice. Metric regularity (congruent regular faces, equal solid angles, the
    symmetry group acting transitively on flags) is not formalized anywhere here, and no
@@ -84,10 +92,10 @@ Safe to name a Results theorem for:
 * geometric Euler–Poincaré / `V − E + F = 2` for convex 3-polytopes;
 * Schläfli classification **of combinatorially regular convex 3-polytopes**, provided the
   docstring says the two polytope-fact incidence hypotheses are assumed;
-* the geometric tetrahedron statements, which are fully discharged.
+* the geometric tetrahedron and octahedron statements, which are fully discharged.
 
 Not safe to name:
 
-* "the five Platonic solids" as a classification of geometric solids — four of the five
+* "the five Platonic solids" as a classification of geometric solids — three of the five
   have no geometric construction here;
 * anything suggesting metric regularity or uniqueness up to similarity.
