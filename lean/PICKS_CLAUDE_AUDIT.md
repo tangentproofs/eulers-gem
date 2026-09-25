@@ -746,3 +746,43 @@ Cube / MetricRegular / EdgeVertices untouched.
 | Shoelace = Haar | Open |
 | Classical Pick | **Still FAIL** |
 
+
+
+## Update 2026-09-25 (I=2 occupied-ear UniqueInterior; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeFanInterior.lean` (honest names; **not** classical Pick):
+
+```lean
+def OffTriangleBoundary (a b c r : ℤ × ℤ) : Prop
+
+theorem memClosedTriangle_of_mem_convexHull
+    (toReal p ∈ convexHull {a,b,c}) : MemClosedTriangle a b c p
+
+theorem UniqueInterior_trianglePolygon_of_twoInterior_occupied
+    (StrictlyConvexCCW P) (Injective P.vertex) (PrimitiveEdges P)
+    (TwoInterior P q r) (MemClosedTriangle ear r)
+    (OffTriangleBoundary q vᵢ vᵢ₊₁ r) :
+    UniqueInterior (trianglePolygon q vᵢ vᵢ₊₁) r
+```
+
+Results exports: `results_OffTriangleBoundary`,
+`results_UniqueInterior_trianglePolygon_of_twoInterior_occupied`,
+`results_memClosedTriangle_of_mem_convexHull`.
+
+**Prize progress:** occupied ear with `r` off the three ear edges inherits
+`UniqueInterior r` as a `trianglePolygon`. Next: discharge triangle
+`StrictlyConvexCCW` / `PrimitiveEdges`, apply I=1 ⇒ ear shoelace
+`= 1 + B_ear/2 − 1` (expect `B_ear = 3` ⇒ `det = 3`), sum with empty-ear
+`det = 1` to get polygon `shoelace = 2 + B/2 − 1`. Still **not** classical Pick:
+Haar; EP→planar; full I=2 Pick-form open. Claude Platonic / Cube / MetricRegular /
+EdgeVertices untouched.
+
+| Item | Status |
+|------|--------|
+| Empty (of `r`) ears ⇒ `|det|=1` | Green |
+| Occupied-ear `trianglePolygon` substrate | Green |
+| Occupied-ear UniqueInterior (off boundary) | **Green** |
+| Ear StrictlyConvexCCW / PrimitiveEdges / `det=3` | Open |
+| B-bookkeeping → `shoelace = 2 + B/2 − 1` | Open |
+| Shoelace = Haar | Open |
+| Classical Pick | **Still FAIL** |

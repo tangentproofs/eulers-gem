@@ -675,8 +675,9 @@ theorem results_mem_convexHull_of_memClosedTriangle
 
 Under `TwoInterior`, lattice points of a fan ear from `q` are among `{q,vᵢ,vᵢ₊₁,r}`.
 Ears that do not contain `r` are det-primitive with determinant exactly `1`.
-Occupied-ear `trianglePolygon` substrate is available; UniqueInterior inheritance /
-B-bookkeeping / full `shoelace = 2 + B/2 − 1` still open. Classical Pick FAIL.
+Occupied-ear UniqueInterior (off boundary) green; StrictlyConvexCCW /
+PrimitiveEdges / `det=3` / B-bookkeeping / full `shoelace = 2 + B/2 − 1` still open.
+Classical Pick FAIL.
 -/
 
 /-- Lattice points of an interior-fan ear under `TwoInterior` are among the three
@@ -756,6 +757,47 @@ theorem results_interiorFanDet_eq_one_of_twoInterior_of_not_mem_r
 (not classical Pick). -/
 def results_trianglePolygon (a b c : ℤ × ℤ) : EulersGem.Picks.LatticePolygon :=
   EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c
+
+/-! ### I=2 occupied-ear UniqueInterior (not classical Pick)
+
+Under `TwoInterior`, an ear containing `r` off its three edges inherits
+`UniqueInterior r` as a `trianglePolygon`. StrictlyConvexCCW / PrimitiveEdges /
+`det=3` / B-bookkeeping to `shoelace = 2 + B/2 − 1` still open. Classical Pick FAIL.
+-/
+
+/-- `r` lies on none of the three edges of △`(a,b,c)` (not classical Pick). -/
+def results_OffTriangleBoundary (a b c r : ℤ × ℤ) : Prop :=
+  EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary a b c r
+
+/-- Occupied ear with `r` off the boundary has unique interior lattice point `r`
+(not classical Pick). -/
+theorem results_UniqueInterior_trianglePolygon_of_twoInterior_occupied
+    (P : EulersGem.Picks.LatticePolygon) (q r : ℤ × ℤ)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hinj : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (h : EulersGem.Picks.LatticeFan.InteriorFan.TwoInterior P q r)
+    (i : Fin P.nVertices)
+    (hr : EulersGem.Picks.LatticeTriangle.MemClosedTriangle q (P.vertex i)
+      (P.vertex (P.nextIdx i)) r)
+    (hoff : EulersGem.Picks.LatticeFan.InteriorFan.OffTriangleBoundary q
+      (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    EulersGem.Picks.LatticeFan.InteriorFan.UniqueInterior
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon q
+        (P.vertex i) (P.vertex (P.nextIdx i))) r :=
+  EulersGem.Picks.LatticeFan.InteriorFan.UniqueInterior_trianglePolygon_of_twoInterior_occupied
+    P hsc hinj hedge h i hr hoff
+
+/-- Barycentric closed-triangle membership from Euclidean convex-hull membership. -/
+theorem results_memClosedTriangle_of_mem_convexHull
+    (a b c p : ℤ × ℤ)
+    (h : EulersGem.Picks.LatticeTriangle.toReal p ∈
+      convexHull ℝ
+        ({EulersGem.Picks.LatticeTriangle.toReal a,
+          EulersGem.Picks.LatticeTriangle.toReal b,
+          EulersGem.Picks.LatticeTriangle.toReal c} : Set (ℝ × ℝ))) :
+    EulersGem.Picks.LatticeTriangle.MemClosedTriangle a b c p :=
+  EulersGem.Picks.LatticeFan.InteriorFan.memClosedTriangle_of_mem_convexHull a b c p h
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 

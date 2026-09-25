@@ -7,6 +7,7 @@ import Mathlib.Tactic
 import Mathlib.Data.Rat.Defs
 import Mathlib.Analysis.Convex.Combination
 import Mathlib.Analysis.Convex.Segment
+import Mathlib.Analysis.Convex.Join
 import EulersGem.LatticeTriangle
 import EulersGem.LatticeTriangleEmpty
 import EulersGem.LatticePolygon
@@ -39,8 +40,9 @@ interior into one Finset statement (`card ≤ 1`).
 **I = 2 scaffold:** `TwoInterior`, fan positivity from either apex.
 Fan covering of the second interior point + `InteriorFanTrianglesEmpty` failure
 for I=2 are green. Ear lattice classification + empty-ear `|det|=1` green.
-Occupied-ear `trianglePolygon` substrate green. UniqueInterior inheritance /
-B-bookkeeping still open.
+Occupied-ear `trianglePolygon` substrate green. Occupied-ear UniqueInterior
+(off boundary) green. StrictlyConvexCCW / PrimitiveEdges / `det=3` /
+B-bookkeeping toward `shoelace = 2 + B/2 − 1` still open.
 
 **Honesty / not classical Pick:**
 Shoelace ≠ Haar/Lebesgue. General I > 1 triangulation existence open. EP→planar open.
@@ -1380,25 +1382,112 @@ lemma trianglePolygon_convexHullRegion (a b c : ℤ × ℤ) :
   classical
   simp [LatticePolygon.convexHullRegion, trianglePolygon, LatticePolygon.vertexFinset]
 
+/-! ### Occupied-ear UniqueInterior substrate (not classical Pick) -/
+
+/-- `r` lies on none of the three edges of △`(a,b,c)`. -/
+def OffTriangleBoundary (a b c r : ℤ × ℤ) : Prop :=
+  r ∉ edgeLatticePoints a b ∧
+    r ∉ edgeLatticePoints b c ∧
+      r ∉ edgeLatticePoints c a
+
+/-- Barycentric closed-triangle membership from Euclidean convex-hull membership. -/
+lemma memClosedTriangle_of_mem_convexHull
+    (a b c p : ℤ × ℤ)
+    (h : toReal p ∈ convexHull ℝ ({toReal a, toReal b, toReal c} : Set (ℝ × ℝ))) :
+    MemClosedTriangle a b c p := by
+  have hjoin :
+      toReal p ∈ convexJoin ℝ {toReal a} (segment ℝ (toReal b) (toReal c)) := by
+    rwa [convexJoin_singleton_segment]
+  obtain ⟨a', ha', y, hy, hpseg⟩ := (mem_convexJoin (𝕜 := ℝ)).1 hjoin
+  have haa : a' = toReal a := Set.mem_singleton_iff.mp ha'
+  subst haa
+  rcases hpseg with ⟨sa, sb, hsa, hsb, hsab, hp⟩
+  rcases hy with ⟨tb, tc, htb, htc, htbc, hyeq⟩
+  refine ⟨sa, sb * tb, sb * tc, hsa, mul_nonneg hsb htb, mul_nonneg hsb htc, ?_, ?_⟩
+  · calc
+      sa + sb * tb + sb * tc = sa + sb * (tb + tc) := by ring
+      _ = sa + sb * 1 := by rw [htbc]
+      _ = sa + sb := by ring
+      _ = 1 := hsab
+  · have hy' : y = tb • toReal b + tc • toReal c := hyeq.symm
+    have hsmul :
+        (sb * tb) • toReal b + (sb * tc) • toReal c =
+          sb • (tb • toReal b + tc • toReal c) := by
+      simp only [mul_smul, smul_add]
+    calc
+      sa • toReal a + (sb * tb) • toReal b + (sb * tc) • toReal c
+          = sa • toReal a + sb • (tb • toReal b + tc • toReal c) := by
+              rw [add_assoc, hsmul]
+      _ = sa • toReal a + sb • y := by rw [← hy']
+      _ = toReal p := hp
+
+lemma not_mem_boundary_trianglePolygon_of_OffTriangleBoundary
+    {a b c r : ℤ × ℤ} (hoff : OffTriangleBoundary a b c r) :
+    r ∉ (trianglePolygon a b c).boundaryLatticePoints := by
+  classical
+  intro hb
+  obtain ⟨k, hk⟩ := (mem_boundaryLatticePoints_iff (trianglePolygon a b c) r).mp hb
+  fin_cases k <;>
+    (simp [LatticePolygon.edgePair, LatticePolygon.vertex, LatticePolygon.nextIdx,
+        trianglePolygon, LatticePolygon.nVertices] at hk
+     try exact hoff.1 hk
+     try exact hoff.2.1 hk
+     try exact hoff.2.2 hk)
+
+/-- Occupied ear △`(q,vᵢ,vᵢ₊₁)` with `r` off the ear boundary has unique interior
+lattice point `r` (not classical Pick). -/
+theorem UniqueInterior_trianglePolygon_of_twoInterior_occupied
+    (hsc : StrictlyConvexCCW P) (hinj : Function.Injective P.vertex)
+    (hedge : PrimitiveEdges P) {q r : ℤ × ℤ}
+    (h : TwoInterior P q r) (i : Fin P.nVertices)
+    (hr : MemClosedTriangle q (P.vertex i) (P.vertex (P.nextIdx i)) r)
+    (hoff : OffTriangleBoundary q (P.vertex i) (P.vertex (P.nextIdx i)) r) :
+    UniqueInterior (trianglePolygon q (P.vertex i) (P.vertex (P.nextIdx i))) r := by
+  classical
+  set v := P.vertex i
+  set w := P.vertex (P.nextIdx i)
+  set T := trianglePolygon q v w
+  have hr_not_bd : r ∉ T.boundaryLatticePoints :=
+    not_mem_boundary_trianglePolygon_of_OffTriangleBoundary hoff
+  have hr_hull : toReal r ∈ T.convexHullRegion := by
+    rw [trianglePolygon_convexHullRegion]
+    exact mem_convexHull_of_memClosedTriangle q v w r hr
+  refine ⟨⟨hr_hull, hr_not_bd⟩, ?_⟩
+  intro p hp
+  have hp_mem : MemClosedTriangle q v w p :=
+    memClosedTriangle_of_mem_convexHull q v w p (by
+      simpa [T, trianglePolygon_convexHullRegion] using hp.1)
+  have hp_not_bd : p ∉ T.boundaryLatticePoints := hp.2
+  rcases eq_vertices_or_r_of_mem_interiorFan_of_twoInterior P hsc hinj hedge h i
+      (by simpa [interiorFanTriangle] using hp_mem) with h1 | h2 | h3 | h4
+  · have hbd : q ∈ T.boundaryLatticePoints :=
+      T.vertices_mem_boundary (List.mem_cons_self (a := q) (l := [v, w]))
+    exact absurd (h1.symm ▸ hbd) hp_not_bd
+  · have hbd : v ∈ T.boundaryLatticePoints :=
+      T.vertices_mem_boundary
+        (List.mem_cons_of_mem q (List.mem_cons_self (a := v) (l := [w])))
+    exact absurd (h2.symm ▸ hbd) hp_not_bd
+  · have hbd : w ∈ T.boundaryLatticePoints :=
+      T.vertices_mem_boundary
+        (List.mem_cons_of_mem q
+          (List.mem_cons_of_mem v (List.mem_singleton.mpr rfl)))
+    exact absurd (h3.symm ▸ hbd) hp_not_bd
+  · exact h4
+
+
+
+
 /-! ### Remaining I > 1 checklist (honest)
 
 Still open on this spine (classical Pick FAIL):
 
-1. ~~Fan covering~~: **green** — `exists_mem_interiorFanTriangle_of_mem_hull` /
-   `exists_mem_interiorFanTriangle_of_twoInterior`; also
-   `not_InteriorFanTrianglesEmpty_of_twoInterior`.
-2. ~~Ear lattice classification / empty-ear `|det|=1`~~: **green** —
-   `eq_vertices_or_r_of_mem_interiorFan_of_twoInterior`,
-   `IsDetPrimitive_interiorFan_of_twoInterior_of_not_mem_r`,
-   `interiorFanDet_eq_one_of_twoInterior_of_not_mem_r`.
-3. Occupied ear: `trianglePolygon` substrate green; still need `UniqueInterior r` for
-   the ear triangle (when `r` is off the ear boundary), then discharge triangle
-   `StrictlyConvexCCW` / `PrimitiveEdges` and apply I=1.
-4. Bookkeeping: sum of ear dets = polygon shoelace (have det-sum identity); convert
-   ear `B` on shared apex-spokes into global `B` → `shoelace = 2 + B/2 − 1`.
-5. Shoelace = Haar/Lebesgue; EP → planar Euler.
-
-The Finset `I ≤ 1` theorem above is the base of that induction.
+1. ~~Fan covering / empty-ear `|det|=1` / `trianglePolygon`~~: **green**.
+2. ~~Occupied-ear UniqueInterior (off boundary)~~: **green** —
+   `UniqueInterior_trianglePolygon_of_twoInterior_occupied`,
+   `OffTriangleBoundary`, `memClosedTriangle_of_mem_convexHull`.
+3. StrictlyConvexCCW / PrimitiveEdges of ear + `det=3` + B-bookkeeping →
+   `shoelace = 2 + B/2 − 1`: open.
+4. Shoelace = Haar/Lebesgue; EP → planar Euler.
 -/
 
 end InteriorFan
