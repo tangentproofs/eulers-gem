@@ -578,6 +578,17 @@ theorem results_face_eq_convexHull_inter
     F = convexHull ℝ (V ∩ F) :=
   EulersGem.face_eq_convexHull_inter hF
 
+/-- **An edge of a polytope has exactly two vertices.** A `1`-dimensional face of a polytope
+contains exactly two `0`-dimensional faces: a one-dimensional convex hull of finitely many
+points is a segment, and its extreme points are its two ends. Used to be a hypothesis of the
+Platonic classification. -/
+theorem results_edge_has_two_vertices
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E] [FiniteDimensional ℝ E]
+    {p : Set E} (hP : EulersGem.IsPolytope p) {e : Set E}
+    (he : EulersGem.IsFaceOf p e) (hdim : EulersGem.affDim e = 1) :
+    {w : Set E | (EulersGem.IsFaceOf p w ∧ EulersGem.affDim w = 0) ∧ w ⊆ e}.ncard = 2 :=
+  EulersGem.ncard_vertices_of_edge hP he hdim
+
 /-- **Platonic count equations for a geometric regular convex 3-polytope, Euler from EP.**
 `s·F = 2·E` and `m·V = 2·E` are proved by double counting over face incidence; `V − E + F = 2`
 is discharged from `euler_relation_convex_3polytope`. No bare Euler hypothesis. -/
