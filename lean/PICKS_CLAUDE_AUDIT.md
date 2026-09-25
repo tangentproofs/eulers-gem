@@ -2044,3 +2044,36 @@ Cube / MetricRegular / EdgeVertices untouched. Classical Pick **FAIL** — no re
 | Shoelace = Haar | Open |
 | EP → planar Euler | Open |
 | Classical Pick | **Still FAIL** |
+
+## Update 2026-09-25 (Haar bridge: unit / origin triangle volume; still FAIL for classical Pick)
+
+Landed in `EulersGem/LatticeArea.lean` (honest names; **not** classical Pick):
+
+```lean
+theorem volume_parallelepiped_eq_ofReal_abs_det (u v : ℝ × ℝ) :
+    volume (parallelepiped ![u, v]) = ENNReal.ofReal |u.1 * v.2 - u.2 * v.1|
+
+theorem volume_unitTriangle :
+    volume (convexHull ℝ {(0,0),(1,0),(0,1)}) = ENNReal.ofReal (1/2)
+
+theorem volume_convexHull_origin_triangle (u v : ℝ × ℝ) :
+    volume (convexHull ℝ {0, u, v}) = ENNReal.ofReal (|det(u,v)| / 2)
+```
+
+Mathlib substrate used: `Basis.finTwoProd`, `addHaar_parallelepiped`,
+`addHaar_image_linearMap`, Fubini/`prod_apply` for the unit triangle.
+
+Results exports: `results_finTwoProd_addHaar_eq_volume`,
+`results_volume_parallelepiped_eq_ofReal_abs_det`,
+`results_volume_unitTriangle`,
+`results_volume_convexHull_origin_triangle`.
+
+**Still open for classical Pick:**
+* lattice shoelace ↔ `|latticeDet|/2` as `ℝ` coercion + translation of hull to origin
+* StrictlyConvexCCW fan additivity (shoelace sum = Haar sum)
+* compose with combinatorial `shoelace_eq_cardI_add_B_div_two_sub_one`
+* EP → planar Euler; triangulation existence for general polygons
+
+Claude Platonic / Cube / MetricRegular / EdgeVertices untouched.
+Classical Pick **FAIL** — no rename.
+

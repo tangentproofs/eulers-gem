@@ -28,6 +28,7 @@ import EulersGem.OnSpoke
 import EulersGem.LatticeFanInduction
 import EulersGem.LatticeFanTrianglePick
 import EulersGem.LatticeTriangleEmpty
+import EulersGem.LatticeArea
 
 /-!
 # Paper-facing results
@@ -2742,6 +2743,39 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one
     P S hS hverts hedge hsc
 
+
+/-! ## Haar / Lebesgue area of triangles (not classical Pick)
+
+Bridge from combinatorial shoelace arithmetic toward Lebesgue `volume` on
+`ℝ × ℝ`. Unit / origin triangles green. Lattice shoelace coercion, translation
+to an arbitrary lattice triangle, and StrictlyConvexCCW fan additivity remain
+open. Compose with `results_shoelace_eq_cardI_add_B_div_two_sub_one` only after
+those close. Classical Pick FAIL — see `PICKS_CLAUDE_AUDIT.md`.
+-/
+
+/-- Standard basis parallelepiped Haar equals product Lebesgue on `ℝ × ℝ`. -/
+theorem results_finTwoProd_addHaar_eq_volume :
+    (Module.Basis.finTwoProd ℝ).addHaar =
+      (MeasureTheory.volume : MeasureTheory.Measure (ℝ × ℝ)) :=
+  EulersGem.Picks.LatticeArea.finTwoProd_addHaar_eq_volume
+
+/-- Parallelepiped volume equals `|det|` of the spanning vectors. -/
+theorem results_volume_parallelepiped_eq_ofReal_abs_det (u v : ℝ × ℝ) :
+    MeasureTheory.volume (parallelepiped ![u, v]) =
+      ENNReal.ofReal |u.1 * v.2 - u.2 * v.1| :=
+  EulersGem.Picks.LatticeArea.volume_parallelepiped_eq_ofReal_abs_det u v
+
+/-- Unit triangle `conv{(0,0),(1,0),(0,1)}` has Lebesgue area `1/2`. -/
+theorem results_volume_unitTriangle :
+    MeasureTheory.volume EulersGem.Picks.LatticeArea.unitTriangle =
+      ENNReal.ofReal (1 / 2) :=
+  EulersGem.Picks.LatticeArea.volume_unitTriangle
+
+/-- Origin triangle `conv{0,u,v}` has Lebesgue area `|det(u,v)|/2`. -/
+theorem results_volume_convexHull_origin_triangle (u v : ℝ × ℝ) :
+    MeasureTheory.volume (convexHull ℝ ({(0 : ℝ × ℝ), u, v} : Set (ℝ × ℝ))) =
+      ENNReal.ofReal (|u.1 * v.2 - u.2 * v.1| / 2) :=
+  EulersGem.Picks.LatticeArea.volume_convexHull_origin_triangle u v
 
 /-! ## Geometric Euler–Poincaré (needs polytope API missing from Mathlib)
 
