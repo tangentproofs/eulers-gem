@@ -23,8 +23,10 @@ by the same `|det|` / edgeStep Finset induction (general pe_ih form).
 I=4 / I≤4 / I=5 / I≤5 / I=6 / I≤6 Finset Pick-form without spokes-empty
 (ears may have non-primitive sides; use triangle I≤k w/o PE or
 PrimitiveEdges inheritance when `#earOff=#S-1`). Strong induction on
-Finset card via fan_ear_IH + pe_ih triangle ears green. Shoelace ≠ Haar.
-Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
+Finset card via fan_ear_IH + pe_ih triangle ears green. All-I triangle
+Pick without `PrimitiveEdges` via `pe_ih` + PE strong induction.
+Parent `B = ∑ edgeGcd` + PE-free hbook arithmetic substrate landed.
+Shoelace ≠ Haar. Classical Pick FAIL. See `PICKS_CLAUDE_AUDIT.md`.
 -/
 
 namespace EulersGem
@@ -3672,7 +3674,26 @@ theorem shoelace_eq_cardI_add_B_div_two_sub_one
       exact ih S'.card hlt' Q' S' hS' rfl hverts'' hedge'' hsc''
   exact hmain S.card P S hS rfl hverts hedge hsc
 
+/-! ## All-I triangle without PrimitiveEdges (not classical Pick)
 
+Package `pe_ih` at `#S` against the PE strong induction, so every closed lattice
+triangle (any `#I`) satisfies the shoelace Pick-form with no `PrimitiveEdges` hyp.
+Fuel for PE-free parent fan / ear-clip. Classical Pick FAIL.
+-/
+
+/-- Closed lattice triangle shoelace Pick-form for arbitrary `#S`, without
+`PrimitiveEdges` (not classical Pick). -/
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < latticeDet a b c)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) = (trianglePolygon a b c).interiorLatticePoints) :
+    (trianglePolygon a b c).shoelace =
+      (S.card : ℚ) + ((trianglePolygon a b c).B : ℚ) / 2 - 1 :=
+  shoelace_eq_cardI_add_B_div_two_sub_one_of_I_le_triangle_of_pe_ih S.card
+    (fun Q T hT _hcard hverts hedge hsc =>
+      shoelace_eq_cardI_add_B_div_two_sub_one Q T hT hverts hedge hsc)
+    a b c hD S hS le_rfl
 
 end InteriorFan
 end LatticeFan

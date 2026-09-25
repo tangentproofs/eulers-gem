@@ -2743,6 +2743,20 @@ theorem results_shoelace_eq_cardI_add_B_div_two_sub_one
   EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one
     P S hS hverts hedge hsc
 
+/-- Closed lattice triangle shoelace Pick-form for arbitrary `#S`, without
+`PrimitiveEdges` (not classical Pick). -/
+theorem results_shoelace_eq_cardI_add_B_div_two_sub_one_triangle
+    (a b c : ℤ × ℤ)
+    (hD : 0 < EulersGem.Picks.LatticeTriangle.latticeDet a b c)
+    (S : Finset (ℤ × ℤ))
+    (hS : (S : Set (ℤ × ℤ)) =
+      (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).interiorLatticePoints) :
+    (EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).shoelace =
+      (S.card : ℚ) +
+        ((EulersGem.Picks.LatticeFan.InteriorFan.trianglePolygon a b c).B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.LatticeFan.InteriorFan.shoelace_eq_cardI_add_B_div_two_sub_one_triangle
+    a b c hD S hS
+
 
 /-! ## Haar / Lebesgue area of triangles (not classical Pick)
 

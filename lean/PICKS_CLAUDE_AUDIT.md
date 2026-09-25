@@ -2375,8 +2375,42 @@ Ordered by dependence; each item is necessary for a statement-level PASS against
 | AEDisjoint fan ears ⇒ `volume(P)=∑ears` | **Green** |
 | Combinatorial `#I+B/2−1` under PE + StrictlyConvexCCW (all `#I`) | **Green** |
 | Results volume Pick-form export (honest name) | **Green** |
-| Drop parent `PrimitiveEdges` | Open |
+| All-I triangle w/o PE | **Green** |
+| `B = ∑ edgeGcd` / PE-free hbook arith | **Green** |
+| Drop parent `PrimitiveEdges` | Open (substrate landed) |
 | Simple non-convex / filled region ≠ hull | Open |
 | Discharge Finset finiteness of `I` | Open |
 | EP → planar via `Euler_Poincare_full` | Open (architecture) |
+| Classical Pick | **Still FAIL** |
+
+
+## Update 2026-09-25 (all-I triangle w/o PE + B=∑edgeGcd + PE-free hbook arith; still FAIL)
+
+Landed substrate toward dropping parent `PrimitiveEdges`:
+
+```lean
+theorem shoelace_eq_cardI_add_B_div_two_sub_one_triangle
+    -- any #I; pe_ih + PE strong induction; no PrimitiveEdges on triangle
+theorem B_eq_sum_edgeGcd
+    (StrictlyConvexCCW + injective) : P.B = ∑ᵢ edgeGcd(vᵢ, vᵢ₊₁)
+theorem B_trianglePolygon_ear
+    -- B(ear) = gcd(q,vᵢ)+gcd(vᵢ,vᵢ₊₁)+gcd(vᵢ₊₁,q) (no PE)
+theorem hbook_of_partition_and_spokeGcd_general
+    -- pure ℚ hbook with general ear B + B=∑edgeGcd (no PE hyp)
+```
+
+Results: `results_shoelace_eq_cardI_add_B_div_two_sub_one_triangle`.
+
+**Still open for PE-free parent Pick:** discharge `InteriorFanDetsPos` / hspoke /
+hpart / `coe_earOff` without PE; empty-interior PE-free for general
+`StrictlyConvexCCW` (vertex-fan + empty PE-free triangles); then strong induction
++ volume compose without PE.
+
+| Item | Status |
+|------|--------|
+| All-I triangle w/o PrimitiveEdges | **Green** |
+| `B = ∑ edgeGcd` under StrictlyConvexCCW | **Green** |
+| PE-free hbook arithmetic identity | **Green** |
+| Drop parent `PrimitiveEdges` (combinatorial + volume) | Open |
+| Discharge Finset finiteness of `I` | Open |
 | Classical Pick | **Still FAIL** |
