@@ -13,6 +13,7 @@ import EulersGem.Platonic
 Three theorems, each proved in `EulersGem.*` and restated here:
 
 * the Euler characteristic of a full-dimensional convex polytope,
+* `V − E + F = 2` in dimension 3, from that characteristic,
 * Pick's theorem for a strictly convex lattice polygon,
 * the five Platonic solids: tetrahedron, cube, octahedron, dodecahedron, icosahedron.
 
@@ -41,6 +42,39 @@ theorem results_euler_characteristic
     (hn : 1 ≤ Module.finrank ℝ E) :
     EulersGem.faceEulerSum p (Module.finrank ℝ E) = 1 :=
   EulersGem.Euler_Poincare_full hH hp hP hdim hn
+
+/-- **Euler's formula** (Euler's polyhedron formula; Paulson `Euler_relation`).
+For a convex polytope in dimension 3, `V − E + F = 2`. Proved from the
+Euler characteristic `1`: the only 3-face is the body itself, and removing
+it from the alternating sum leaves `2`. -/
+theorem results_euler_relation_dimension_three
+    {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    [FiniteDimensional ℝ E] [Nonempty E]
+    {H : Set (EulersGem.Hyperplane E)} {p : Set E}
+    (hH : H.Finite)
+    (hp : p = ⋂ h ∈ H, EulersGem.closedHalfspace h.1 h.2)
+    (hP : EulersGem.IsPolytope p)
+    (hdim : EulersGem.affDim p = 3)
+    (hE : Module.finrank ℝ E = 3) :
+    ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 0}.ncard : ℤ) -
+        ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 1}.ncard : ℤ) +
+        ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 2}.ncard : ℤ) =
+      2 := by
+  have hn : 1 ≤ Module.finrank ℝ E := by rw [hE]; norm_num
+  have hdim' : EulersGem.affDim p = Module.finrank ℝ E := by simpa [hE] using hdim
+  have hsum := results_euler_characteristic hH hp hP hdim' hn
+  rw [hE] at hsum
+  have hConv : Convex ℝ p := by
+    obtain ⟨V, _, rfl⟩ := hP
+    exact convex_convexHull ℝ V
+  have hSolid :
+      ({f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 3}.ncard) = 1 := by
+    have hEq :
+        {f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = 3} =
+          {f : Set E | EulersGem.IsFaceOf p f ∧ EulersGem.affDim f = Module.finrank ℝ E} := by
+      simp [hE]
+    rw [hEq, EulersGem.faces_dim_eq_finrank_eq_singleton hConv hdim', Set.ncard_singleton]
+  exact EulersGem.euler_relation_of_faceEulerSum p _ _ _ hsum rfl rfl rfl hSolid
 
 /-! ## Pick's theorem -/
 
