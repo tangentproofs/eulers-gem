@@ -315,10 +315,23 @@ main > header { padding: 0.4em 0; border-bottom: 1px solid var(--border); margin
 main > header .sep { color: var(--muted); margin: 0 0.4em; }
 main code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95em; }
 .welcome { max-width: 50em; }
-.source { overflow-x: auto; }
 .source pre { font-size: 12.5px; line-height: 1.5; margin: 0; }
 .highlight :target { background: var(--hl); }
-.highlight .lineno { color: var(--muted); padding-right: 0.8em; user-select: none; }
+/* Line numbers live in their own column, as generated text, so selecting
+   the code does not put them on the clipboard. */
+table.highlighttable { width: 100%; border-collapse: collapse; border-spacing: 0; }
+table.highlighttable > tbody > tr { display: flex; align-items: flex-start; }
+td.linenos {
+  flex: none;
+  user-select: none;
+  -webkit-user-select: none;
+  text-align: right;
+  padding-right: 0.8em;
+  color: var(--muted);
+}
+td.linenos pre { user-select: none; -webkit-user-select: none; color: var(--muted); }
+td.linenos span::before { content: attr(data-line); }
+td.code { flex: 1; min-width: 0; overflow-x: auto; }
 .source a.id { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--hl-dot); }
 .source a.id:hover { color: var(--link); border-bottom-style: solid; }
 
@@ -463,7 +476,7 @@ APP_JS = """\
   //  - Bare unqualified names that aren't in the local map are left
   //    alone (variables, parameters, `open`-imported names).
   function linkIdentifiers(decls) {
-    var pre = document.querySelector(".source pre");
+    var pre = document.querySelector(".source td.code pre");
     if (!pre) return;
     var nsPrefixes = collectNamespacePrefixes(decls);
     var node = pre.firstChild;
@@ -578,6 +591,14 @@ def render_page(src_path: Path, rel: str, formatter: HtmlFormatter,
                 depth: int) -> str:
     src = src_path.read_text(encoding="utf-8")
     body = highlight(src, Lean4Lexer(), formatter)
+    # Pygments writes the digits into the gutter. Replace them with a
+    # data-line attribute so the number is CSS-generated content and is
+    # not part of the copied text.
+    body = re.sub(
+        r'<span class="(normal|special)">\s*(\d+)\s*</span>',
+        r'<span class="\1" data-line="\2"></span>',
+        body,
+    )
     # Place a <span id="<DeclName>"></span> alongside the line marker for
     # the decl's actual line, so jumping to #<DeclName> from the outline
     # or from declarations.json lands on the right line. Multiple decls
@@ -671,14 +692,14 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     formatter = AnchoredHtmlFormatter(
-        linenos="inline",
+        linenos="table",
         lineanchors="L",
         nobackground=True,
     )
     # Dark-mode pygments rules wrapped in a `prefers-color-scheme: dark`
     # media query, so the page picks the right palette automatically.
     dark_formatter = AnchoredHtmlFormatter(
-        style="github-dark", linenos="inline", lineanchors="L", nobackground=True,
+        style="github-dark", linenos="table", lineanchors="L", nobackground=True,
     )
     pygments_css = formatter.get_style_defs(".highlight") + (
         "\n@media (prefers-color-scheme: dark) {\n"
