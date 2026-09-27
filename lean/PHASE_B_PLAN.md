@@ -51,5 +51,5 @@ Planar/spherical Euler for Pick must be **discharged from that root** — not a 
 ## Deliverables
 
 - Green `lake build`; Results claims only proved statements
-- Unpark README/ROADMAP/site; update prove2 milestones
+- Unpark README/ROADMAP/site
 - Incremental green commits on `main`

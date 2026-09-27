@@ -30,7 +30,6 @@ Alternate Tverberg path (Poly100-notes) is documented under `../isabelle/` only.
 - [x] `lake exe cache get` + green `lake build`
 - [x] Results.lean claims only proved theorems
 - [x] Poly100 sources archived; Paulson-first Lean strategy documented
-- [x] prove2/ local milestone graph stub (no cloud auth)
 - [x] Mathlib survey (`MATHLIB_SURVEY.md`)
 - [x] Paulson hyperplane substrate defs + cell/complex lemmas + finiteness
 - [x] Set-level `affDim` + combinatorial `eulerCharacteristic` + Un-additivity

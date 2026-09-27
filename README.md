@@ -83,16 +83,3 @@ List paper-facing theorems:
   originally https://github.com/tangentstorm/tangentlabs/tree/master/isar
 - David Richeson, *Euler's Gem*
 - Freek Wiedijk, *Formalizing 100 Theorems* (#13 Polyhedron Formula)
-
-## Tracking (prove2.me)
-
-We track the Lean formalization as a **local milestone / declaration graph** under
-[`prove2/`](prove2/) (see `prove2/milestones.json` and `lean/PROVE2.md`).
-
-- **Local** = in-repo graph + optional `$HOME/prove2me_workspace`-style layout for
-  Lean checks. The prove2.me **database is cloud API–only** (no self-hosted DB
-  found); nothing here mirrors their server DB.
-- **Later (optional):** private prove2.me mission or
-  [`upload_full_project`](https://prove2.me/references/upload_full_project.md)
-  once `lake build` is green and statements are stable.
-- Do **not** block PRs on account registration or authenticated API calls.
