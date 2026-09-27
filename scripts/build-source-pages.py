@@ -210,7 +210,7 @@ FIND_TPL = """<!doctype html>
     document.body.textContent = "No declaration name given.";
     return;
   }
-  fetch("../declarations.json", {cache: "force-cache"})
+  fetch("../declarations.json")
     .then(function (r) { return r.ok ? r.json() : {}; })
     .catch(function () { return {}; })
     .then(function (decls) {
@@ -334,7 +334,7 @@ APP_JS = """\
   var PAGE = window.PAGE || { relpath: null, root: "" };
   var ROOT = PAGE.root || "";
 
-  fetch(ROOT + "tree.json", {cache: "force-cache"})
+  fetch(ROOT + "tree.json")
     .then(function (r) { return r.ok ? r.json() : null; })
     .catch(function () { return null; })
     .then(function (tree) {
@@ -344,7 +344,7 @@ APP_JS = """\
 
   if (PAGE.relpath) {
     var declsUrl = ROOT + "decls/" + PAGE.relpath.replace(/\\.lean$/, ".json");
-    fetch(declsUrl, {cache: "force-cache"})
+    fetch(declsUrl)
       .then(function (r) { return r.ok ? r.json() : null; })
       .catch(function () { return null; })
       .then(function (data) {
@@ -352,7 +352,7 @@ APP_JS = """\
         if (el && data) renderOutline(el, data.decls || []);
       });
 
-    fetch(ROOT + "declarations.json", {cache: "force-cache"})
+    fetch(ROOT + "declarations.json")
       .then(function (r) { return r.ok ? r.json() : null; })
       .catch(function () { return null; })
       .then(function (decls) { if (decls) linkIdentifiers(decls); });
