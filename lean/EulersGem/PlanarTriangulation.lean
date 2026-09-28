@@ -241,7 +241,9 @@ def PlanarDiskEulerCounts.eulerChar (C : PlanarDiskEulerCounts) : ℤ :=
 boundary-link / stereographic image of a convex 3-polytope face lattice, then
 Euler char is 2. **`hEP_bridge` is the remaining discharge** from
 `Euler_Poincare_full` / `euler_relation_convex_3polytope` for general complexes.
-Concrete cases below prove `eulerChar = 2` without this hyp. -/
+Fans are discharged in `DiskEuler.lean` (`fan_eulerChar_from_characteristic`):
+the triangle is a geometric 2-simplex, and larger fans preserve its disk Euler
+number. A triangulation with interior vertices is still open. -/
 theorem planar_disk_euler_of_EP_bridge (C : PlanarDiskEulerCounts)
     (hEP_bridge : C.eulerChar = 2) :
     (C.V : ℤ) - C.E + C.F = 2 :=

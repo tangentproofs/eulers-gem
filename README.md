@@ -53,6 +53,7 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_euler_relation_dimension_three` | Euler's formula: in dimension 3, `V − E + F = 2`, from that characteristic |
 | `results_picks_theorem` | Pick's theorem: area `= I + B/2 − 1` for a strictly convex lattice polygon |
 | `results_pick_count_of_euler` | Euler's formula for a triangulation gives Pick's count `I + B/2 − 1` |
+| `results_fan_pick_of_euler` | An empty fan's Pick count follows from the Euler characteristic |
 | `results_five_platonic_solids` | Euler's formula leaves five Platonic solids: tetrahedron `{3,3}`, cube `{4,3}`, octahedron `{3,4}`, dodecahedron `{5,3}`, icosahedron `{3,5}` |
 
 Supporting proofs stay in `EulersGem.*`. The Platonic classification calls Euler's formula in dimension 3. Pick's count has the same shape for a triangulation; the area of a lattice polygon is proved by the fan-ear induction.

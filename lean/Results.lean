@@ -3,6 +3,7 @@ Copyright (c) 2026 Michal Wallace / tangentproofs. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michal Wallace, Grok Bot
 -/
+import EulersGem.DiskEuler
 import EulersGem.Embed
 import EulersGem.LatticeArea
 import EulersGem.PlatonicOfEuler
@@ -94,6 +95,14 @@ theorem results_pick_count_of_euler
     (harea : A = (T : ℚ) / 2) :
     A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
   EulersGem.Picks.triangulation_count_identity_nat I B V E T F A hV hF heuler hshake harea
+
+/-- **Empty-fan Pick count, from the Euler characteristic.** A fan of an `n`-gon
+has disk Euler number `2` because a triangle does (`triangle_disk_euler`, the
+characteristic plus the exterior face) and each added vertex preserves it.
+With area `T/2` and `I = 0`, that is `n/2 − 1`. -/
+theorem results_fan_pick_of_euler (n : ℕ) (hn : 3 ≤ n) :
+    ((n - 2 : ℕ) : ℚ) / 2 = (n : ℚ) / 2 - 1 :=
+  EulersGem.Picks.FanDiskTriangulation.fan_pick_count_from_characteristic n hn
 
 /-- **Pick's theorem** for a strictly convex counterclockwise lattice polygon
 with distinct vertices. The area is the Haar measure of the convex hull. The
