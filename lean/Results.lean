@@ -104,14 +104,24 @@ theorem results_fan_pick_of_euler (n : ℕ) (hn : 3 ≤ n) :
     ((n - 2 : ℕ) : ℚ) / 2 = (n : ℚ) / 2 - 1 :=
   EulersGem.Picks.FanDiskTriangulation.fan_pick_count_from_characteristic n hn
 
+/-- **Pick's count for a triangulated disk, from the characteristic.**
+The corner cycle's Euler number is the fan's, which is the triangle's
+characteristic plus the exterior face. Boundary insertions, diagonals, and
+stellar subdivisions preserve it, so `V = I + B`, `T = 2I + B − 2` and area
+`T/2` give `I + B/2 − 1`. -/
+theorem results_disk_pick_of_euler
+    (n B I : ℕ) (A : ℚ) (hn : 3 ≤ n) (hnB : n ≤ B)
+    (harea : A = ((2 * I + B - 2 : ℕ) : ℚ) / 2) :
+    A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
+  EulersGem.Picks.pick_count_of_disk_from_characteristic n B I A hn hnB harea
+
 /-- **Pick's theorem** for a strictly convex counterclockwise lattice polygon
 with distinct vertices. The area is the Haar measure of the convex hull. The
 count `I + B/2 − 1` is proved by cutting the polygon into a fan of ears and
-inducting on the interior lattice points. `results_pick_count_of_euler` is the
-same count read off Euler's formula when a triangulation's handshaking data
-are given; this polygon proof does not go through that lemma, because a
-primitive triangulation of a general lattice polygon is not yet identified
-with the face lattice of a convex 3-polytope. -/
+inducting on the interior lattice points. `results_disk_pick_of_euler` is that
+same count derived from the characteristic, once a primitive triangulation
+with area `T/2` is supplied. This polygon proof does not yet build that
+triangulation. -/
 theorem results_picks_theorem
     (P : EulersGem.Picks.LatticePolygon) (S : Finset (ℤ × ℤ))
     (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)

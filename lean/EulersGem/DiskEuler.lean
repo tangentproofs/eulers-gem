@@ -160,4 +160,149 @@ theorem fan_pick_count_from_characteristic (n : ℕ) (hn : 3 ≤ n) :
 
 end Picks.FanDiskTriangulation
 
+namespace Picks
+
+open PlanarDiskEulerCounts
+
+/-- Adding one diagonal: `E` and `F` each rise by `1`, so the disk Euler number
+is unchanged. -/
+theorem eulerChar_add_diagonal (V E F : ℕ) :
+    ((V : ℤ) - ↑(E + 1) + ↑(F + 1)) = (V : ℤ) - ↑E + ↑F := by
+  rw [Nat.cast_add, Nat.cast_add]
+  omega
+
+/-- Inserting one vertex in the interior of a boundary edge: `V` and `E` each
+rise by `1`, `F` stays put. -/
+theorem eulerChar_insert_boundary (V E F : ℕ) :
+    (↑(V + 1) - ↑(E + 1) + (F : ℤ)) = (V : ℤ) - ↑E + (F : ℤ) := by
+  rw [Nat.cast_add, Nat.cast_add]
+  omega
+
+/-- Stellar subdivision at an interior lattice point of one triangle: that
+triangle is replaced by three, so `V + 1`, `E + 3`, `T + 2`. -/
+theorem eulerChar_stellar (V E T : ℕ) :
+    (↑(V + 1) - ↑(E + 3) + ↑(T + 2 + 1)) = (V : ℤ) - ↑E + ↑(T + 1) := by
+  rw [Nat.cast_add, Nat.cast_add, Nat.cast_add]
+  omega
+
+theorem eulerChar_add_diagonal_iter (d V E F : ℕ) :
+    ((V : ℤ) - ↑(E + d) + ↑(F + d)) = (V : ℤ) - ↑E + ↑F := by
+  induction d with
+  | zero => simp
+  | succ d ih =>
+    have hE : E + (d + 1) = (E + d) + 1 := by omega
+    have hF : F + (d + 1) = (F + d) + 1 := by omega
+    rw [hE, hF]
+    exact (eulerChar_add_diagonal V (E + d) (F + d)).trans ih
+
+theorem eulerChar_insert_boundary_iter (k V E F : ℕ) :
+    (↑(V + k) - ↑(E + k) + (F : ℤ)) = (V : ℤ) - ↑E + (F : ℤ) := by
+  induction k with
+  | zero => simp
+  | succ k ih =>
+    have hV : V + (k + 1) = (V + k) + 1 := by omega
+    have hE : E + (k + 1) = (E + k) + 1 := by omega
+    rw [hV, hE]
+    exact (eulerChar_insert_boundary (V + k) (E + k) F).trans ih
+
+theorem eulerChar_stellar_iter (i V E T : ℕ) :
+    (↑(V + i) - ↑(E + 3 * i) + ↑(T + 2 * i + 1)) = (V : ℤ) - ↑E + ↑(T + 1) := by
+  induction i with
+  | zero => simp
+  | succ i ih =>
+    have hV : V + (i + 1) = (V + i) + 1 := by omega
+    have hE : E + 3 * (i + 1) = (E + 3 * i) + 3 := by omega
+    have hT : T + 2 * (i + 1) + 1 = (T + 2 * i) + 2 + 1 := by omega
+    rw [hV, hE, hT]
+    exact (eulerChar_stellar (V + i) (E + 3 * i) (T + 2 * i)).trans ih
+
+/-- **Corner cycle, from the characteristic.** Deleting the `n − 3` diagonals of
+a fan leaves the boundary `n`-cycle (`V = n`, `E = n`, one interior face and
+the exterior face). Each deletion preserves the Euler number, which the fan
+inherited from the triangle. -/
+theorem corner_cycle_euler_from_characteristic (n : ℕ) (hn : 3 ≤ n) :
+    (n : ℤ) - ↑n + 2 = 2 := by
+  have hFan := FanDiskTriangulation.fan_eulerChar_from_characteristic n hn
+  have hVc : ((FanDiskTriangulation.fan n hn).planarCounts).V =
+      (FanDiskTriangulation.fan n hn).V := rfl
+  have hEc : ((FanDiskTriangulation.fan n hn).planarCounts).E =
+      (FanDiskTriangulation.fan n hn).E := rfl
+  have hTc : ((FanDiskTriangulation.fan n hn).planarCounts).T =
+      (FanDiskTriangulation.fan n hn).T := rfl
+  have hF : ((FanDiskTriangulation.fan n hn).planarCounts).F = n - 1 := by
+    rw [(FanDiskTriangulation.fan n hn).planarCounts.hF, hTc,
+      FanDiskTriangulation.fan_T]
+    omega
+  have hFanEq : (n : ℤ) - ↑(2 * n - 3) + ↑(n - 1) = 2 := by
+    have hchar :
+        ((FanDiskTriangulation.fan n hn).planarCounts.V : ℤ) -
+          (FanDiskTriangulation.fan n hn).planarCounts.E +
+          (FanDiskTriangulation.fan n hn).planarCounts.F = 2 := hFan
+    rw [hVc, hEc, FanDiskTriangulation.fan_V, FanDiskTriangulation.fan_E, hF] at hchar
+    simpa [Nat.cast_sub (show 3 ≤ 2 * n by omega), Nat.cast_sub (show 1 ≤ n by omega),
+      Nat.cast_mul] using hchar
+  have hEq : (n : ℤ) - ↑n + 2 = (n : ℤ) - ↑(2 * n - 3) + ↑(n - 1) := by
+    have hEn : (2 * n - 3 : ℕ) = n + (n - 3) := by omega
+    have hFn : (n - 1 : ℕ) = 2 + (n - 3) := by omega
+    rw [hEn, hFn, Nat.cast_add, Nat.cast_add]
+    omega
+  exact hEq.trans hFanEq
+
+/-- **Triangulated disk, from the characteristic.** Start from the corner
+`n`-cycle, insert `B − n` boundary vertices, add `B − 3` diagonals, then perform
+`I` stellar subdivisions. The Euler number stays `2`, so the classical counts
+`V = I + B`, `T = 2I + B − 2`, `E = 3I + 2B − 3` satisfy `V − E + F = 2`. -/
+theorem triangulated_disk_euler_from_characteristic
+    (n B I : ℕ) (hn : 3 ≤ n) (hB : n ≤ B) :
+    ((I + B : ℕ) : ℤ) - ↑(3 * I + 2 * B - 3) + ↑(2 * I + B - 2 + 1) = 2 := by
+  have hCycle := corner_cycle_euler_from_characteristic n hn
+  have hIns : (↑B - ↑B + (2 : ℤ)) = (↑n - ↑n + (2 : ℤ)) := by
+    have h := eulerChar_insert_boundary_iter (B - n) n n 2
+    have hBn : n + (B - n) = B := by omega
+    rw [hBn] at h
+    exact h
+  have hDiag : (↑B - ↑(2 * B - 3) + ↑(B - 1)) = (↑B - ↑B + (2 : ℤ)) := by
+    have h := eulerChar_add_diagonal_iter (B - 3) B B 2
+    have hE : B + (B - 3) = 2 * B - 3 := by omega
+    have hF : 2 + (B - 3) = B - 1 := by omega
+    rw [← hE, ← hF]
+    exact h
+  have hStar := eulerChar_stellar_iter I B (2 * B - 3) (B - 2)
+  have hVI : I + B = B + I := by omega
+  have hE : 3 * I + 2 * B - 3 = (2 * B - 3) + 3 * I := by omega
+  have hT : 2 * I + B - 1 = (B - 2) + 2 * I + 1 := by omega
+  have hBase : B - 1 = (B - 2) + 1 := by omega
+  have hFcast : (2 * I + B - 2 + 1 : ℕ) = 2 * I + B - 1 := by omega
+  rw [hFcast]
+  calc
+    ((I + B : ℕ) : ℤ) - ↑(3 * I + 2 * B - 3) + ↑(2 * I + B - 1)
+        = ↑(B + I) - ↑((2 * B - 3) + 3 * I) + ↑((B - 2) + 2 * I + 1) := by
+          rw [hVI, hE, hT]
+    _ = ↑B - ↑(2 * B - 3) + ↑((B - 2) + 1) := hStar
+    _ = ↑B - ↑(2 * B - 3) + ↑(B - 1) := by rw [← hBase]
+    _ = ↑B - ↑B + (2 : ℤ) := hDiag
+    _ = ↑n - ↑n + (2 : ℤ) := hIns
+    _ = 2 := hCycle
+
+/-- **Pick's count for any triangulated disk with those counts.** Area `T/2`
+and the Euler number from `triangulated_disk_euler_from_characteristic` give
+`I + B/2 − 1`. -/
+theorem pick_count_of_disk_from_characteristic
+    (n B I : ℕ) (A : ℚ) (hn : 3 ≤ n) (hB : n ≤ B)
+    (harea : A = ((2 * I + B - 2 : ℕ) : ℚ) / 2) :
+    A = (I : ℚ) + (B : ℚ) / 2 - 1 := by
+  have hEuler := triangulated_disk_euler_from_characteristic n B I hn hB
+  have hEcast : (3 * I + 2 * B - 3 : ℕ) = 3 * I + 2 * B - 3 := rfl
+  have hT : (2 * I + B - 2 + 1 : ℕ) = 2 * I + B - 1 := by omega
+  have hEuler' :
+      ((I + B : ℕ) : ℤ) - ↑(3 * I + 2 * B - 3) + ↑(2 * I + B - 1) = 2 := by
+    simpa [hT] using hEuler
+  have hcount :=
+    triangulation_count_identity_nat I B (I + B) (3 * I + 2 * B - 3)
+      (2 * I + B - 2) (2 * I + B - 1) A
+      (by omega) (by omega) hEuler' (by omega) harea
+  exact hcount
+
+end Picks
+
 end EulersGem
