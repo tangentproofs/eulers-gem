@@ -6,6 +6,7 @@ Authors: Michal Wallace, Grok Bot
 import EulersGem.DiskEuler
 import EulersGem.Embed
 import EulersGem.LatticeArea
+import EulersGem.PickFromEuler
 import EulersGem.PlatonicOfEuler
 import EulersGem.Picks
 
@@ -115,13 +116,27 @@ theorem results_disk_pick_of_euler
     A = (I : ℚ) + (B : ℚ) / 2 - 1 :=
   EulersGem.Picks.pick_count_of_disk_from_characteristic n B I A hn hnB harea
 
+/-- **Pick for an empty primitive polygon, from the characteristic.** The corner
+fan is a primitive triangulation (`T = B − 2`). Its Euler number is the disk
+Euler number, so the area is `B/2 − 1`. -/
+theorem results_picks_of_empty_primitive_fan
+    (P : EulersGem.Picks.LatticePolygon)
+    (hverts : Function.Injective P.vertex)
+    (hedge : EulersGem.Picks.LatticeFan.PrimitiveEdges P)
+    (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P)
+    (hI : EulersGem.Picks.LatticeFan.EmptyInterior P) :
+    MeasureTheory.volume P.convexHullRegion =
+      ENNReal.ofReal ((P.B : ℚ) / 2 - 1) :=
+  EulersGem.Picks.LatticeFan.volume_pick_of_empty_primitive_from_characteristic
+    P hverts hedge hsc hI
+
 /-- **Pick's theorem** for a strictly convex counterclockwise lattice polygon
-with distinct vertices. The area is the Haar measure of the convex hull. The
-count `I + B/2 − 1` is proved by cutting the polygon into a fan of ears and
-inducting on the interior lattice points. `results_disk_pick_of_euler` is that
-same count derived from the characteristic, once a primitive triangulation
-with area `T/2` is supplied. This polygon proof does not yet build that
-triangulation. -/
+with distinct vertices. The area is the Haar measure of the convex hull.
+A primitive triangulation has `T = 2I + B − 2` triangles of shoelace `1/2`,
+so the polygon shoelace is `T/2`. Those counts have disk Euler number `2`
+by `triangulated_disk_euler_from_characteristic` (the triangle's
+characteristic, kept by the fan and the later moves). `results_pick_count_of_euler`
+turns `T/2` and that Euler number into `I + B/2 − 1`. -/
 theorem results_picks_theorem
     (P : EulersGem.Picks.LatticePolygon) (S : Finset (ℤ × ℤ))
     (hS : (S : Set (ℤ × ℤ)) = P.interiorLatticePoints)
@@ -129,8 +144,40 @@ theorem results_picks_theorem
     (hsc : EulersGem.Picks.LatticeFan.StrictlyConvexCCW P) :
     MeasureTheory.volume P.convexHullRegion =
       ENNReal.ofReal ((S.card : ℚ) + (P.B : ℚ) / 2 - 1) := by
-  exact EulersGem.Picks.LatticeArea.volume_eq_ofReal_cardI_add_B_div_two_sub_one_no_pe
-    P S hS hverts hsc
+  have harea :=
+    EulersGem.Picks.LatticeFan.shoelace_eq_two_cardI_add_B_sub_two_div_two
+      P S hS hverts hsc
+  have hn : 3 ≤ P.nVertices := P.length_ge
+  have hnB : P.nVertices ≤ P.B :=
+    EulersGem.Picks.LatticeFan.nVertices_le_B P hverts
+  let I := S.card
+  let B := P.B
+  let V := I + B
+  let T := 2 * I + B - 2
+  let E := 3 * I + 2 * B - 3
+  let F := T + 1
+  have hEuler :=
+    EulersGem.Picks.triangulated_disk_euler_from_characteristic P.nVertices B I hn hnB
+  have hFnat : 2 * I + B - 2 + 1 = F := by omega
+  have hEuler' : (V : ℤ) - ↑E + ↑F = 2 := by
+    simpa [V, E, F, hFnat] using hEuler
+  have hshake : 2 * E = 3 * T + B := by
+    have hB3 : 3 ≤ B := by omega
+    omega
+  have hareaT : P.shoelace = (T : ℚ) / 2 := by
+    simpa [T, I, B] using harea
+  have hcount :=
+    results_pick_count_of_euler I B V E T F P.shoelace rfl rfl hEuler' hshake hareaT
+  have hvol :=
+    EulersGem.Picks.LatticeArea.volume_convexHullRegion_eq_ofReal_shoelace P hsc hverts
+  rw [hvol]
+  refine congrArg ENNReal.ofReal ?_
+  calc
+    (P.shoelace : ℝ) = (((I : ℚ) + (B : ℚ) / 2 - 1 : ℚ) : ℝ) := congrArg Rat.cast hcount
+    _ = (S.card : ℝ) + (P.B : ℝ) / 2 - 1 := by
+      simp only [I, B]
+      push_cast
+      ring
 
 /-! ## The five Platonic solids -/
 
