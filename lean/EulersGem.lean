@@ -34,3 +34,4 @@ import EulersGem.Octahedron
 import EulersGem.Cube
 import EulersGem.EdgeVertices
 import EulersGem.MetricRegular
+import EulersGem.UnconditionalEuler

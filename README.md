@@ -50,12 +50,28 @@ See `lean/Results.lean` (only claims what is actually proved):
 | Theorem | Meaning |
 |---------|---------|
 | `results_euler_characteristic` | Euler characteristic of a full-dimensional convex polytope is `1` |
+| `results_euler_polyhedron` | Euler's formula in real three-space from a finite convex hull and affine dimension 3 |
 | `results_euler_relation_dimension_three` | Euler's formula: in dimension 3, `V − E + F = 2`, from that characteristic |
 | `results_picks_theorem` | Pick's theorem: area `= I + B/2 − 1` for a strictly convex lattice polygon |
 | `results_pick_count_of_euler` | Euler's formula for a triangulation gives Pick's count `I + B/2 − 1` |
 | `results_fan_pick_of_euler` | An empty fan's Pick count follows from the Euler characteristic |
 | `results_disk_pick_of_euler` | A triangulated disk's Pick count follows from the characteristic |
 | `results_five_platonic_solids` | Euler's formula leaves five Platonic solids: tetrahedron `{3,3}`, cube `{4,3}`, octahedron `{3,4}`, dodecahedron `{5,3}`, icosahedron `{3,5}` |
+
+The Euler results require a finite convex hull and the appropriate affine
+dimension, with no supplied halfspace presentation. `results_euler_polyhedron`
+specializes the result to `EuclideanSpace ℝ (Fin 3)` and has exactly the two
+geometric hypotheses `EulersGem.IsPolytope p` and `EulersGem.affDim p = 3`.
+Its counts are the actual geometric face sets defined by `IsFaceOf` and `affDim`;
+`facesOfDim_finite_of_isPolytope` supplies the geometric face-finiteness theorem.
+
+`IsPolytope.isPolyhedron` supplies the finite-vertex-to-finite-halfspace
+representation theorem in every finite-dimensional real inner product space.
+The supporting linear-inequality elimination and representation lemmas work
+over any linearly ordered field. They are in `EulersGem.LinearInequalities`,
+`EulersGem.PolyhedralRepresentation`, and `EulersGem.PolytopeHalfspaces`;
+`EulersGem.UnconditionalEuler` applies the hyperplane-arrangement Euler
+argument from `EulersGem.Embed`.
 
 Supporting proofs stay in `EulersGem.*`. The Platonic classification calls Euler's formula in dimension 3. Pick's theorem cuts the polygon into det-primitive triangles of total shoelace `T/2`, with `T = 2I + B − 2`, and reads `I + B/2 − 1` off the disk Euler number of that triangulation.
 
@@ -68,6 +84,7 @@ Mathlib pin `09a9e06e4e5ccd5b783f25e52ad3ebecfb1e2d68`.
 cd lean
 lake exe cache get   # never build Mathlib from scratch
 lake build
+./scripts/verify-euler.sh  # exact Euler contracts, axiom audit, and kernel replay
 ```
 
 List paper-facing theorems:
