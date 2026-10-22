@@ -431,207 +431,303 @@ function listPage(fileFilter) {
 // ------------------------------------------------------------------ playground
 function playgroundPage() {
   app.innerHTML = `<h1>Playground</h1>
-    <p class="muted">Five things to push on: a map you colour by hand, the hypermaps the proof actually works with,
-    Kempe's colour interchange, the trace numbers the certificates are built from, and a reducibility check.
-    Everything here is an illustration — the Lean is the ground truth, and these are small decidable models of it.</p>
-    <h2>Colour a map</h2>
-    <p class="muted">A <a href="#/node/SimpleMap">SimpleMap</a> of the plane has open connected regions, and two of them are
-    <a href="#/node/Adjacent">Adjacent</a> when they share a border point that is not a corner. Diagonal regions of a
-    checkerboard meet only at a corner, so they may share a colour; the four regions of
-    <code>FourColor/Nonvacuity.lean</code> are pairwise adjacent, so four colours really are needed.</p>
+    <p class="muted">Five things to push on: a solid you can turn in your hands, the alternating sum that
+    <i>is</i> Euler's formula in every dimension, the count that leaves five Schläfli pairs, a lattice polygon whose
+    hypotheses you can break, and the bookkeeping behind Pick's formula.
+    Everything here is an <b>illustration</b> — the Lean in <code>lean/</code> is the ground truth, and these are small
+    computable models of it. Each widget says so at the bottom.</p>
+
+    <h2>Turn a polyhedron</h2>
+    <p class="muted">Drag it. Tap a vertex, an edge or a face. <a href="#/node/Results.results_euler_polyhedron">Euler's
+    polyhedron formula</a> asks for exactly two things of a set <code>p</code> in ℝ³:
+    <a href="#/node/IsPolytope"><code>IsPolytope p</code></a> — it is the convex hull of finitely many points — and
+    <a href="#/node/affDim"><code>affDim p = 3</code></a>. Then <code>V − E + F = 2</code>, where <code>V</code>,
+    <code>E</code>, <code>F</code> count the <a href="#/node/IsFaceOf">faces</a> of affine dimension 0, 1 and 2.
+    The last preset is a <b>picture frame</b>: a genuine polyhedron with a square hole, where
+    <code>V − E + F = 0</code>. It is not convex, so it is not a convex hull of its vertices, so
+    <code>IsPolytope</code> is false and the theorem has nothing to say about it. Euler's formula is not a fact about
+    all polyhedra — it is a fact about convex ones.</p>
     <div id="pg1"></div>
-    <h2>Hypermaps</h2>
-    <p class="muted">The proof leaves the plane almost immediately. A <a href="#/node/Hypermap">Hypermap</a> is three
-    permutations of a set of darts with <code>node * face * edge = 1</code>; planarity is the Euler-formula condition
-    <a href="#/node/Hypermap.genus">genus</a> <code>= 0</code>.</p>
+    <p class="muted small">The "cut a corner" button truncates a vertex of degree <i>d</i>: one vertex leaves,
+    <i>d</i> arrive, <i>d</i> edges and one face are added. <code>V − E + F</code> cannot notice.</p>
+
+    <h2>The alternating sum</h2>
+    <p class="muted"><a href="#/node/faceEulerSum"><code>faceEulerSum p n</code></a> is
+    <code>∑ d ∈ range (n+1), (−1)ᵈ · #{faces of affDim d}</code>, and
+    <a href="#/node/Results.results_euler_characteristic"><code>results_euler_characteristic</code></a> says it is
+    <b>1</b> for every full-dimensional convex polytope, in every dimension. Two details are worth staring at: the
+    body counts (a polytope is a face of itself, of the top dimension), and the empty set does not
+    (<code>affDim ∅ = −1</code>, and the sum starts at <code>d = 0</code>). In dimension 3 the body's term is
+    <code>−1</code>, and moving it to the other side is the whole of the step from <code>= 1</code> to
+    <code>V − E + F = 2</code>.</p>
     <div id="pg2"></div>
-    <h2>Kempe chains</h2>
-    <p class="muted">Swapping two colours along a chain keeps a colouring proper. Kempe's 1879 proof that this always
-    repairs a pentagon was wrong, and repairing that gap is what the 633 configurations are for.</p>
+
+    <h2>Five pairs</h2>
+    <p class="muted">If every face of a convex 3-polytope is an <i>s</i>-gon and <i>m</i> edges meet at every vertex,
+    double counting gives <code>s·F = 2E</code> and <code>m·V = 2E</code>; feed those and <code>V − E + F = 2</code>
+    into each other and you get <code>E·(2s + 2m − s·m) = 2·s·m</code>, hence
+    <a href="#/node/Platonic.sub_mul_lt_four"><code>(s−2)(m−2) &lt; 4</code></a>. With <code>s, m ≥ 3</code> that leaves
+    five pairs. Note what this is and is not: a classification of <i>pairs of numbers</i>, not of solids.
+    <a href="#/node/Results.results_five_platonic_solids">The Results theorem</a> proves the five pairs, plus the
+    <code>(V,E,F)</code> of five numeric records; the dodecahedron and the icosahedron are never built.</p>
     <div id="pg3"></div>
-    <h2>Traces as numbers</h2>
-    <p class="muted">The colourings of a ring of <i>n</i> faces are recorded by their <code>trace</code> — the sums of
-    adjacent colours — and a trace is stored as a base-3 number, so a whole set of them is one number with
-    3<sup>n−1</sup> bits.</p>
+
+    <h2>Lattice polygons</h2>
+    <p class="muted">Tap grid points to build your own polygon, or pick one of the presets — several of them are there
+    to <i>fail</i> the hypotheses of <a href="#/node/Results.results_picks_theorem"><code>results_picks_theorem</code></a>
+    and show what goes wrong. <code>B</code> is read off the edge gcds; <code>I</code> counts lattice points of the
+    <b>convex hull of the vertex list</b> that are not on the edges, which is what
+    <a href="#/node/Picks.LatticePolygon.interiorLatticePoints">the Lean definition</a> says — so for a non-convex
+    polygon the Lean's <code>I</code> counts points the shape does not enclose.</p>
     <div id="pg4"></div>
-    <h2>Reducibility</h2>
-    <p class="muted">A configuration is reducible when every colouring of its ring can be made to extend into it. The
-    Birkhoff diamond can; a lone pentagon cannot.</p>
+
+    <h2>Counting a triangulation</h2>
+    <p class="muted">Cut a lattice polygon into triangles of area ½. Then <code>T = 2I + B − 2</code>,
+    <code>V = I + B</code>, <code>F = T + 1</code> and <code>2E = 3T + B</code>, and <code>V − E + F = 2</code> makes
+    the area <code>T/2</code> equal <code>I + B/2 − 1</code>. That last step is
+    <a href="#/node/Results.results_pick_count_of_euler"><code>results_pick_count_of_euler</code></a>, and it is
+    <i>only</i> that step: it takes all five of those as hypotheses. Producing a triangulation whose counts really are
+    these, for a given polygon, is the work.</p>
     <div id="pg5"></div>`;
-  mountWidget(document.getElementById("pg1"), { type: "map-color", title: "Colour the regions",
-    config: { preset: "checkerboard", show: ["adjacency", "solve", "corners", "connected"] } });
-  mountWidget(document.getElementById("pg2"), { type: "hypermap", title: "Hypermap explorer",
-    config: { preset: "tetrahedron", show: ["cycles", "relation", "euler", "planar", "plain", "cubic", "connected", "coloring"] } });
-  mountWidget(document.getElementById("pg3"), { type: "kempe", title: "Tait colours and Kempe chains", config: { preset: "cube" } });
-  mountWidget(document.getElementById("pg4"), { type: "trace-bits", title: "One number per trace", config: { n: 5 } });
-  mountWidget(document.getElementById("pg5"), { type: "reducible", title: "Is it reducible?", config: { config: "birkhoff-diamond" } });
+  mountWidget(document.getElementById("pg1"), { type: "polyhedron", title: "A convex polytope, and one non-example",
+    config: { preset: "cube", show: ["counts", "incidence", "truncate"] } });
+  mountWidget(document.getElementById("pg2"), { type: "face-lattice", title: "f₀ … fₙ and the alternating sum",
+    config: { n: 3 } });
+  mountWidget(document.getElementById("pg3"), { type: "schlafli", title: "(s − 2)(m − 2) < 4" });
+  mountWidget(document.getElementById("pg4"), { type: "pick", title: "A lattice polygon you can break",
+    config: { preset: "triangle", show: ["counts", "hypotheses", "fan"] } });
+  mountWidget(document.getElementById("pg5"), { type: "triangulate", title: "The counts, and why they add to 2",
+    config: { I: 1, B: 6 } });
 }
 
 // ------------------------------------------------------------------ about
 function aboutPage() {
   app.innerHTML = `<h1>About this site</h1>
   <div class="eli5">
-  <p>Formalization usually goes from English to Lean: the job is done when Lean accepts the proof. This site goes the
-  other way — <b>informalization</b>. The Lean proof of the Four Colour Theorem is finished and checks. The job here is
-  done when a <b>reader</b> accepts it: when you can say what each formal statement means and back that up by passing
-  a quiz.</p>
+  <p>Formalization goes from English to Lean: the job is done when Lean accepts the proof. This site goes the other
+  way — <b>informalization</b>. The job here is done when a <b>reader</b> accepts it: when you can say what each
+  formal statement means, hypotheses included, and back that up by passing a quiz.</p>
 
   <h2>What is being read</h2>
-  <p>Chris Emery's <a href="https://github.com/corun1024/4ct" target="_blank" rel="noopener">corun1024/4ct</a>, a complete
-  Lean 4 proof of the Four Colour Theorem over Mathlib, following the architecture of Georges Gonthier and Benjamin
-  Werner's Coq proof. It is vendored unmodified in this repository's <code>4ct/</code> directory at upstream commit
-  <code>3db71e0</code> (Lean v4.34.0-rc2), so every file path on this site is a path inside <code>4ct/</code>.</p>
-  <p>The statement is in <a href="#/node/FourColorTheorem"><code>4ct/FourColor/RealPlane.lean</code></a>, a 195-line file
-  that imports three Mathlib topology modules and no module of the development:
-  <code>def FourColorTheorem : Prop := ∀ m : PlaneMap, SimpleMap m → ColorableWith 4 m</code>.
-  A <a href="#/node/PlaneMap">map</a> assigns a region to each point; a <a href="#/node/PlainMap">plain</a> map is a
-  partial equivalence relation, whose classes are its regions; a <a href="#/node/SimpleMap">simple map</a> is a plain map
-  whose classes are open and connected; and a <a href="#/node/Coloring">colouring</a> is a coarser map that separates
-  regions sharing a non-corner border point.</p>
+  <p><a href="https://github.com/${REPO}" target="_blank" rel="noopener">tangentproofs/eulers-gem</a>, a Lean 4
+  formalization of <b>Euler's polyhedron formula</b> and the Euler–Poincaré characteristic of convex polytopes
+  (Freek Wiedijk's <a href="https://www.cs.ru.nl/~freek/100/" target="_blank" rel="noopener">#13</a>), together with two
+  of its classical consequences: the Schläfli-pair count behind the five Platonic solids, and Pick's formula for the
+  area of a lattice polygon. The paper-facing statements are the ${ROOTS.length} theorems of
+  <a href="../docs/Results.html"><code>lean/Results.lean</code></a>; everything else lives in
+  <code>lean/EulersGem/</code>, ${decls.length} declarations across ${fileCount} modules.</p>
+  <p>The root is <a href="#/node/Results.results_euler_characteristic"><code>results_euler_characteristic</code></a>:
+  a convex polytope filling its ambient dimension has <a href="#/node/faceEulerSum"><code>faceEulerSum = 1</code></a>.
+  <a href="#/node/Results.results_euler_polyhedron"><code>results_euler_polyhedron</code></a> is the dimension-3
+  reading, <code>V − E + F = 2</code>. The Platonic and Pick lanes hang below it — see
+  <a href="#/trust">Trust</a> for exactly how much of each is actually discharged from that root, because it is not
+  all of it.</p>
 
   <h2>How “understood” works</h2>
   <ul>
-  <li>Each node is one Lean declaration. ${decls.length} of them are listed here, ${reachable.length} of them reachable
-  from <code>fourColorTheorem</code>, extracted from the compiled proof (plus a few rows read from source — see
-  <a href="#/trust">Trust</a>).</li>
-  <li>A node with an explainer has the verbatim Lean, a plain-English reading, sometimes an interactive illustration,
+  <li>Each node is one Lean declaration. ${decls.length} are listed here, ${reachable.length} of them reachable from
+  a <code>Results</code> theorem, extracted from the compiled proof by
+  <a href="https://github.com/${REPO}/blob/main/learn/tools/ExtractDecls.lean"><code>ExtractDecls.lean</code></a>.</li>
+  <li>A node with an explainer has the verbatim Lean, a plain-English reading, usually an interactive illustration,
   and a quiz with an answer key.</li>
   <li>You can sign off on a node only after passing its quiz. It counts as <b>understood</b> once you've signed off on
   it <i>and</i> every project declaration its statement mentions is understood. For a definition the body counts as
   part of the statement, because the body is what it means. For a theorem only the statement counts, because which
   proof you use doesn't change what is being claimed.</li>
-  <li>Mathlib's definitions are taken as given and linked to their documentation.</li>
-  <li>Understanding the <i>proof</i> means understanding every declaration it uses. The progress bar on the graph page
-  tracks that.</li>
+  <li>Mathlib's definitions are taken as given and linked to their documentation. There is a lot of Mathlib here:
+  <code>convexHull</code>, <code>IsExtreme</code>, <code>AffineSubspace.finDim</code>, <code>MeasureTheory.volume</code>
+  and the inner-product-space hierarchy are all Mathlib's.</li>
+  <li>Understanding the <i>proof</i> means understanding every declaration it uses. The second progress bar on the
+  graph page tracks that.</li>
   </ul>
-  <p>Every demonstration widget on this site is an <b>illustration</b>: a small decidable model, a drawing, or a
-  brute-force search over a finite case. None of them is evidence for the theorem, and each prints a line saying so.
-  (The <code>outline</code> and <code>walkthrough</code> widgets are not demonstrations at all — they are linked
-  summaries of the proof's own steps.)</p>
+  <p>Every demonstration widget on this site is an <b>illustration</b>: a drawing, an exact computation on one example,
+  or a table of small cases. None of them is evidence for a theorem, and each prints a line saying so. (The
+  <code>outline</code> and <code>walkthrough</code> widgets are not demonstrations at all — they are linked summaries
+  of the proof's own steps.)</p>
 
   <h2>Contributing (humans and AI agents)</h2>
-  <p>Every explainer is one Markdown file, <code>site/nodes/&lt;id&gt;.md</code>, with YAML frontmatter that holds the quiz
-  key. See <a href="https://github.com/${REPO}/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>. CI validates each file
-  against a JSON schema and against the extracted Lean declarations. Each stub page has a ready-made agent prompt, and
-  <a href="data/needs-explainer.json">data/needs-explainer.json</a> lists the open work, nearest the theorem first.</p>
+  <p>Every explainer is one Markdown file, <code>learn/nodes/&lt;id&gt;.md</code>, with YAML frontmatter that holds the
+  quiz key. See <a href="https://github.com/${REPO}/blob/main/learn/CONTRIBUTING.md">learn/CONTRIBUTING.md</a>. CI
+  validates each file against a JSON schema and against the extracted Lean declarations. Each stub page has a
+  ready-made agent prompt, and <a href="data/needs-explainer.json">data/needs-explainer.json</a> lists the open work,
+  nearest a <code>Results</code> theorem first.</p>
 
   <h2>Credits</h2>
   <ul>
-  <li><b>The Lean proof: Chris Emery</b>, <a href="https://github.com/corun1024/4ct" target="_blank" rel="noopener">corun1024/4ct</a>,
-  MIT, Copyright (c) 2026 Chris Emery. Vendored here unmodified.</li>
-  <li><b>The mathematics: Georges Gonthier and Benjamin Werner</b>, whose Coq proof
-  (<a href="https://github.com/rocq-community/fourcolor" target="_blank" rel="noopener">rocq-community/fourcolor</a>, CeCILL-B)
-  this development follows — the same reduction to finite planar hypermaps, the same 633 reducible configurations, the
-  same seven discharging presentations. No Coq source text is copied into the Lean repository, but three kinds of
-  <i>data</i> are mechanical translations of it and say so in their headers: <code>FourColor/Configurations.lean</code>
-  (from <code>configurations.v</code>), the <code>FourColor/Present*.lean</code> scripts (from <code>present*.v</code>),
-  and the quiz data computed from the configurations.</li>
-  <li><b><a href="https://github.com/leanprover-community/mathlib4" target="_blank" rel="noopener">Mathlib</a></b>, Apache-2.0,
-  which supplies ℝ, the permutation and topology theory, and much else.</li>
-  <li><b>AI disclosure, upstream.</b> The 4ct README states that the development was written with heavy use of AI —
-  Claude Fable 5.1 produced essentially all of the Lean proofs, the certificate engines and the generators, and Claude
-  Opus 5 the repository layout and build tooling — and asks readers not to take the theorem on the author's authority
-  or the model's, but to read the statement and run the checker.</li>
-  <li><b>This site.</b> The explanations, quizzes and widgets here are community work: written by AI agents for
-  Michal Wallace (<a href="https://github.com/tangentstorm" target="_blank" rel="noopener">tangentstorm</a>). They are
-  <b>not endorsed by Chris Emery</b>, are not part of the proof, and may be wrong. When this site and the Lean disagree,
-  the Lean is right.</li>
+  <li><b>The proof strategy: Lawrence C. Paulson</b>, whose Isabelle/HOL AFP entry
+  <a href="https://isa-afp.org/entries/Euler_Polyhedron_Formula.html" target="_blank" rel="noopener"><i>Euler's
+  Polyhedron Formula</i></a> (2023, BSD; itself a port from HOL Light) this development follows: hyperplane
+  arrangements, cell complexes, and invariance of the Euler characteristic under refinement. That entry is vendored
+  for comparison under <code>isabelle/</code>, and <a href="../lean-afp.html">the Lean ↔ AFP map</a> lines the two up
+  theorem by theorem.</li>
+  <li><b>The mathematics: Jim Lawrence</b>, <i>A Short Proof of Euler's Relation for Convex Polytopes</i>, Canad.
+  Math. Bull. 40 (1997) — the argument Paulson formalized and this repository re-formalizes.</li>
+  <li><b>Kim Morrison</b> (<a href="https://github.com/kim-em" target="_blank" rel="noopener">kim-em</a>) contributed
+  the finite-vertex-to-finite-halfspace representation theorem
+  (<a href="#/node/IsPolytope.isPolyhedron"><code>IsPolytope.isPolyhedron</code></a>,
+  <code>EulersGem/LinearInequalities.lean</code>, <code>PolyhedralRepresentation.lean</code>,
+  <code>PolytopeHalfspaces.lean</code>, <code>UnconditionalEuler.lean</code>) and the contract and axiom checks, in
+  <a href="https://github.com/${REPO}/pull/2" target="_blank" rel="noopener">PR #2</a>. That is what removed the
+  halfspace-presentation hypothesis from the public Euler results: the H-description is now <i>proved</i> from the
+  V-description rather than assumed.</li>
+  <li><b><a href="https://github.com/leanprover-community/mathlib4" target="_blank" rel="noopener">Mathlib</a></b>,
+  Apache-2.0, which supplies ℝ, convexity, extreme sets, affine dimension, Lebesgue measure and much else.</li>
+  <li><b>David Richeson</b>, <i>Euler's Gem: The Polyhedron Formula and the Birth of Topology</i> (Princeton, 2008) —
+  the book this repository is named after, and the source of the story the explainers tell. It is <i>literature</i>:
+  nothing from it is stated in the Lean, and where the book proves something the Lean does not, the Lean wins here.</li>
+  <li><b>AI disclosure.</b> The Lean in this repository was written by AI agents working for Michal Wallace
+  (<a href="https://github.com/tangentstorm" target="_blank" rel="noopener">tangentstorm</a>), as were the
+  explanations, quizzes and widgets on this site. They may be wrong. When this site and the Lean disagree, the Lean is
+  right; when the Lean and the mathematics disagree, Lean's kernel still has the last word on what has been
+  <i>proved</i>, which is why <a href="#/trust">Trust</a> is the page that matters.</li>
   </ul>
   </div>`;
 }
 
 // ------------------------------------------------------------------ trust
 function trustPage() {
-  app.innerHTML = `<h1>Trust: what was checked, and where</h1>
+  app.innerHTML = `<h1>Trust: what each result proves, and what it does not</h1>
   <div class="eli5">
-  <p>A formal proof is only worth what its statement says and what actually checked it. Here is the honest accounting
-  for this site, separating <b>upstream's claim</b>, <b>what this repository's maintainers re-checked on their own
-  machine</b>, and <b>what nobody here checked</b>.</p>
+  <p>A formal proof is worth exactly what its statement says. This page is the honest accounting, theorem by theorem,
+  for the ${ROOTS.length} paper-facing results of <a href="../docs/Results.html"><code>lean/Results.lean</code></a>.
+  Three of them are genuine classical theorems. Three are arithmetic identities whose classical story lives in the
+  <i>proof</i>, not the statement. Two are geometric but carry a remaining hypothesis. One is a combinatorial
+  classification that is routinely mis-stated as something stronger.</p>
+  <p>Where this page and <a href="../index.html">the overview page</a> or the README differ in emphasis, read the Lean.
+  Every row below links to the statement.</p>
 
-  <h2>The statement</h2>
-  <p><code>4ct/FourColor/RealPlane.lean</code> is 195 lines and imports three Mathlib topology modules and nothing from
-  the development. It defines everything the statement needs elementarily — <code>IsOpenRegion</code>,
-  <code>regionClosure</code>, <code>IsConnectedRegion</code>, <code>PlainMap</code>, <a href="#/node/SimpleMap">SimpleMap</a>,
-  <code>border</code>, <code>notCorner</code>, <a href="#/node/Adjacent">Adjacent</a>, <a href="#/node/Coloring">Coloring</a>,
-  <a href="#/node/ColorableWith">ColorableWith</a> — and ends with
-  <code>def FourColorTheorem : Prop := ∀ m : PlaneMap, SimpleMap m → ColorableWith 4 m</code> (followed only by
-  <code>FourColorTheoremFinite</code>, the finite version the compactness step uses). Two of the elementary notions are
-  proved to be Mathlib's in that same file — <code>isOpenRegion_iff</code> (<code>IsOpenRegion = IsOpen</code>) and
-  <code>regionClosure_eq</code> (<code>regionClosure = closure</code>), both unconditional. The 61-line
-  <code>FourColor/RealPlaneMathlib.lean</code> adds the third, <code>isConnectedRegion_iff_isPreconnected</code>, which
-  takes <code>IsOpenRegion r</code> as a hypothesis, and restates the whole hypothesis as <code>simpleMap_iff</code>. So
-  the statement can be read in either vocabulary. It is stated over Mathlib's ℝ; Gonthier's Coq statement is over any
-  model of the reals.</p>
-  <p>The statement is not vacuous. <code>FourColor/Nonvacuity.lean</code> exhibits four open connected regions of the
-  plane — the unit square, the strip to its right, the quadrant above it, and the complement of the closed first
-  quadrant — which are pairwise <code>Adjacent</code>, so <code>Adjacent</code> is satisfiable and, by pigeonhole, the
-  map is not <code>ColorableWith 3</code>. The four is tight. (That file was not built here; it is read from source.)</p>
+  <h2>The short table</h2>
+  <div class="table-wrap"><table>
+  <thead><tr><th>theorem</th><th>what it proves</th><th>what it does <i>not</i></th></tr></thead>
+  <tbody>
+  <tr><td><a href="#/node/Results.results_euler_characteristic"><code>results_euler_characteristic</code></a></td>
+      <td><b>Euler–Poincaré, for real.</b> <code>IsPolytope p</code> (a finite convex hull) in a finite-dimensional
+      real inner product space, with <code>affDim p = finrank E</code> and <code>1 ≤ finrank E</code>, gives
+      <code>faceEulerSum p (finrank E) = 1</code> — the alternating sum over the geometric face sets.</td>
+      <td>Nothing about non-convex bodies, or about a polytope that does <i>not</i> fill its ambient space (the
+      full-dimensionality hypothesis is used; apply it inside the affine span instead), or about convex bodies that
+      are not finite hulls (a ball).</td></tr>
+  <tr><td><a href="#/node/Results.results_euler_relation_dimension_three"><code>results_euler_relation_dimension_three</code></a></td>
+      <td><b>Euler's polyhedron formula.</b> In any 3-dimensional real inner product space, a polytope with
+      <code>affDim p = 3</code> has <code>V − E + F = 2</code>, with <code>V, E, F</code> the cardinalities of the
+      actual face sets <code>{f | IsFaceOf p f ∧ affDim f = d}</code> for <code>d = 0, 1, 2</code>.</td>
+      <td>Not non-convex polyhedra (the picture frame in the <a href="#/playground">playground</a> has
+      <code>V − E + F = 0</code>), not graphs drawn on a sphere, not arbitrary surfaces, not a genus formula.</td></tr>
+  <tr><td><a href="#/node/Results.results_euler_polyhedron"><code>results_euler_polyhedron</code></a></td>
+      <td>The same, specialized to <code>EuclideanSpace ℝ (Fin 3)</code>, with exactly two hypotheses:
+      <code>IsPolytope p</code> and <code>affDim p = 3</code>. No halfspace presentation is supplied — it is proved.</td>
+      <td>Same limits as the row above.</td></tr>
+  <tr><td><a href="#/node/Results.results_five_platonic_solids"><code>results_five_platonic_solids</code></a></td>
+      <td><b>The Schläfli-pair classification.</b> Part 1: a convex 3-polytope in which every 2-face has
+      <code>s</code> edges, every vertex lies on <code>m</code> edges, <i>and every edge lies in exactly two
+      2-faces</i>, has <code>(s, m) ∈ {(3,3), (3,4), (3,5), (4,3), (5,3)}</code>. Euler is discharged from the root,
+      not assumed. Parts 2–6: the <code>(V,E,F,s,m)</code> of five numeric records.</td>
+      <td><b>Not “there are exactly five Platonic solids”.</b> No metric regularity (equal edges, equal angles,
+      congruent faces) anywhere. No construction of the dodecahedron or the icosahedron — those two exist only as
+      <code>RegularNumbers</code> records. No uniqueness up to similarity. And the diamond property (two 2-faces per
+      edge) is a <i>hypothesis</i>, proved in this repository only for the three solids that are built.</td></tr>
+  <tr><td><a href="#/node/Results.results_picks_theorem"><code>results_picks_theorem</code></a></td>
+      <td><b>Pick's theorem for strictly convex lattice polygons.</b> For a <code>LatticePolygon P</code> with
+      distinct vertices and <code>StrictlyConvexCCW P</code>, and <i>any</i> <code>Finset S</code> whose coercion
+      equals <code>P.interiorLatticePoints</code>, the Lebesgue measure of <code>P.convexHullRegion</code> is
+      <code>ofReal (S.card + P.B/2 − 1)</code>. Real measure, real lattice-point counts.</td>
+      <td>The existence of that <code>S</code> — finiteness of the interior lattice points — is <b>not proved</b>
+      here; it is a hypothesis. If no such <code>S</code> existed for some polygon, the statement would be vacuous
+      for it. Nothing about non-convex simple polygons: <code>interiorLatticePoints</code> is defined through the
+      convex hull, so for a non-convex polygon the Lean's <code>I</code> is not the classical one. A convex polygon
+      listed with collinear vertices fails <code>LocalCCWTurns</code> and must be re-listed first.</td></tr>
+  <tr><td><a href="#/node/Results.results_picks_of_empty_primitive_fan"><code>results_picks_of_empty_primitive_fan</code></a></td>
+      <td>Geometric, with no free Euler hypothesis: a strictly convex lattice polygon with distinct vertices,
+      primitive edges and <b>no</b> interior lattice points has measure <code>ofReal (B/2 − 1)</code>.</td>
+      <td>The special case <code>I = 0</code> only. The primitive-edge and empty-interior hypotheses are both real
+      restrictions.</td></tr>
+  <tr><td><a href="#/node/Results.results_pick_count_of_euler"><code>results_pick_count_of_euler</code></a></td>
+      <td><b>Pure arithmetic.</b> From <code>V = I + B</code>, <code>F = T + 1</code>,
+      <code>V − E + F = 2</code>, <code>2E = 3T + B</code> and <code>A = T/2</code> — all five
+      <i>hypotheses</i> — it concludes <code>A = I + B/2 − 1</code>.</td>
+      <td>Nothing about polygons, lattices, areas or Euler. The <code>heuler</code> input is a free hypothesis on
+      bare numbers. It is the bookkeeping step, and it is honest about being one.</td></tr>
+  <tr><td><a href="#/node/Results.results_fan_pick_of_euler"><code>results_fan_pick_of_euler</code></a></td>
+      <td><b>The statement is <code>(n − 2)/2 = n/2 − 1</code> for <code>n ≥ 3</code>.</b> That is all it says.</td>
+      <td>The statement proves nothing about fans or triangulations. The Euler characteristic appears in how the
+      <i>proof</i> is routed (through a geometric triangle's characteristic and an induction over fans), not in what
+      is claimed.</td></tr>
+  <tr><td><a href="#/node/Results.results_disk_pick_of_euler"><code>results_disk_pick_of_euler</code></a></td>
+      <td><b>Given <code>A = (2I + B − 2)/2</code> as a hypothesis</b> and <code>3 ≤ n ≤ B</code>, concludes
+      <code>A = I + B/2 − 1</code>. An arithmetic consequence.</td>
+      <td>The "triangulated disk" is in the proof route, not the statement; <code>n</code> appears only as a bound.
+      No disk, no triangulation and no polygon is quantified over.</td></tr>
+  </tbody></table></div>
 
-  <h2>Built and checked on this box</h2>
+  <h2>What is genuinely on the Euler–Poincaré spine</h2>
+  <p>The repository's own rule (<code>lean/UNIFIED_SPINE.md</code>) is that the Platonic and Pick lanes must
+  <i>discharge</i> Euler from the root rather than assume it. Where that stands:</p>
   <ul>
-  <li><b>FourColor.Main</b> and its import closure, 60 modules: the whole mathematics layer. <code>#print axioms</code>
-  on <code>fourColorTheorem_of_checks</code>, <code>fourColorTheorem_of_unavoidability</code>,
-  <code>fourColorTheorem_of_finite</code>, <code>discretize</code>, <code>redpartSound_theRedpart</code>,
-  <code>Hypermap.not_minimalCounterExample</code> and <code>simpleMap_iff</code> each gives exactly
-  <code>[propext, Classical.choice, Quot.sound]</code> — Lean's three standard axioms and nothing else.</li>
-  <li><b>FourColor.RealPlaneMathlib</b>, the bridge between the elementary statement and Mathlib's topology.</li>
-  <li><b>Five of the seven unavoidability presentations</b>: <code>Present5</code>, <code>Present6</code>, <code>Present9</code>,
-  <code>Present10</code> and <code>Present11</code> with their generated check modules (149 modules, about an hour on two cores).
-  <code>#print axioms</code> on <code>exclude5</code>, <code>exclude6</code>, <code>exclude9</code>, <code>exclude10</code> and
-  <code>exclude11</code> gives <code>[propext, Classical.choice, Quot.sound]</code>.</li>
+  <li><b>The root itself is clean.</b>
+  <a href="#/node/Euler_Poincare_of_isPolytope"><code>Euler_Poincare_of_isPolytope</code></a> takes
+  <code>IsPolytope</code>, full dimension and <code>1 ≤ finrank</code>, and nothing else. It gets the halfspace
+  presentation it needs from <a href="#/node/IsPolytope.isPolyhedron"><code>IsPolytope.isPolyhedron</code></a>, and
+  the finiteness of each face set from
+  <a href="#/node/facesOfDim_finite_of_isPolytope"><code>facesOfDim_finite_of_isPolytope</code></a>. Both are theorems.</li>
+  <li><b>Platonic: Euler is discharged.</b>
+  <a href="#/node/Platonic.regular_polytope_counts"><code>regular_polytope_counts</code></a> proves
+  <code>s·F = 2E</code> and <code>m·V = 2E</code> by double counting over face-lattice incidence and takes
+  <code>V − E + F = 2</code> from the geometric relation. No bare Euler hypothesis survives. One polytope fact — the
+  diamond property — is still assumed.</li>
+  <li><b>Pick: partly.</b> <a href="#/node/Results.results_picks_theorem"><code>results_picks_theorem</code></a> is
+  geometric and routes through
+  <a href="#/node/Picks.triangulated_disk_euler_from_characteristic"><code>triangulated_disk_euler_from_characteristic</code></a>,
+  whose proof starts at a geometric triangle's Euler–Poincaré characteristic and applies moves that preserve the
+  count. But the <i>statement</i> of that lemma is an identity between numerals, and the three
+  <code>*_of_euler</code> results above are arithmetic. The genuinely geometric Pick claims are
+  <code>results_picks_theorem</code> and <code>results_picks_of_empty_primitive_fan</code>.</li>
   </ul>
 
-  <h2>Not built here — upstream's claim</h2>
+  <h2>Definitions you have to accept for the statements to mean what they seem to</h2>
   <ul>
-  <li>The <b>633 reducibility certificates</b> (<code>FourColor.Bulk.Cfg.*</code>, <code>FourColor.Mask.*</code>,
-  <code>FourColor.Reduce.All</code>), the presentations for hub arities <b>7 and 8</b> (<code>Present7</code>,
-  <code>Present8</code>: one of their check modules peaks at 9.2 GB), and <b><code>FourColor.Complete</code> itself</b>, which is where
-  <code>fourColorTheorem</code> is stated. One certificate module peaks at <b>20.5 GB</b> of RAM and this machine has
-  15 GB, so they were not re-run. The axioms of <code>fourColorTheorem</code> itself are therefore upstream's claim, not
-  a local re-verification. Upstream's README reports
-  <code>FourColor.fourColorTheorem : FourColor.FourColorTheorem depends only on [propext, Classical.choice, Quot.sound]</code>
-  and <code>checked 115342 FourColor declarations: no sorries, no extra axioms</code>.</li>
-  <li>In short: <b>this site's maintainers re-checked the mathematics layer and five of the seven presentations, but not the
-  reducibility certificates.</b></li>
+  <li><a href="#/node/IsPolytope"><code>IsPolytope p</code></a> is <code>∃ V, V.Finite ∧ p = convexHull ℝ V</code> —
+  the V-description. The H-description, <a href="#/node/IsPolyhedron"><code>IsPolyhedron</code></a>, is a finite
+  intersection of closed halfspaces, and the two are linked by a <i>theorem</i>, not by fiat.</li>
+  <li><a href="#/node/IsFaceOf"><code>IsFaceOf p f</code></a> is Mathlib's <code>IsExtreme ℝ p f</code> together with
+  convexity of <code>f</code>. It includes <code>f = ∅</code> and <code>f = p</code>. The empty face stays out of the
+  counts only because <code>affDim ∅ = −1</code>.</li>
+  <li><a href="#/node/affDim"><code>affDim s</code></a> is <code>−1</code> on <code>∅</code> and the
+  <code>finDim</code> of the affine span otherwise, as an <code>ℤ</code>. It has a junk value of <code>0</code> when
+  the direction is infinite-dimensional, which is why the Euler results carry
+  <code>[FiniteDimensional ℝ E]</code>.</li>
+  <li><code>Set.ncard</code> is <code>0</code> on an infinite set. So a count of <code>0</code> could in principle
+  mean "infinitely many" — which is exactly why
+  <a href="#/node/facesOfDim_finite_of_isPolytope"><code>facesOfDim_finite_of_isPolytope</code></a> has to be proved,
+  and it is.</li>
+  <li><a href="#/node/Picks.LatticePolygon"><code>Picks.LatticePolygon</code></a> asserts only
+  <code>3 ≤ vertices.length</code>. It does not assert simplicity, convexity or even distinct vertices; those arrive
+  as separate hypotheses.</li>
   </ul>
 
-  <h2>Kernel evaluation, not native code</h2>
-  <p>Every computation in the development is <code>decide +kernel</code> — about fifty thousand uses — and not
-  <code>native_decide</code>. The difference matters: <code>native_decide</code> compiles the computation and trusts the
-  compiler and the runtime, while <code>decide +kernel</code> makes Lean's own kernel evaluate it. A grep of the
-  committed sources finds no <code>sorry</code>, no <code>native_decide</code>, no <code>ofReduceBool</code>, no
-  <code>axiom</code>, and no <code>unsafe</code>, <code>partial</code>, <code>opaque</code> or
-  <code>implemented_by</code> declaration. Upstream's <code>scripts/check.sh</code> enforces that on every build.</p>
-
-  <h2>Where the reducibility check differs from Coq's</h2>
-  <p>Coq settled reducibility by running a Kempe-chain closure program on a bytecode machine added to Coq for the
-  purpose. Lean has no such machine, and <code>native_decide</code> was ruled out, so the computation was redesigned:
-  the traces of a ring of size <i>n</i> are packed into a single natural number with 3<sup>n−1</sup> bits, and Kempe
-  flips and colour permutations become shift-and-mask operations on GMP-accelerated <code>Nat</code> literals. A
-  one-chord rule settles 523 of the 633 configurations; a guided “mask walk” with witnesses supplied as data settles
-  the other 110. The soundness of both is proved once, generically, in <code>FourColor/Bulk/</code> and
-  <code>FourColor/Mask*.lean</code>. The certificates themselves are produced by <b>untrusted</b> scripts
-  (<code>scripts/gen_certificates.sh</code>) and then kernel-checked, so nothing in the proof depends on the generator
-  being correct. This is the one place where the development genuinely deviates from the Coq proof rather than
-  re-expressing it.</p>
-
-  <h2>Two results deliberately not ported</h2>
-  <p><code>Jordan_planar</code> and <code>Jordan_WalkupE</code> — the converse direction, Jordan ⟹ planar — are not
-  ported, because nothing uses them. Every use of planarity in the development is planar ⟹ Jordan, which is proved
-  (<code>Hypermap.Planar.jordan</code>).</p>
-
-  <h2>Rows added by hand</h2>
-  <p>The declaration graph was extracted from the compiled proof, so declarations in modules that were not compiled
-  here are missing from it. Rows for <code>fourColorTheorem</code>, <code>reducibility</code>,
-  <code>theConfigs_length</code>, <code>reducible_all</code> and <code>exclude5</code>…<code>exclude11</code> were added
-  by reading the source instead; their pages say so. <code>reducible_all</code> lives in a <i>generated</i> module that
-  is not committed upstream at all.</p>
+  <h2>Axioms</h2>
+  <p>Lean reports, for each theorem, which axioms its proof depends on. Three are standard and expected
+  (<code>propext</code>, <code>Classical.choice</code>, <code>Quot.sound</code>). Two are not:
+  <code>sorryAx</code> would mean a hole, and a <code>native_decide</code> axiom would mean the compiler and the
+  runtime were trusted instead of the kernel. <code>lean/scripts/audit-axioms.sh</code> checks every declaration in
+  <code>Results.lean</code> and fails on either. The table below is that script's output.</p>
+<div class="table-wrap"><table class="node-list"><thead><tr><th>Results theorem</th><th><code>#print axioms</code></th></tr></thead><tbody><tr><td><a href="#/node/Results.results_euler_characteristic"><code>results_euler_characteristic</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_euler_relation_dimension_three"><code>results_euler_relation_dimension_three</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_euler_polyhedron"><code>results_euler_polyhedron</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_five_platonic_solids"><code>results_five_platonic_solids</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_picks_theorem"><code>results_picks_theorem</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_picks_of_empty_primitive_fan"><code>results_picks_of_empty_primitive_fan</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_pick_count_of_euler"><code>results_pick_count_of_euler</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_fan_pick_of_euler"><code>results_fan_pick_of_euler</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr><tr><td><a href="#/node/Results.results_disk_pick_of_euler"><code>results_disk_pick_of_euler</code></a></td><td><code>[propext, Classical.choice, Quot.sound]</code></td></tr></tbody></table></div>
+  <p class="small">Recorded on 2026-10-22 from a fresh <code>lake build</code> of this branch (Lean v4.35.0-rc1, Mathlib <code>09a9e06</code>):
+  <code>lean/scripts/audit-axioms.sh</code> reports <b>AUDIT PASS</b> (no <code>sorry</code> in the sources; the
+  <code>native_decide</code>s that remain, in the unit-square witnesses of <code>PlanarTriangulation.lean</code> and
+  <code>PicksTriangulation.lean</code>, are not reached by any Results theorem), and <code>lean/EulerAudit.lean</code>
+  reports its axiom audit passed for 76 representation and Euler declarations. These are Lean's three standard axioms
+  and nothing else. <b>Not reproduced here:</b> the independent kernel replay
+  (<code>lake env leanchecker EulersGem Results</code>, part of <code>lean/scripts/verify-euler.sh</code>) ran out of
+  memory on the 15&nbsp;GB build machine, so it was not re-run for this build.</p>
+  <p class="small muted"><code>lean/AXIOM_AUDIT.md</code> records the history, including three
+  <code>native_decide</code>s that were removed from the Euler–Poincaré root for exactly this reason, and
+  the earlier unit-square Pick declarations that did depend on one and are no longer exported.</p>
 
   <h2>And this site</h2>
   <p>The explanations, quizzes and interactive widgets here were written by AI agents for Michal Wallace
-  (tangentstorm). They are not reviewed by Chris Emery, are not part of the proof, and carry no weight whatsoever as
-  evidence. Each node lists its own faithfulness caveats; nodes marked <code>draft</code> have not yet been checked by
-  a human against the Lean. If an explanation and the Lean disagree, the Lean is right —
+  (tangentstorm). They are not part of the proof and carry no weight as evidence. Nodes marked <code>draft</code> have
+  not been checked by a human against the Lean. Each node lists its own faithfulness caveats. Every widget is an
+  illustration and says so. If an explanation and the Lean disagree, the Lean is right —
   <a href="https://github.com/${REPO}/issues">please report it</a>.</p>
   </div>`;
 }

@@ -129,7 +129,7 @@ table.t td.bit.pick { cursor: pointer; } table.t td.bit.pick:hover { outline: 1p
   .widget .row label { width: 100%; }
 }
 
-/* ---------- four-colour widgets ---------- */
+/* ---------- shared widget chrome ---------- */
 .widget .illus { border-top: 1px dashed var(--line); margin-top: .7rem; padding-top: .35rem; }
 ul.tight { margin: .3rem 0; padding-left: 1.1rem; } ul.tight li { margin: .15rem 0; }
 .note-added { border-left: 3px solid var(--orange); background: var(--panel); border-radius: 0 6px 6px 0; padding: .4rem .7rem; margin: .5rem 0; }

@@ -62,7 +62,12 @@
           "type": {
             "enum": [
               "outline",
-              "walkthrough"
+              "walkthrough",
+              "polyhedron",
+              "face-lattice",
+              "schlafli",
+              "pick",
+              "triangulate"
             ]
           },
           "title": {
