@@ -1,7 +1,7 @@
 ---
 id: Results.results_picks_theorem
 title: "Pick's theorem for strictly convex lattice polygons"
-summary: "The Lebesgue area of the convex hull of a strictly convex counterclockwise lattice polygon is `I + B/2 − 1` — for any `Finset S` of interior lattice points that is handed to the theorem."
+summary: "For a strictly convex counterclockwise lattice polygon with distinct vertices, the Lebesgue area of its convex hull is `|S| + B/2 − 1`, for any `Finset S` equal to its set of interior lattice points. That such a finite `S` exists is not yet proved in the repo."
 review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
