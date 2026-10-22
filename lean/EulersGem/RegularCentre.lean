@@ -18,7 +18,10 @@ polyhedron `P` (flag-transitive, with the general face-lattice facts `FaceLattic
 * `IsRegularPolyhedron.facets_congruent`, `IsRegularPolyhedron.edges_congruent'`: any two
   facets (edges) are carried onto each other by a symmetry of `P`.
 
-Nothing here is assumed beyond `IsRegularPolyhedron` and `FaceLatticeFacts`.
+Nothing here is assumed beyond `IsRegularPolyhedron` and `FaceLatticeFacts`. Note that
+`FaceLatticeFacts` is proved only for the five constructed solids (`platonic_faceLatticeFacts`);
+its general proof is the gap `PlatonicGaps.GAP_faceLatticeFacts`. Edge length is measured as
+`Metric.diam` (for a segment, its length).
 -/
 
 open Set
@@ -106,7 +109,8 @@ theorem IsRegularPolyhedron.edges_congruent' {P : Set R3} (hP : IsRegularPolyhed
   obtain ⟨g, hg, -, hge, -⟩ := hP.2.2 _ _ _ _ _ _ h h'
   exact ⟨g, hg, hge⟩
 
-/-- **All edges of a regular polyhedron have the same length.** -/
+/-- **All edges of a regular polyhedron have the same length** (`Metric.diam`, which for a
+segment is its length). -/
 theorem IsRegularPolyhedron.edges_congruent {P : Set R3} (hP : IsRegularPolyhedron P)
     (hL : FaceLatticeFacts P) :
     ∃ ℓ : ℝ, ∀ e ∈ facesOfDim P 1, Metric.diam e = ℓ := by

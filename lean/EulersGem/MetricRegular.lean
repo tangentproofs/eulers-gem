@@ -18,9 +18,9 @@ regular. This file adds the first metric facts, so the solids are not merely com
   corners, affinely independent, so the whole simplex face-lattice machinery applies, and all
   six of its edges have the same length.
 
-These are *equilateral* statements (equal edge lengths, vertices concyclic). Full metric
-regularity — congruent regular faces, a flag-transitive symmetry group — is still **not**
-formalized; see `PLATONIC_CLAUDE_AUDIT.md`.
+These are *equilateral* statements (equal edge lengths, vertices concyclic). Flag-transitivity
+of all five solids is proved separately, for explicit `ℤ[φ]` coordinates, in
+`PlatonicSolids.lean` / `ExplicitRegular.lean`.
 -/
 
 open Set

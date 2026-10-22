@@ -19,10 +19,13 @@ The proved part (no `sorry`):
   classical face data;
 * `IsRegularPolyhedron.faceData`: a regular polyhedron satisfying the general 3-polytope facts
   `FaceLatticeFacts` has one of the five classical `(s, m, V, E, F)`;
-* `platonic_pairwise_not_similar`: the five are pairwise non-similar;
+* `platonic_not_similar`, `platonicSolid_similar_unique`: the five are pairwise non-similar
+  (both directions), so a polyhedron is similar to at most one of them;
 * first metric steps towards GAP 2 (`RegularCentre.lean`): a symmetry-fixed centre with all
   vertices equidistant (`exists_centre`), equal edge lengths (`edges_congruent`), symmetries
-  exchanging any two facets (`facets_congruent`).
+  exchanging any two facets (`facets_congruent`). These, like `faceData`, are sorry-free but
+  **assume `FaceLatticeFacts P`**, so they are unconditional only for the five constructed
+  solids (`platonic_faceLatticeFacts`).
 
 The two gaps:
 1. `GAP_faceLatticeFacts`: general face-lattice facts of convex 3-polytopes (no regularity).
@@ -57,9 +60,7 @@ theorem GAP_rigidity {P Q : Set R3} (hP : IsRegularPolyhedron P) (hQ : IsRegular
   sorry
 
 /-- **Classification of the regular convex polyhedra (conditional on GAP 1 and GAP 2).**
-Every regular convex polyhedron in `ℝ³` is similar to one of the five constructed solids.
-Together with `five_platonic_solids_exist` and `platonic_pairwise_not_similar`, there are
-exactly five similarity classes. -/
+Every regular convex polyhedron in `ℝ³` is similar to one of the five constructed solids. -/
 theorem regular_polyhedron_classification {P : Set R3} (hP : IsRegularPolyhedron P) :
     Similar tetrahedron P ∨ Similar cube P ∨ Similar octahedron P ∨ Similar dodecahedron P ∨
       Similar icosahedron P := by
@@ -73,5 +74,18 @@ theorem regular_polyhedron_classification {P : Set R3} (hP : IsRegularPolyhedron
       (GAP_rigidity dodecahedron_isRegular hP dodecahedron_faceData hd))))
   · exact Or.inr (Or.inr (Or.inr (Or.inr
       (GAP_rigidity icosahedron_isRegular hP icosahedron_faceData hd))))
+
+/-- **Exactly one (conditional on GAP 1 and GAP 2).** Every regular convex polyhedron is similar
+to exactly one of the five constructed solids, which are themselves regular
+(`five_platonic_solids_exist`). Uniqueness of the index is sorry-free
+(`platonicSolid_similar_unique`); only existence uses the gaps. -/
+theorem regular_polyhedron_classification_unique {P : Set R3} (hP : IsRegularPolyhedron P) :
+    ∃! i : Fin 5, Similar (platonicSolid i) P := by
+  obtain h | h | h | h | h := regular_polyhedron_classification hP
+  · exact ⟨0, h, fun j hj => platonicSolid_similar_unique hj h⟩
+  · exact ⟨1, h, fun j hj => platonicSolid_similar_unique hj h⟩
+  · exact ⟨2, h, fun j hj => platonicSolid_similar_unique hj h⟩
+  · exact ⟨3, h, fun j hj => platonicSolid_similar_unique hj h⟩
+  · exact ⟨4, h, fun j hj => platonicSolid_similar_unique hj h⟩
 
 end EulersGem.PlatonicGaps

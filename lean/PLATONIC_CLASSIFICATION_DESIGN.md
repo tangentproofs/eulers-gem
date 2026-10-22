@@ -77,8 +77,12 @@ Proved, sorry-free, in `EulersGem/RegularCombinatorics.lean`:
   for one of the five classical tuples in `platonicTypes`.
 * `FaceLatticeFacts.of_faceData`, `platonic_faceLatticeFacts`: the hypothesis is not vacuous
   (it holds for the five constructed solids).
-* `Similar.ncard_facesOfDim`, `platonic_pairwise_not_similar`: similarity preserves face
-  counts, so the five solids are pairwise non-similar.
+* `Similar.ncard_facesOfDim`, `platonic_not_similar`, `platonicSolid_similar_unique`:
+  similarity preserves face counts, so the five solids are pairwise non-similar (both
+  directions) and a polyhedron is similar to at most one of them.
+
+`uniform`, `faceData` and the `RegularCentre` results below are sorry-free but **assume
+`FaceLatticeFacts P`**; they are unconditional only for the five constructed solids.
 
 `FaceLatticeFacts P` collects standard facts about **every** convex 3-polytope (flags exist
 through every vertex and facet, each edge lies in exactly two facets, each facet has and each
@@ -96,7 +100,10 @@ imported by `EulersGem` or `Results`, so `scripts/audit-axioms.sh` stays green):
 2. `GAP_rigidity`: two regular polyhedra with the same `(V, E, F, s, m)` are similar.
 
 `PlatonicGaps.regular_polyhedron_classification`: every regular polyhedron is similar to one
-of the five constructed solids. `#print axioms` shows `sorryAx` (through the two gaps only).
+of the five constructed solids; `regular_polyhedron_classification_unique`: to exactly one
+(`∃! i : Fin 5, Similar (platonicSolid i) P`). `#print axioms` shows `sorryAx` (through the two
+gaps only). `Similar` is not proved to be an equivalence relation; the uniqueness of the index
+does not need it.
 
 Next steps to close the gaps: (1) the diamond property and edge/facet incidences for
 3-polytopes, from the exposed-face description; (2) the rigidity argument — common centre of

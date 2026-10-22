@@ -17,12 +17,16 @@ triples.
 
 **What is assumed.** The repository does not yet formalize the face lattice of a general
 3-polytope beyond "an edge has two vertices" (`ncard_vertices_of_edge`). The standard facts we
-still need are collected, honestly labelled, in `FaceLatticeFacts`: every vertex, edge and
-facet lies in a flag; every edge lies in exactly two facets; every facet has, and every vertex
-meets, at least three edges. These hold for **every** convex 3-polytope (Ziegler, *Lectures on
-Polytopes*, §2.2; Grünbaum, *Convex Polytopes*, §3.1, §13.1) — nothing in them mentions
+still need are collected, honestly labelled, in `FaceLatticeFacts`: every vertex and facet lies
+in a flag; every edge lies in a facet, and in exactly two facets; every facet has, and every
+vertex meets, at least three edges. These hold for **every** convex 3-polytope (Ziegler,
+*Lectures on Polytopes*, §2.2; Grünbaum, *Convex Polytopes*, §3.1, §13.1) — nothing in them mentions
 regularity, symmetry, metric data or the five solids, so they do not smuggle in the
-classification. `edge_in_flag` is partly proved here (an edge contains a vertex).
+classification. The stronger `FaceLatticeFacts.edge_in_flag` is *derived* from `edge_in_facet`
+in `RegularCentre.lean`, using `ncard_vertices_of_edge` (proved in general). `FaceLatticeFacts`
+is **not discharged unconditionally anywhere**: its general proof is the open gap
+`PlatonicGaps.GAP_faceLatticeFacts` (unproved, quarantined). Every result here that assumes it is
+unconditional only for the five constructed solids (`platonic_faceLatticeFacts`).
 -/
 
 open Set
@@ -33,7 +37,8 @@ namespace EulersGem
 open Platonic Platonic3
 
 /-- Standard face-lattice facts of a convex 3-polytope that the repository does not yet
-prove in general. They hold for the five constructed solids (`FaceLatticeFacts.of_faceData`,
+prove in general (general proof outstanding: `PlatonicGaps.GAP_faceLatticeFacts`).
+They hold for the five constructed solids (`FaceLatticeFacts.of_faceData`,
 `platonic_faceLatticeFacts`), so the hypothesis is not vacuous. -/
 structure FaceLatticeFacts (P : Set R3) : Prop where
   exists_flag : ∃ v e f, IsFlag P v e f
@@ -48,7 +53,8 @@ lemma nonempty_of_le_ncard {α : Type*} {s : Set α} {k : ℕ} (hk : 0 < k) (h :
     s.Nonempty :=
   Set.nonempty_of_ncard_ne_zero (by omega)
 
-/-- `FaceLatticeFacts` follows from the face data `{s, m}` with `s, m ≥ 3` and a facet. -/
+/-- `FaceLatticeFacts` follows from `IsPolytope P` and the face data `{s, m}` with `s, m ≥ 3`
+and at least one facet. -/
 theorem FaceLatticeFacts.of_faceData {P : Set R3} (hP : IsPolytope P) {V E F s m : ℕ}
     (h : Platonic3.HasFaceData P V E F s m) (hs : 3 ≤ s) (hm : 3 ≤ m) (hF : 0 < F) :
     FaceLatticeFacts P := by
@@ -75,8 +81,9 @@ theorem FaceLatticeFacts.of_faceData {P : Set R3} (hP : IsPolytope P) {V E F s m
 
 /-- The five constructed solids satisfy `FaceLatticeFacts` (non-vacuity of the hypothesis). -/
 theorem platonic_faceLatticeFacts :
-    FaceLatticeFacts tetrahedron ∧ FaceLatticeFacts cube ∧ FaceLatticeFacts octahedron ∧
-    FaceLatticeFacts dodecahedron ∧ FaceLatticeFacts icosahedron :=
+    FaceLatticeFacts Platonic3.tetrahedron ∧ FaceLatticeFacts Platonic3.cube ∧
+    FaceLatticeFacts Platonic3.octahedron ∧ FaceLatticeFacts Platonic3.dodecahedron ∧
+    FaceLatticeFacts Platonic3.icosahedron :=
   ⟨.of_faceData tetrahedron_isRegular.1 tetrahedron_faceData le_rfl le_rfl (by norm_num),
     .of_faceData cube_isRegular.1 cube_faceData (by norm_num) le_rfl (by norm_num),
     .of_faceData octahedron_isRegular.1 octahedron_faceData le_rfl (by norm_num) (by norm_num),
@@ -228,20 +235,37 @@ theorem Similar.ncard_facesOfDim {P Q : Set R3} (h : Similar P Q) (d : ℤ) :
   change facesOfDim (simMap g r '' P) d = (fun F => simMap g r '' F) '' facesOfDim P d at this
   rw [hQ, this, Set.ncard_image_of_injective _ (Set.image_injective.2 hinj)]
 
-/-- **The five constructed solids are pairwise non-similar** (they have 4, 8, 6, 20 and 12
-vertices). -/
-theorem platonic_pairwise_not_similar :
-    ¬ Similar tetrahedron cube ∧ ¬ Similar tetrahedron octahedron ∧
-    ¬ Similar tetrahedron dodecahedron ∧ ¬ Similar tetrahedron icosahedron ∧
-    ¬ Similar cube octahedron ∧ ¬ Similar cube dodecahedron ∧ ¬ Similar cube icosahedron ∧
-    ¬ Similar octahedron dodecahedron ∧ ¬ Similar octahedron icosahedron ∧
-    ¬ Similar dodecahedron icosahedron := by
-  have t := tetrahedron_faceData.1
-  have c := cube_faceData.1
-  have o := octahedron_faceData.1
-  have d := dodecahedron_faceData.1
-  have i := icosahedron_faceData.1
-  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> intro h <;> have := h.ncard_facesOfDim 0 <;>
-    simp_all
+/-- The five constructed solids, indexed: tetrahedron, cube, octahedron, dodecahedron,
+icosahedron. -/
+noncomputable def platonicSolid : Fin 5 → Set R3 :=
+  ![Platonic3.tetrahedron, Platonic3.cube, Platonic3.octahedron, Platonic3.dodecahedron,
+    Platonic3.icosahedron]
+
+lemma platonicSolid_vertices (i : Fin 5) :
+    (facesOfDim (platonicSolid i) 0).ncard = ![4, 8, 6, 20, 12] i := by
+  fin_cases i
+  · exact tetrahedron_faceData.1
+  · exact cube_faceData.1
+  · exact octahedron_faceData.1
+  · exact dodecahedron_faceData.1
+  · exact icosahedron_faceData.1
+
+/-- **The five constructed solids are pairwise non-similar** (in both directions): they have
+4, 8, 6, 20 and 12 vertices. -/
+theorem platonic_not_similar {i j : Fin 5} (hij : i ≠ j) :
+    ¬ Similar (platonicSolid i) (platonicSolid j) := by
+  intro h
+  have := h.ncard_facesOfDim 0
+  rw [platonicSolid_vertices, platonicSolid_vertices] at this
+  fin_cases i <;> fin_cases j <;> simp_all
+
+/-- A polyhedron is similar to **at most one** of the five constructed solids. -/
+theorem platonicSolid_similar_unique {P : Set R3} {i j : Fin 5}
+    (hi : Similar (platonicSolid i) P) (hj : Similar (platonicSolid j) P) : i = j := by
+  have h1 := hi.ncard_facesOfDim 0
+  have h2 := hj.ncard_facesOfDim 0
+  rw [platonicSolid_vertices] at h1 h2
+  rw [h1] at h2
+  fin_cases i <;> fin_cases j <;> simp_all
 
 end EulersGem
