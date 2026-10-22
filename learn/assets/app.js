@@ -268,7 +268,7 @@ ${d.statement}
 It mentions these project declarations (explain them by name, link to them): ${d.meaningDeps.join(", ") || "none"}
 Its proof uses: ${d.proofDeps.join(", ") || "n/a"}
 
-Write learn/nodes/${d.id}.md following CONTRIBUTING.md and learn/schema/node.schema.json:
+Write learn/nodes/${d.id}.md following learn/CONTRIBUTING.md and learn/schema/node.schema.json:
 YAML frontmatter (id, title, summary, review: draft, authors, caveats, quiz of 3-6 questions with answers and
 explanations, optional widgets) and a Markdown body with a '## Plain English' section.
 Be faithful to the Lean statement as written: every hypothesis, the quantifier order, ℕ vs ℤ vs ℚ, what is
@@ -312,7 +312,7 @@ function nodePage(id) {
     c.innerHTML = `
       <div class="panel stub"><h3>Needs explainer</h3>
       <p>Nobody has written a plain-English explanation and quiz for this declaration yet, so it can't be signed off.
-      <a href="${editUrl}" target="_blank" rel="noopener">Write one on GitHub</a> (see <a href="https://github.com/${REPO}/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>).</p>
+      <a href="${editUrl}" target="_blank" rel="noopener">Write one on GitHub</a> (see <a href="https://github.com/${REPO}/blob/main/learn/CONTRIBUTING.md">learn/CONTRIBUTING.md</a>).</p>
       <details><summary>Prompt for an AI agent</summary><textarea class="prompt" readonly>${esc(agentPrompt(d))}</textarea></details></div>`;
   } else {
     c.innerHTML = `

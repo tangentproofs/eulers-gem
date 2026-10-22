@@ -169,3 +169,5 @@ footer.site {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+a.pe { font-size: 0.85em; white-space: nowrap; margin-left: 0.3em; }

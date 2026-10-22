@@ -7,6 +7,8 @@ and the Euler–Poincaré characteristic for convex polytopes
 **Docs site:** [https://tangentproofs.github.io/eulers-gem/](https://tangentproofs.github.io/eulers-gem/)  
 Auto-deploys on every push to `main` via [`.github/workflows/pages.yml`](.github/workflows/pages.yml) (GitHub Actions → Pages).
 
+**Plain English:** [learn/](https://tangentproofs.github.io/eulers-gem/learn/) — each Results theorem and its definitions read back into English, with quizzes, sign-offs, a proof graph and interactive illustrations (source in `learn/`, see `learn/CONTRIBUTING.md`).
+
 **Browsable Lean source:** [Results.lean](https://tangentproofs.github.io/eulers-gem/docs/Results.html)
 ([docs index](https://tangentproofs.github.io/eulers-gem/docs/)) — syntax-highlighted project modules with
 cross-links; unknown identifiers (esp. `Mathlib.*`) redirect to
@@ -19,6 +21,7 @@ lean/          Lean 4 project (active) — Lake / Mathlib / Results.lean
 isabelle/      Isabelle — vendored AFP Euler_Polyhedron_Formula + Poly100 archive
 scripts/       Comparator helpers + browsable-source builder
 site/          GitHub Pages static site (+ docs/ built in CI from lean/)
+learn/         Plain-English (informalization) app, built in CI into /learn/
 ```
 
 ## Proof strategy
@@ -52,11 +55,12 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_euler_characteristic` | Euler characteristic of a full-dimensional convex polytope is `1` |
 | `results_euler_polyhedron` | Euler's formula in real three-space from a finite convex hull and affine dimension 3 |
 | `results_euler_relation_dimension_three` | Euler's formula: in dimension 3, `V − E + F = 2`, from that characteristic |
-| `results_picks_theorem` | Pick's theorem: area `= I + B/2 − 1` for a strictly convex lattice polygon |
-| `results_pick_count_of_euler` | Euler's formula for a triangulation gives Pick's count `I + B/2 − 1` |
-| `results_fan_pick_of_euler` | An empty fan's Pick count follows from the Euler characteristic |
-| `results_disk_pick_of_euler` | A triangulated disk's Pick count follows from the characteristic |
-| `results_five_platonic_solids` | Euler's formula leaves five Platonic solids: tetrahedron `{3,3}`, cube `{4,3}`, octahedron `{3,4}`, dodecahedron `{5,3}`, icosahedron `{3,5}` |
+| `results_picks_theorem` | Pick's formula: area `= \|S\| + B/2 − 1` for a strictly convex lattice polygon, for any finite `S` equal to its interior lattice points (existence of that finite `S` not yet proved) |
+| `results_picks_of_empty_primitive_fan` | Area `= B/2 − 1` for a strictly convex lattice polygon with primitive edges and no interior lattice points |
+| `results_pick_count_of_euler` | Bookkeeping arithmetic: from `V = I + B`, `F = T + 1`, `V − E + F = 2`, `2E = 3T + B`, `A = T/2` (all hypotheses), `A = I + B/2 − 1` |
+| `results_fan_pick_of_euler` | Arithmetic identity `(n − 2)/2 = n/2 − 1` for `n ≥ 3` (proof routed through the fan's disk Euler number) |
+| `results_disk_pick_of_euler` | Arithmetic: given `A = (2I + B − 2)/2` and `3 ≤ n ≤ B`, `A = I + B/2 − 1` (proof routed through disk-Euler-preserving moves) |
+| `results_five_platonic_solids` | Schläfli pairs: a combinatorially regular convex 3-polytope (every edge in two faces assumed) has `(s, m)` among `{3,3}`, `{4,3}`, `{3,4}`, `{5,3}`, `{3,5}`; plus the `(V, E, F)` of those five pairs. Not a construction of the solids; no metric regularity |
 
 The Euler results require a finite convex hull and the appropriate affine
 dimension, with no supplied halfspace presentation. `results_euler_polyhedron`

@@ -45,6 +45,10 @@
     </p>
 
     <div class="grid">
+      <a class="card" href="learn/">
+        <h3>Read it in plain English</h3>
+        <p>Every Results theorem and the definitions it rests on, read back into English: quizzes with answer keys, sign-offs, a proof graph, comments, and interactive polyhedra and lattice polygons.</p>
+      </a>
       <a class="card" href="docs/Results.html">
         <h3>Browsable Results.lean</h3>
         <p>Syntax-highlighted, cross-linked Lean sources — start at the paper-facing results; identifier links fall through to Mathlib docs.</p>
@@ -64,19 +68,21 @@
     </div>
 
     <h2>What's proved (Lean)</h2>
-    <p class="muted">Paper-facing claims from <code>lean/Results.lean</code> — only what is actually proved.</p>
+    <p class="muted">All nine paper-facing theorems of <code>lean/Results.lean</code>, described by what their statements say, hypotheses included. Each depends only on <code>[propext, Classical.choice, Quot.sound]</code>. <a href="learn/#/trust">What each does and does not prove →</a></p>
     <table>
       <thead>
         <tr><th>Theorem</th><th>Meaning</th></tr>
       </thead>
       <tbody>
-        <tr><td><a href="docs/Results.html#Results.results_euler_characteristic"><code>results_euler_characteristic</code></a></td><td>Euler characteristic of a full-dimensional convex polytope is <code>1</code></td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_euler_relation_dimension_three"><code>results_euler_relation_dimension_three</code></a></td><td>Euler's formula: in dimension 3, <code>V − E + F = 2</code>, proved from that characteristic</td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_picks_theorem"><code>results_picks_theorem</code></a></td><td>Pick's theorem: area <code>= I + B/2 − 1</code> for a strictly convex lattice polygon</td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_five_platonic_solids"><code>results_five_platonic_solids</code></a></td><td>Euler's formula leaves five Platonic solids: tetrahedron <code>{3,3}</code>, cube <code>{4,3}</code>, octahedron <code>{3,4}</code>, dodecahedron <code>{5,3}</code>, icosahedron <code>{3,5}</code></td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_pick_count_of_euler"><code>results_pick_count_of_euler</code></a></td><td>Euler's formula for a triangulation gives Pick's count <code>I + B/2 − 1</code></td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_fan_pick_of_euler"><code>results_fan_pick_of_euler</code></a></td><td>An empty fan's Pick count follows from the Euler characteristic</td></tr>
-        <tr><td><a href="docs/Results.html#Results.results_disk_pick_of_euler"><code>results_disk_pick_of_euler</code></a></td><td>A triangulated disk's Pick count follows from the characteristic, by moves that preserve <code>V − E + F</code></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_euler_characteristic"><code>results_euler_characteristic</code></a></td><td>Euler–Poincaré: a full-dimensional convex polytope (convex hull of finitely many points) has Euler characteristic <code>1</code> <a class="pe" href="learn/#/node/Results.results_euler_characteristic">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_euler_relation_dimension_three"><code>results_euler_relation_dimension_three</code></a></td><td>Euler's polyhedron formula <code>V − E + F = 2</code> for a 3-dimensional convex polytope in a 3-dimensional real inner product space, proved from that characteristic <a class="pe" href="learn/#/node/Results.results_euler_relation_dimension_three">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_euler_polyhedron"><code>results_euler_polyhedron</code></a></td><td>The same in <code>ℝ³</code>, with exactly two hypotheses: <code>p</code> is a finite convex hull and has affine dimension 3 <a class="pe" href="learn/#/node/Results.results_euler_polyhedron">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_five_platonic_solids"><code>results_five_platonic_solids</code></a></td><td>Schläfli-pair classification: a <em>combinatorially</em> regular convex 3-polytope (every face an <code>s</code>-gon, <code>m</code> edges at each vertex, and — assumed, not yet proved in general — every edge in exactly two faces) has <code>(s, m)</code> ∈ {(3,3), (4,3), (3,4), (5,3), (3,5)}; plus the <code>(V, E, F)</code> numbers of those five pairs. Not a construction of the five solids, and no metric regularity <a class="pe" href="learn/#/node/Results.results_five_platonic_solids">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_picks_theorem"><code>results_picks_theorem</code></a></td><td>Pick's formula: area <code>= |S| + B/2 − 1</code> for a strictly convex counter-clockwise lattice polygon, for any finite set <code>S</code> equal to its interior lattice points (that such a finite <code>S</code> exists is not yet proved here) <a class="pe" href="learn/#/node/Results.results_picks_theorem">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_picks_of_empty_primitive_fan"><code>results_picks_of_empty_primitive_fan</code></a></td><td>Area <code>= B/2 − 1</code> for a strictly convex lattice polygon with primitive edges and no interior lattice points <a class="pe" href="learn/#/node/Results.results_picks_of_empty_primitive_fan">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_pick_count_of_euler"><code>results_pick_count_of_euler</code></a></td><td>Bookkeeping arithmetic: from <code>V = I + B</code>, <code>F = T + 1</code>, <code>V − E + F = 2</code>, <code>2E = 3T + B</code>, <code>A = T/2</code> (all hypotheses), <code>A = I + B/2 − 1</code> <a class="pe" href="learn/#/node/Results.results_pick_count_of_euler">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_fan_pick_of_euler"><code>results_fan_pick_of_euler</code></a></td><td>Arithmetic identity <code>(n − 2)/2 = n/2 − 1</code> for <code>n ≥ 3</code> (its proof is routed through the disk Euler number of a fan) <a class="pe" href="learn/#/node/Results.results_fan_pick_of_euler">plain English →</a></td></tr>
+        <tr><td><a href="docs/Results.html#Results.results_disk_pick_of_euler"><code>results_disk_pick_of_euler</code></a></td><td>Arithmetic: if <code>A = (2I + B − 2)/2</code> (a hypothesis) and <code>3 ≤ n ≤ B</code>, then <code>A = I + B/2 − 1</code> (its proof is routed through disk-Euler-preserving moves) <a class="pe" href="learn/#/node/Results.results_disk_pick_of_euler">plain English →</a></td></tr>
       </tbody>
     </table>
 
@@ -106,11 +112,12 @@
 isabelle/      Vendored AFP Euler_Polyhedron_Formula + Poly100 archive
 scripts/       Comparator helpers (list Results.lean theorems)
 site/          This documentation site (GitHub Pages)
-docs/          Browsable Lean sources (built in CI from lean/)</code></pre>
+docs/          Browsable Lean sources (built in CI from lean/)
+learn/         Plain-English reading of the Lean (built in CI from learn/)</code></pre>
 
     <h2>Phase B (#1535)</h2>
     <ul class="clean">
-      <li><strong>Paper-facing:</strong> the Euler characteristic, <code>V − E + F = 2</code> in dimension 3, Pick's theorem for a strictly convex lattice polygon, and the five Platonic solids (tetrahedron, cube, octahedron, dodecahedron, icosahedron).</li>
+      <li><strong>Paper-facing:</strong> the Euler characteristic, <code>V − E + F = 2</code> in dimension 3, Pick's formula for a strictly convex lattice polygon (finiteness of the interior points still a hypothesis), and the Schläfli-pair classification of combinatorially regular convex 3-polytopes ({3,3}, {4,3}, {3,4}, {5,3}, {3,5}).</li>
     </ul>
 
     <footer class="site">
