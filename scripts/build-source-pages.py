@@ -151,7 +151,7 @@ PAGE_TPL = """<!doctype html>
   <header>
     <code>{relpath}</code>
     <span class="sep">&middot;</span>
-    <a href="{github_url}">view on GitHub</a>
+    <a href="{github_url}">view on GitHub</a>{site_links}
   </header>
   <div class="source">{body}</div>
 </main>
@@ -174,7 +174,7 @@ INDEX_TPL = """<!doctype html>
   <nav class="tree" id="tree" aria-label="File tree"></nav>
 </aside>
 <main>
-  <header><strong>{title} — source</strong></header>
+  <header><strong>{title} — source</strong>{site_links}</header>
   <div class="welcome">
     {featured_block}
     <p>Pick a file from the tree on the left.</p>
@@ -309,6 +309,13 @@ body.page {
 .outline a:hover { background: var(--bg-alt); text-decoration: none; }
 .outline .kind { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; margin-right: 0.4em; }
 .outline .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.outline a.informal { display: inline; font-size: 11px; color: var(--link); margin-left: 0.3em; }
+.source td.code { position: relative; }
+.source a.informal-badge { position: absolute; right: 0.8em; font: 11px/1.5 system-ui, sans-serif;
+  color: var(--link); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.4em;
+  background: var(--bg); user-select: none; -webkit-user-select: none; text-decoration: none; }
+.source a.informal-badge:hover { text-decoration: underline; }
+main header .site-links a { margin-left: 0.2em; }
 
 main { padding: 0.6em 1.2em 2em; min-width: 0; }
 main > header { padding: 0.4em 0; border-bottom: 1px solid var(--border); margin-bottom: 0.8em; }
@@ -451,6 +458,14 @@ APP_JS = """\
       nm.textContent = parts[parts.length - 1];
       a.appendChild(nm);
       li.appendChild(a);
+      if (d.informal) {
+        var inf = document.createElement("a");
+        inf.className = "informal";
+        inf.href = ROOT + d.informal;
+        inf.title = "Plain-English explainer and quiz";
+        inf.textContent = "\u00b6";
+        li.appendChild(inf);
+      }
       ul.appendChild(li);
     }
     root.appendChild(ul);
@@ -588,7 +603,8 @@ class AnchoredHtmlFormatter(HtmlFormatter):
 
 def render_page(src_path: Path, rel: str, formatter: HtmlFormatter,
                 decls: list[tuple[str, int, str]], github_url_base: str,
-                depth: int) -> str:
+                depth: int, informal: dict | None = None,
+                site_links: str = "") -> str:
     src = src_path.read_text(encoding="utf-8")
     body = highlight(src, Lean4Lexer(), formatter)
     # Pygments writes the digits into the gutter. Replace them with a
@@ -611,6 +627,14 @@ def render_page(src_path: Path, rel: str, formatter: HtmlFormatter,
         injected = "".join(
             f'<span id="{html.escape(n, quote=True)}"></span>' for n in names
         )
+        # Optional "plain English" badge (see --informal-map). It is absolutely
+        # positioned and not selectable, so copying the code is unaffected.
+        for n in names:
+            if informal and n in informal:
+                href = html.escape("../" * depth + informal[n], quote=True)
+                injected += (f'<a class="informal-badge" href="{href}" '
+                             f'title="Plain-English explainer and quiz for {html.escape(n, quote=True)}">'
+                             f'\u00b6 plain English</a>')
         body = body.replace(marker, marker + injected, 1)
     root_rel = "../" * depth
     return PAGE_TPL.format(
@@ -620,6 +644,7 @@ def render_page(src_path: Path, rel: str, formatter: HtmlFormatter,
         root_rel=root_rel,
         github_url=f"{github_url_base}/{rel}",
         body=body,
+        site_links=site_links.replace("{root}", root_rel),
     )
 
 
@@ -678,10 +703,22 @@ def main() -> int:
                     help="Base URL for the GitHub source link (should point at --src-root).")
     ap.add_argument("--title", default="Jacobian Challenge",
                     help="Project title for the docs index page.")
+    ap.add_argument("--informal-map", default="",
+                    help="Optional JSON {fully.qualified.Name: href} of plain-English "
+                         "explainers; hrefs are relative to the --out root. Adds a "
+                         "'plain English' badge at each such declaration.")
+    ap.add_argument("--site-links", default="",
+                    help="Optional HTML appended to each page header (e.g. links back "
+                         "to the main site). '{root}' is replaced by the page's path "
+                         "to the --out root.")
     ap.add_argument("--featured", default="",
                     help="Optional featured entry (path relative to --src-root, no .lean); "
                          "linked from the docs welcome page.")
     args = ap.parse_args()
+    informal: dict[str, str] = {}
+    if args.informal_map:
+        informal = json.loads(Path(args.informal_map).read_text(encoding="utf-8"))
+    site_links = args.site_links
 
     repo_root = Path(__file__).resolve().parent.parent
     src_root = (repo_root / args.src_root).resolve()
@@ -736,7 +773,8 @@ def main() -> int:
         for name, _, _ in decls:
             decls_index.setdefault(name, f"{rel_html}#{name}")
 
-        page = render_page(src_path, rel, formatter, decls, args.github_url, depth)
+        page = render_page(src_path, rel, formatter, decls, args.github_url, depth,
+                           informal, site_links)
         out_path = out_dir / rel_html
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(page, encoding="utf-8")
@@ -744,7 +782,9 @@ def main() -> int:
         # Per-file outline / imports JSON.
         per_file = {
             "imports": imports,
-            "decls": [{"name": n, "line": ln, "kind": k} for n, ln, k in decls],
+            "decls": [dict({"name": n, "line": ln, "kind": k},
+                           **({"informal": informal[n]} if n in informal else {}))
+                      for n, ln, k in decls],
         }
         per_file_path = decls_dir / (rel_no_ext + ".json")
         per_file_path.parent.mkdir(parents=True, exist_ok=True)
@@ -780,7 +820,8 @@ def main() -> int:
     else:
         featured_block = ""
     (out_dir / "index.html").write_text(
-        INDEX_TPL.format(title=html.escape(args.title), featured_block=featured_block),
+        INDEX_TPL.format(title=html.escape(args.title), featured_block=featured_block,
+                         site_links=site_links.replace("{root}", "")),
         encoding="utf-8",
     )
 

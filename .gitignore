@@ -6,3 +6,7 @@ lean/lake-packages/
 
 # Local Claude/agent scratch (not published)
 .sci/
+
+# plain-English site
+learn/node_modules/
+learn/dist/

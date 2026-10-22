@@ -27,6 +27,22 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node (for the plain-English site)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: learn/package-lock.json
+
+      - name: Build plain-English (informalization) site
+        working-directory: learn
+        run: |
+          npm ci
+          npm test
+          python3 tools/build_decls.py
+          git diff --exit-code data/decls.json || { echo "::error::learn/data/decls.json is stale; run python3 learn/tools/build_decls.py"; exit 1; }
+          npm run build
+
       - name: Install Pygments (for source browser)
         # Lean4Lexer needs Pygments >= 2.16
         run: python3 -m pip install --upgrade 'pygments>=2.16'
@@ -39,6 +55,8 @@ jobs:
           --github-url 'https://github.com/tangentproofs/eulers-gem/blob/main/lean'
           --title "Euler's Gem"
           --featured Results
+          --informal-map learn/dist/data/informal-map.json
+          --site-links ' <span class="sep">&middot;</span> <span class="site-links"><a href="{root}../index.html">Euler&#39;s Gem home</a> <span class="sep">&middot;</span> <a href="{root}../learn/">plain English</a></span>'
 
       - name: Prepare Pages site
         run: |
@@ -46,6 +64,8 @@ jobs:
           cp -R site/. _site/
           mkdir -p _site/docs
           cp -R _src-pages/. _site/docs/
+          mkdir -p _site/learn
+          cp -R learn/dist/. _site/learn/
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
