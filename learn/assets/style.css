@@ -155,3 +155,5 @@ table.t tr.on td, table.t tr.on th { background: #332f22; }
 header nav .navsep { color: var(--line); }
 header nav a.ext { color: var(--orange); }
 a.srclink { color: var(--orange); }
+/* long Lean names in dependency lists must wrap on phones */
+.deps a { overflow-wrap: anywhere; max-width: 100%; }

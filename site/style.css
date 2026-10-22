@@ -171,3 +171,4 @@ footer.site {
 }
 
 a.pe { font-size: 0.85em; white-space: nowrap; margin-left: 0.3em; }
+@media (max-width: 600px) { table code { overflow-wrap: anywhere; } td, th { overflow-wrap: anywhere; } }

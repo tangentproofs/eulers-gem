@@ -309,7 +309,9 @@ body.page {
 .outline a:hover { background: var(--bg-alt); text-decoration: none; }
 .outline .kind { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; margin-right: 0.4em; }
 .outline .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-.outline a.informal { display: inline; font-size: 11px; color: var(--link); margin-left: 0.3em; }
+.outline li:has(a.informal) { display: flex; align-items: baseline; }
+.outline li:has(a.informal) > a:first-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.outline a.informal { display: inline; flex: none; font-size: 11px; color: var(--link); margin-left: 0.3em; }
 .source td.code { position: relative; }
 .source a.informal-badge { position: absolute; right: 0.8em; font: 11px/1.5 system-ui, sans-serif;
   color: var(--link); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.4em;
