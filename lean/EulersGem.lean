@@ -35,3 +35,10 @@ import EulersGem.Cube
 import EulersGem.EdgeVertices
 import EulersGem.MetricRegular
 import EulersGem.UnconditionalEuler
+import EulersGem.ExposedFaces
+import EulersGem.ZPhi
+import EulersGem.R3Geometry
+import EulersGem.ExplicitPolyhedron
+import EulersGem.RegularPolyhedron
+import EulersGem.ExplicitRegular
+import EulersGem.PlatonicSolids
