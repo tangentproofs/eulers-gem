@@ -6,7 +6,7 @@ review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "The normal `a` may be `0`. Then the set is all of `E` if `0 ≤ b` and empty otherwise: a degenerate \"halfspace\" that is not half of anything. Nothing in the development rules this out, and nothing needs to."
-  - "`⟪a, x⟫` is the real inner product, so this definition needs `[InnerProductSpace ℝ E]`. The functional-based alternative in `PolyhedralRepresentation.lean` (`IsPolyhedral`) does not, and works over any linearly ordered field."
+  - "`⟪a, x⟫` is the real inner product, so this definition needs `[InnerProductSpace ℝ E]`. The functional-based alternative `IsPolyhedral` (defined in `LinearInequalities.lean`, developed in `PolyhedralRepresentation.lean`) does not, and works over any linearly ordered field."
 widgets:
   - type: polyhedron
     title: "Each flat side of these is where one halfspace is tight"
@@ -64,7 +64,7 @@ idea. Everything else in this part of the proof is made by stacking these up.
 
 - **`b = 0`.** Then the wall passes through the origin and the set is a *cone*: scaling a point by
   any non-negative number keeps it inside (`isConic_closedHalfspace_zero`). The Euler argument
-  proves its core result about cones first (`Euler_polyhedral_cone`) and then descends to
+  proves its core result about cones first (`faceEulerSum_polyhedral_cone`, Paulson's `Euler_polyhedral_cone`) and then descends to
   polytopes by slicing a cone one dimension up — that is what `ConeSlice.lean` and `Embed.lean`
   do. The homogeneity here is what makes that possible.
 - **`a = 0`.** Then nothing is being measured, and the set is either everything or nothing

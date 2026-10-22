@@ -26,7 +26,7 @@ widgets:
           note: "Cone.lean and ConeFaceCell.lean. For a cone given by homogeneous inequalities ⟪a, x⟫ ≤ 0, inclusion–exclusion over sign patterns gives 0 — not 1. The cone case is the one the counting argument settles directly, which is why the polytope case is reached by building a cone."
           hard: true
         - text: "Faces of the cone match its cells, so faceEulerSum of the cone is 0"
-          lean: "faceEulerSum_halfspace_cone = 0  →  Euler_polyhedral_cone"
+          lean: "faceEulerSum_halfspace_cone = 0  →  faceEulerSum_polyhedral_cone = 0"
           note: "FaceCell.lean and ConeFaceCell.lean: each cell's closure is a face, and each face arises once. That converts a statement about cells into a statement about faces."
           uses: [IsFaceOf, faceEulerSum]
           hard: true
@@ -80,7 +80,7 @@ quiz:
   - q: "What does the underlying cone argument prove the alternating sum of a polyhedral *cone* to be?"
     type: number
     answer: 0
-    explain: "`0`, not 1 — `Euler_polyhedral_cone` / `faceEulerSum_halfspace_cone = 0`. The polytope's 1 comes from slicing a cone one dimension up: the slice's faces correspond to the cone's with dimensions shifted by 1, so the signs flip. The cone case is the one the cell-counting argument settles."
+    explain: "`0`, not 1 — `faceEulerSum_polyhedral_cone` / `faceEulerSum_halfspace_cone = 0` (Paulson's `Euler_polyhedral_cone`). The polytope's 1 comes from slicing a cone one dimension up: the slice's faces correspond to the cone's with dimensions shifted by 1, so the signs flip. The cone case is the one the cell-counting argument settles."
 ---
 
 ## Plain English

@@ -38,7 +38,7 @@ quiz:
       - "all five"
       - "none"
     answer: 0
-    explain: "`GeometricPlatonic.tetrahedron_platonic` (via `SimplexFaces.lean`), `Octahedron.octahedron_platonic` and `Cube.cube_platonic` — each with its geometric face lattice computed, all four incidence counts proved, and `V − E + F = 2` obtained from Euler–Poincaré. None of them is in `Results.lean`, though."
+    explain: "`Simplex.tetrahedron_platonic` (`GeometricPlatonic.lean`, via `SimplexFaces.lean`), `Octahedron.octahedron_platonic` and `Cube.cube_platonic` — each with its geometric face lattice computed, all four incidence counts proved, and `V − E + F = 2` obtained from Euler–Poincaré. None of them is in `Results.lean`, though."
   - q: "`hEuler` as a field means that constructing a `RegularNumbers` by hand…"
     type: choice
     choices:

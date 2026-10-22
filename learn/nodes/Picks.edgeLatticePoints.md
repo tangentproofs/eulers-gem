@@ -107,8 +107,8 @@ a `Finset.card` with no strings attached. The contrast is instructive.
 
 ### Where it sits
 
-- [`boundaryLatticePoints`](#/node/Picks.LatticePolygon.B) is the union of these over the cyclic
-  edges, and `B` is its cardinality.
+- [`boundaryLatticePoints`](#/node/Picks.LatticePolygon.boundaryLatticePoints) is the union of these
+  over the cyclic edges, and [`B`](#/node/Picks.LatticePolygon.B) is its cardinality.
 - [`PrimitiveEdges`](#/node/Picks.LatticeFan.PrimitiveEdges) is `edgeGcd = 1` on every edge, which
   by `edgeLatticePoints_eq_endpoints` makes each edge carry nothing but its endpoints.
 - `Picks.LatticeTriangle.edgeGcd` also divides `latticeDet` (`edgeGcd_dvd_latticeDet_left`), which is

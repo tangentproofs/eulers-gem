@@ -515,7 +515,9 @@ function aboutPage() {
   of its classical consequences: the Schläfli-pair count behind the five Platonic solids, and Pick's formula for the
   area of a lattice polygon. The paper-facing statements are the ${ROOTS.length} theorems of
   <a href="../docs/Results.html"><code>lean/Results.lean</code></a>; everything else lives in
-  <code>lean/EulersGem/</code>, ${decls.length} declarations across ${fileCount} modules.</p>
+  <code>lean/EulersGem/</code>. The graph here covers the ${decls.length} declarations in the ${fileCount} modules
+  that <code>Results.lean</code> imports; a few modules outside that closure — the geometric cube and octahedron,
+  and the metric-regularity file — are mentioned in the explainers but are not in the graph.</p>
   <p>The root is <a href="#/node/Results.results_euler_characteristic"><code>results_euler_characteristic</code></a>:
   a convex polytope filling its ambient dimension has <a href="#/node/faceEulerSum"><code>faceEulerSum = 1</code></a>.
   <a href="#/node/Results.results_euler_polyhedron"><code>results_euler_polyhedron</code></a> is the dimension-3
@@ -591,8 +593,9 @@ function trustPage() {
   <p>A formal proof is worth exactly what its statement says. This page is the honest accounting, theorem by theorem,
   for the ${ROOTS.length} paper-facing results of <a href="../docs/Results.html"><code>lean/Results.lean</code></a>.
   Three of them are genuine classical theorems. Three are arithmetic identities whose classical story lives in the
-  <i>proof</i>, not the statement. Two are geometric but carry a remaining hypothesis. One is a combinatorial
-  classification that is routinely mis-stated as something stronger.</p>
+  <i>proof</i>, not the statement. Two are geometric statements about lattice polygons under restrictive
+  hypotheses — and one of those hypotheses, a finite enumeration of the interior lattice points, is not proved
+  anywhere here. One is a combinatorial classification that is routinely mis-stated as something stronger.</p>
   <p>Where this page and <a href="../index.html">the overview page</a> or the README differ in emphasis, read the Lean.
   Every row below links to the statement.</p>
 

@@ -32,7 +32,7 @@ quiz:
   - q: "`faceEulerSum p 3 = 1` for a 3-dimensional polytope. What is `V − E + F`?"
     type: number
     answer: 2
-    explain: "The `d = 3` term is `−1 · 1 = −1`, since the body is the only 3-face. So `V − E + F − 1 = 1`, hence `V − E + F = 2`. That one line is the whole content of `euler_relation_of_isPolytope` given the characteristic — see `faceEulerSum_three_expand` in `EulerChar.lean` for the expansion."
+    explain: "The `d = 3` term is `−1 · 1 = −1`, since the body is the only 3-face. So `V − E + F − 1 = 1`, hence `V − E + F = 2`. That one line is the whole content of `euler_relation_of_isPolytope` given the characteristic — see the private `faceEulerSum_three_expand` in `EulerPoincare.lean` for the expansion."
   - q: "Does the empty face contribute a term?"
     type: choice
     choices:
@@ -118,9 +118,10 @@ is ambiguous without a finiteness result. The repository has one
 - [`Euler_Poincare_of_isPolytope`](#/node/Euler_Poincare_of_isPolytope) and
   [`results_euler_characteristic`](#/node/Results.results_euler_characteristic) are the theorems
   about it.
-- `faceEulerSum_three_expand` (`EulerChar.lean`) and `faceEulerSum_two_expand`
+- `faceEulerSum_three_expand` (private, in `EulerPoincare.lean`) and `faceEulerSum_two_expand`
   (`DiskEuler.lean`) expand it in low dimensions; those expansions are how
   [`euler_relation_of_isPolytope`](#/node/euler_relation_of_isPolytope) and the planar disk
   lemmas get at it.
-- `faceEulerSum_halfspace_cone = 0` and `Euler_polyhedral_cone` are the *cone* version, where the
+- `faceEulerSum_halfspace_cone = 0` and `faceEulerSum_polyhedral_cone = 0` (Paulson's
+  `Euler_polyhedral_cone`) are the *cone* version, where the
   answer is `0` instead of `1` — and the cone case is what the proof actually establishes first.

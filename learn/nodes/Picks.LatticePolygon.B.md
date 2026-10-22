@@ -36,7 +36,7 @@ quiz:
       - "`B ≥ nVertices` with no equality in general"
       - "no relation"
     answer: 0
-    explain: "`PrimitiveEdges` says every `edgeGcd = 1`, so each edge has only its endpoints, and the boundary points are exactly the listed vertices. `LatticeFan.boundary_eq_vertexFinset` proves it, needing injectivity. In general only `nVertices ≤ B` holds (`LatticeFan.nVertices_le_B`)."
+    explain: "`PrimitiveEdges` says every `edgeGcd = 1`, so each edge has only its endpoints, and the boundary points are exactly the listed vertices. `LatticeFan.boundaryLatticePoints_eq_vertexFinset` proves it, and `LatticeFan.B_eq_nVertices_of_primitive_edges` is the count; both need injectivity. In general only `nVertices ≤ B` holds (`LatticeFan.nVertices_le_B`)."
   - q: "Does `B` count points on the boundary of `convexHullRegion`?"
     type: choice
     choices:

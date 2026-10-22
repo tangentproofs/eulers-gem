@@ -6,7 +6,7 @@ review: draft
 authors: ["claude (for @tangentstorm)", "Kim Morrison (the Lean)"]
 caveats:
   - "This is **one direction only**. The converse is false: an `IsPolyhedron` need not be bounded (a single halfspace is one), so it need not be a finite convex hull."
-  - "It needs `[FiniteDimensional ℝ E]`. The functional-level work (`LinearInequalities.lean`, `PolyhedralRepresentation.lean`) is dimension-free and holds over any linearly ordered field; finite-dimensionality enters only to turn linear functionals into inner-product normals by Riesz representation."
+  - "It needs `[FiniteDimensional ℝ E]`. The functional-level work holds over **any** linearly ordered field — but not in any dimension: the elimination lemmas of `LinearInequalities.lean` are dimension-free, while `PolyhedralRepresentation.lean`'s `isPolyhedral_convexHull_of_finite` already sits in a `[FiniteDimensional 𝕜 E]` section. What the *last* step adds is the real inner product, by Riesz representation."
   - "The docstring says it \"includes empty and lower-dimensional polytopes\", and that is worth taking literally: no nonemptiness or full-dimensionality hypothesis appears here. Those hypotheses live in the Euler theorems, not in the representation theorem."
   - "The Lean here (and in `LinearInequalities.lean`, `PolyhedralRepresentation.lean`, `PolytopeHalfspaces.lean`, `UnconditionalEuler.lean`) is Kim Morrison's, from PR #2; this explainer is not."
 widgets:
@@ -17,9 +17,9 @@ widgets:
         - text: "LinearInequalities.lean: eliminate a variable from a finite system of linear inequalities"
           note: "Fourier–Motzkin style, over any linearly ordered field."
         - text: "PolyhedralRepresentation.lean: isPolyhedral_convexHull_of_finite — the hull of a finite set is cut out by finitely many inequalities on linear functionals"
-          note: "Still field-generic; no inner product yet."
+          note: "Still field-generic (any linearly ordered field), though already inside a [FiniteDimensional 𝕜 E] section; no inner product yet."
         - text: "PolytopeHalfspaces.lean: IsPolyhedral.isPolyhedron — replace each functional f by the vector normal f, with ⟪normal f, x⟫ = f x"
-          note: "Finite-dimensional Riesz representation. This is the only place [FiniteDimensional ℝ E] is used."
+          note: "Finite-dimensional Riesz representation. This is the only place the real inner product is needed; finite-dimensionality is already used in the step above."
           hard: true
         - text: "IsPolytope.isPolyhedron: compose the two"
           link: IsPolytope.isPolyhedron
@@ -49,7 +49,7 @@ quiz:
       - "it proves the hull is convex"
       - "none; the proof is purely combinatorial"
     answer: 1
-    explain: "`IsPolyhedral` (PolyhedralRepresentation.lean) describes a set by inequalities on linear functionals; `IsPolyhedron` uses `⟪a, x⟫ ≤ b`. The private `normal` in `PolytopeHalfspaces.lean` is `(InnerProductSpace.toDual ℝ E).symm`, and `normal_inner` is `⟪normal f, x⟫ = f x`. That is the bridge, and it is where finite-dimensionality is needed."
+    explain: "`IsPolyhedral` (defined in `LinearInequalities.lean`) describes a set by inequalities on linear functionals; `IsPolyhedron` uses `⟪a, x⟫ ≤ b`. The private `normal` in `PolytopeHalfspaces.lean` is `(InnerProductSpace.toDual ℝ E).symm`, and `normal_inner` is `⟪normal f, x⟫ = f x`. That is the bridge, and it is where the real inner product is needed."
   - q: "What did the public Euler results look like before this theorem existed?"
     type: choice
     choices:
@@ -118,10 +118,11 @@ In three layers, bottom up:
 1. `LinearInequalities.lean` — Fourier–Motzkin-style elimination of variables from a finite system
    of linear inequalities, over any linearly ordered field.
 2. `PolyhedralRepresentation.lean` — `isPolyhedral_convexHull_of_finite`: the hull of a finite set
-   is cut out by finitely many inequalities on *linear functionals*. Still field-generic.
+   is cut out by finitely many inequalities on *linear functionals*. Still field-generic, but stated
+   in a `[FiniteDimensional 𝕜 E]` section.
 3. `PolytopeHalfspaces.lean` — `IsPolyhedral.isPolyhedron`: replace each functional `f` by the
    vector `normal f = (InnerProductSpace.toDual ℝ E).symm f`, so that `f x = ⟪normal f, x⟫`. This
-   is where `[FiniteDimensional ℝ E]` is used, and it is the only place.
+   is where the real inner product comes in; finite-dimensionality is already used in step 2.
 
 `isPolyhedron_iff_isPolyhedral` records that in finite dimensions the two presentation predicates
 are interchangeable.

@@ -15,7 +15,7 @@ widgets:
       preset: pentagon
       show: [counts, fan]
 quiz:
-  - q: "State the summand."
+  - q: "Which expression does the Lean write as the summand?"
     type: choice
     choices:
       - "`e.1.1 * e.2.2 - e.2.1 * e.1.2` for `e = P.edgePair i`"

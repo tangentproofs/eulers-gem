@@ -110,7 +110,7 @@ each stage preserves `V − E + F`:
 | `I` stellar subdivisions | `+1` vertex, `+3` edges, `+2` triangles each | `eulerChar_stellar_iter` |
 
 and the start is a *geometric* triangle, whose Euler number comes from
-[`faceEulerSum = 1`](#/node/faceEulerSum) by
+[`faceEulerSum = 1`](#/node/faceEulerSum) by `Euler_Poincare_full`, the hypothesis-carrying form of
 [`Euler_Poincare_of_isPolytope`](#/node/Euler_Poincare_of_isPolytope). So the chain back to the
 Euler–Poincaré root is real. The widget above steps through those four stages.
 

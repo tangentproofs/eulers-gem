@@ -55,8 +55,8 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_euler_characteristic` | Euler characteristic of a full-dimensional convex polytope is `1` |
 | `results_euler_polyhedron` | Euler's formula in real three-space from a finite convex hull and affine dimension 3 |
 | `results_euler_relation_dimension_three` | Euler's formula: in dimension 3, `V − E + F = 2`, from that characteristic |
-| `results_picks_theorem` | Pick's formula: area `= \|S\| + B/2 − 1` for a strictly convex lattice polygon, for any finite `S` equal to its interior lattice points (existence of that finite `S` not yet proved) |
-| `results_picks_of_empty_primitive_fan` | Area `= B/2 − 1` for a strictly convex lattice polygon with primitive edges and no interior lattice points |
+| `results_picks_theorem` | Pick's formula: area `= \|S\| + B/2 − 1` for a strictly convex lattice polygon with distinct listed vertices, for any finite `S` equal to its interior lattice points (existence of that finite `S` not yet proved) |
+| `results_picks_of_empty_primitive_fan` | Area `= B/2 − 1` for a strictly convex lattice polygon with distinct listed vertices, primitive edges and no interior lattice points |
 | `results_pick_count_of_euler` | Bookkeeping arithmetic: from `V = I + B`, `F = T + 1`, `V − E + F = 2`, `2E = 3T + B`, `A = T/2` (all hypotheses), `A = I + B/2 − 1` |
 | `results_fan_pick_of_euler` | Arithmetic identity `(n − 2)/2 = n/2 − 1` for `n ≥ 3` (proof routed through the fan's disk Euler number) |
 | `results_disk_pick_of_euler` | Arithmetic: given `A = (2I + B − 2)/2` and `3 ≤ n ≤ B`, `A = I + B/2 − 1` (proof routed through disk-Euler-preserving moves) |

@@ -6,7 +6,7 @@ review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "This is the `I = 0` case, and `EmptyInterior P` is a strong hypothesis — it says `P.interiorLatticePoints = ∅`, which for a lattice polygon means it is small. The reward is that no finite enumeration `S` has to be supplied, so unlike [results_picks_theorem](#/node/Results.results_picks_theorem) there is no un-discharged existence hypothesis."
-  - "`PrimitiveEdges P` — every edge has `edgeGcd = 1`, i.e. no lattice point strictly between consecutive vertices — is also a real restriction. With `EmptyInterior` it forces `B = nVertices`."
+  - "`PrimitiveEdges P` — every edge has `edgeGcd = 1`, i.e. no lattice point strictly between consecutive vertices — is also a real restriction. With injective vertices it forces `B = nVertices`."
   - "The two hypotheses together make the polygon small. A classical fact — **literature, not proved anywhere in this repository** — is that a convex lattice polygon with no interior lattice point has at most four vertices. If that is right, this theorem covers triangles and quadrilaterals only; the Lean statement itself places no bound on `nVertices` beyond `3 ≤`."
 widgets:
   - type: pick
@@ -118,7 +118,7 @@ Pick's formula at its smallest, and the smallest case is the one the general pro
 ### How the hypotheses interact
 
 `PrimitiveEdges` plus injective vertices gives `B = nVertices`
-(`LatticeFan.boundary_eq_vertexFinset`): the boundary lattice points are exactly the listed
+(`LatticeFan.B_eq_nVertices_of_primitive_edges`): the boundary lattice points are exactly the listed
 vertices. `StrictlyConvexCCW` gives `VerticesExtreme` (every listed vertex is extreme in the hull)
 and `FanDetsPos` (the corner fan is positively oriented) — both *discharged* in `LatticeFan.lean`
 rather than assumed. `EmptyInterior` plus those gives `FanTrianglesEmpty` (no fan triangle contains

@@ -57,7 +57,7 @@ export function grid(lo = 3, hi = 8) {
 
 /** Which of the five solids a pair names, and whether the Lean builds it geometrically. */
 export const SOLIDS = {
-  "3,3": { name: "tetrahedron", preset: "tetrahedron", geometric: "GeometricPlatonic.tetrahedron_platonic" },
+  "3,3": { name: "tetrahedron", preset: "tetrahedron", geometric: "Simplex.tetrahedron_platonic" },
   "4,3": { name: "cube", preset: "cube", geometric: "Cube.cube_platonic" },
   "3,4": { name: "octahedron", preset: "octahedron", geometric: "Octahedron.octahedron_platonic" },
   "5,3": { name: "dodecahedron", preset: "dodecahedron", geometric: null },

@@ -6,7 +6,7 @@ review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "**This definition is not a geometric object.** It is five natural numbers with certificates. The name is a label."
-  - "A *geometric* tetrahedron does exist in this repository, elsewhere: `SimplexFaces.lean` computes the face lattice of a simplex and `GeometricPlatonic.tetrahedron_platonic` proves a geometric tetrahedron is `{3,3}` with Euler from the root. `MetricRegular.Cube.regularTetra` goes further and builds a genuinely *regular* tetrahedron (four pairwise-equidistant alternating cube corners). None of that is in `Results.lean`."
+  - "A *geometric* tetrahedron does exist in this repository, elsewhere: `SimplexFaces.lean` computes the face lattice of a simplex and `Simplex.tetrahedron_platonic` (`GeometricPlatonic.lean`) proves a geometric tetrahedron is `{3,3}` with Euler from the root. `Cube.regularTetra` (`MetricRegular.lean`) goes further and builds a genuinely *regular* tetrahedron (four pairwise-equidistant alternating cube corners). None of that is in `Results.lean`."
   - "The same pattern holds for `Platonic.octahedron` and `Platonic.cube` (geometric versions in `Octahedron.lean` and `Cube.lean`). It does **not** hold for `Platonic.dodecahedron` and `Platonic.icosahedron`, which exist only as records."
 widgets:
   - type: polyhedron
@@ -41,7 +41,7 @@ quiz:
   - q: "Does this repository construct a geometric tetrahedron anywhere?"
     type: choice
     choices:
-      - "yes — `GeometricPlatonic.tetrahedron_platonic`, with its face lattice from `SimplexFaces.lean` and Euler from the root, and a metrically regular one in `MetricRegular.lean`"
+      - "yes — `Simplex.tetrahedron_platonic` (`GeometricPlatonic.lean`), with its face lattice from `SimplexFaces.lean` and Euler from the root, and a metrically regular one in `MetricRegular.lean`"
       - "no"
       - "yes, but only in `Results.lean`"
     answer: 0

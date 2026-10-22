@@ -46,7 +46,7 @@ quiz:
       - "yes, for every `n ≥ 3`"
       - "yes, but only for convex polygons"
     answer: 0
-    explain: "`def fan (n : ℕ) (hn : 3 ≤ n) : CombinatorialDiskTriangulation (Fin n)` in `FanDisk.lean` is the construction, and `ROADMAP.md` records \"fan combinatorial triangulation existence for **all** `n ≥ 3`\" as a separate item of work. None of it appears in this statement."
+    explain: "`def fan (n : ℕ) (hn : 3 ≤ n) : CombinatorialDiskTriangulation (Fin n)` in `FanDisk.lean` is the construction, and `ROADMAP.md` records fan triangulation existence for all `n ≥ 3` as a separate item of work. None of it appears in this statement."
   - q: "Where does the Euler characteristic enter?"
     type: choice
     choices:
@@ -103,8 +103,9 @@ two ways of writing the same rational number.
 This part is real, and is the reason the theorem is here:
 
 1. `Simplex.faceEulerSum_body_eq_one` — a geometric 2-simplex in a 2-dimensional space has
-   [`faceEulerSum = 1`](#/node/faceEulerSum), by
-   [`Euler_Poincare_of_isPolytope`](#/node/Euler_Poincare_of_isPolytope).
+   [`faceEulerSum = 1`](#/node/faceEulerSum), by `Euler_Poincare_full` applied to the simplex's
+   H-representation (the hypothesis-carrying form of
+   [`Euler_Poincare_of_isPolytope`](#/node/Euler_Poincare_of_isPolytope)).
 2. `triangle_disk_euler` — it has 3 vertices, 3 edges and 1 two-face; add one exterior face and
    `3 − 3 + 2 = 2`.
 3. `fan_eulerChar_succ` — adding a vertex to a fan adds one vertex, two edges and one face, so the

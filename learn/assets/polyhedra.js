@@ -187,7 +187,7 @@ function pictureFrame() {
 
 export const PRESETS = {
   tetrahedron: () => hull("tetrahedron {3,3}", [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]],
-    "The 3-simplex. Face lattice computed in `SimplexFaces.lean`; geometric Euler relation in `GeometricPlatonic.tetrahedron_euler_relation`."),
+    "The 3-simplex. Face lattice computed in `SimplexFaces.lean`; geometric Euler relation in `Simplex.tetrahedron_euler_relation` (`GeometricPlatonic.lean`)."),
   cube: () => hull("cube {4,3}", signs3((a, b, c) => [a, b, c]),
     "`Cube.lean` proves the H-representation, the face lattice (faces are subcubes), `V=8, E=12, F=6` and `V − E + F = 2` from Euler–Poincaré."),
   octahedron: () => hull("octahedron {3,4}", [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]],

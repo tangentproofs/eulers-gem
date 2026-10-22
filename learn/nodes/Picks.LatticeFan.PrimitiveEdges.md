@@ -6,7 +6,7 @@ review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "A real restriction. The square `(0,0), (3,0), (3,3), (0,3)` has `edgeGcd = 3` on every edge and fails it. Only [results_picks_of_empty_primitive_fan](#/node/Results.results_picks_of_empty_primitive_fan) needs it; the general [results_picks_theorem](#/node/Results.results_picks_theorem) does not."
-  - "With injective vertices it forces `B = nVertices` (`LatticeFan.boundary_eq_vertexFinset`). Without injectivity the conclusion fails, since a repeated vertex gives a degenerate edge with `edgeGcd = 0 ≠ 1`, so in fact `PrimitiveEdges` already rules out an immediately repeated vertex."
+  - "With injective vertices it forces `B = nVertices` (`LatticeFan.B_eq_nVertices_of_primitive_edges`, via `LatticeFan.boundaryLatticePoints_eq_vertexFinset`). Without injectivity the conclusion fails, since a repeated vertex gives a degenerate edge with `edgeGcd = 0 ≠ 1`, so in fact `PrimitiveEdges` already rules out an immediately repeated vertex."
 widgets:
   - type: pick
     title: "Which presets have primitive edges?"
@@ -45,7 +45,7 @@ quiz:
       - "`B ≥ 3`"
       - "nothing"
     answer: 0
-    explain: "`LatticeFan.boundary_eq_vertexFinset`: each edge contributes only its endpoints, so the union of edge point sets is the vertex set. That is how `results_picks_of_empty_primitive_fan` turns `(n − 2)/2` into `B/2 − 1`."
+    explain: "`LatticeFan.boundaryLatticePoints_eq_vertexFinset`: each edge contributes only its endpoints, so the union of edge point sets is the vertex set. That is how `results_picks_of_empty_primitive_fan` turns `(n − 2)/2` into `B/2 − 1`."
   - q: "Is `(0,0)` to `(100,1)` a primitive edge?"
     type: choice
     choices: ["yes — `gcd(100, 1) = 1`", "no, it is too long", "only if 100 is prime"]
@@ -82,7 +82,7 @@ that every edge of your shape be that fine.
 Two things.
 
 **It makes `B` easy.** With distinct vertices, `PrimitiveEdges` gives `B = nVertices`
-(`boundary_eq_vertexFinset`). So `(n − 2)/2`, the area of a fan of `n − 2` primitive triangles,
+(`B_eq_nVertices_of_primitive_edges`). So `(n − 2)/2`, the area of a fan of `n − 2` primitive triangles,
 becomes `B/2 − 1`, which is the Pick form —
 [`results_picks_of_empty_primitive_fan`](#/node/Results.results_picks_of_empty_primitive_fan) in one
 step.

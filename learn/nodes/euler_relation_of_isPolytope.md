@@ -41,7 +41,7 @@ quiz:
       - "two of the terms cancel"
       - "it is a different theorem with a different proof"
     answer: 0
-    explain: "`faceEulerSum p 3 = f₀ − f₁ + f₂ − f₃` and `f₃ = 1` by `isFaceOf_refl` plus the fact that `p` is the only 3-dimensional face. Move the `−1` across: `V − E + F = 1 + 1 = 2`. The expansion lemma is `faceEulerSum_three_expand` in `EulerChar.lean`."
+    explain: "`faceEulerSum p 3 = f₀ − f₁ + f₂ − f₃` and `f₃ = 1` by `isFaceOf_refl` plus the fact that `p` is the only 3-dimensional face. Move the `−1` across: `V − E + F = 1 + 1 = 2`. The expansion lemma is the private `faceEulerSum_three_expand` in `EulerPoincare.lean`."
   - q: "Does the theorem apply to a non-convex polyhedron with a hole, like a picture frame?"
     type: choice
     choices: ["yes", "no — `IsPolytope` fails for it, and in fact `V − E + F = 0` there"]

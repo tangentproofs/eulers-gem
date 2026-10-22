@@ -8,7 +8,7 @@ caveats:
   - "**The statement is an identity between numerals.** Written out: `((I + B : ℕ) : ℤ) - ↑(3 * I + 2 * B - 3) + ↑(2 * I + B - 2 + 1) = 2`. No disk, triangulation or polygon is quantified over; `n` appears only in the hypotheses `3 ≤ n` and `n ≤ B`. `omega` would prove it given `B ≥ 3`."
   - "**The proof, by contrast, is real.** `corner_cycle_euler_from_characteristic` traces back to `triangle_disk_euler`, which traces back to `Simplex.faceEulerSum_body_eq_one` — the genuine Euler–Poincaré characteristic of a geometric 2-simplex. The moves (`eulerChar_insert_boundary`, `eulerChar_add_diagonal`, `eulerChar_stellar`) each provably preserve the count."
   - "The natural subtractions `3*I + 2*B - 3` and `2*I + B - 2` truncate; `3 ≤ n ≤ B` is what keeps them honest."
-  - "`lean/UNIFIED_SPINE.md` lists \"general EP→planar from `Euler_Poincare_full`\" as still open. This lemma is the current bridge, and its statement shape is why that item is still on the list: a theorem *about disks* with their Euler number as the conclusion would be stronger."
+  - "`lean/ROADMAP.md` lists \"general EP→planar from `Euler_Poincare_full`\" as still open (and `lean/UNIFIED_SPINE.md` records the same gap). This lemma is the current bridge, and its statement shape is why that item is still on the list: a theorem *about disks* with their Euler number as the conclusion would be stronger."
 widgets:
   - type: triangulate
     title: "The four moves, stepped through"
@@ -39,7 +39,7 @@ quiz:
       - "`omega` on the statement"
       - "a hypothesis"
     answer: 0
-    explain: "`corner_cycle_euler_from_characteristic` calls `FanDiskTriangulation.fan_eulerChar_from_characteristic`, which bottoms out at `triangle_disk_euler b` for an `AffineBasis (Fin 3) ℝ E` in a 2-dimensional space — and that is [Euler_Poincare_of_isPolytope](#/node/Euler_Poincare_of_isPolytope) applied to a triangle. The chain to the root is real."
+    explain: "`corner_cycle_euler_from_characteristic` calls `FanDiskTriangulation.fan_eulerChar_from_characteristic`, which bottoms out at `triangle_disk_euler b` for an `AffineBasis (Fin 3) ℝ E` in a 2-dimensional space — and that is `Euler_Poincare_full` — the hypothesis-carrying form of [Euler_Poincare_of_isPolytope](#/node/Euler_Poincare_of_isPolytope) — applied to a triangle. The chain to the root is real."
   - q: "Adding a diagonal to a triangulated disk changes the counts how?"
     type: choice
     choices:
@@ -111,8 +111,9 @@ The real content is the first row. `corner_cycle_euler_from_characteristic n hn 
 looks trivial, and its proof is not:
 
 1. `Simplex.faceEulerSum_body_eq_one` — a geometric 2-simplex in a 2-dimensional inner product
-   space has [`faceEulerSum = 1`](#/node/faceEulerSum), by
-   [`Euler_Poincare_of_isPolytope`](#/node/Euler_Poincare_of_isPolytope).
+   space has [`faceEulerSum = 1`](#/node/faceEulerSum), by `Euler_Poincare_full` applied to the
+   simplex's H-representation (the hypothesis-carrying form of
+   [`Euler_Poincare_of_isPolytope`](#/node/Euler_Poincare_of_isPolytope)).
 2. `triangle_disk_euler` — that triangle has 3 vertices, 3 edges, 1 two-face; the only 2-face is
    the body, so adding one exterior face gives `3 − 3 + 2 = 2`.
 3. `fan_eulerChar_succ` and `fan_eulerChar_from_characteristic` — every fan inherits that number by
@@ -126,7 +127,8 @@ repository's rule that Pick must discharge Euler rather than assume it.
 
 The statement's shape. A theorem of the form "every triangulated disk has `V − E + F = 2`" would
 need a type of triangulated disks and a geometric realization theorem;
-`lean/UNIFIED_SPINE.md` lists exactly that as open ("general EP→planar from `Euler_Poincare_full`").
+`lean/ROADMAP.md` lists exactly that as open ("general EP→planar from `Euler_Poincare_full`"), and
+`lean/UNIFIED_SPINE.md` records the same gap.
 What exists is this: the numbers that a triangulated disk *would* have, shown to satisfy the
 identity, by an argument that starts from a real triangle.
 

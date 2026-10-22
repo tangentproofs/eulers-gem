@@ -6,7 +6,7 @@ review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "`IsPolyhedron` does **not** imply bounded. The empty intersection is all of `E`; a single halfspace is a half of it. Every `IsPolytope` is an `IsPolyhedron`, but not conversely, and the word \"polyhedron\" here means the unbounded notion, following Paulson's `polyhedron`."
-  - "The normals `h.1` are vectors of `E`, not abstract linear functionals, so the definition needs an inner product. `IsPolyhedral` (in `PolyhedralRepresentation.lean`) uses functionals instead and works over any linearly ordered field; `isPolyhedron_iff_isPolyhedral` identifies the two in finite dimensions, by Riesz representation."
+  - "The normals `h.1` are vectors of `E`, not abstract linear functionals, so the definition needs an inner product. `IsPolyhedral` (defined in `LinearInequalities.lean`) uses functionals instead and works over any linearly ordered field; `isPolyhedron_iff_isPolyhedral` identifies the two in finite dimensions, by Riesz representation."
   - "`Hyperplane E` is just `abbrev Hyperplane (E : Type*) := E × ℝ` (`Hyperplane.lean`): a pair of a normal and a constant. It is not a subspace, despite the name."
 widgets:
   - type: polyhedron
@@ -97,4 +97,4 @@ results had to carry the H-description as an extra hypothesis.
 - [`Euler_Poincare_of_isPolytope`](#/node/Euler_Poincare_of_isPolytope) calls that, then hands the
   arrangement to `Euler_Poincare_full` in `Embed.lean`.
 - `isPolyhedron_iff_isPolyhedral` relates it to the functional-based `IsPolyhedral` of
-  `PolyhedralRepresentation.lean`, by finite-dimensional Riesz representation.
+  `LinearInequalities.lean`, by finite-dimensional Riesz representation.

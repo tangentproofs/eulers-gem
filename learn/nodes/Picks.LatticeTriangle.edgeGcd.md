@@ -6,7 +6,7 @@ review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "`Int.gcd` returns an `ℕ`, so `edgeGcd` is non-negative by typing. It is `0` only in the degenerate case `p = q` (`edgeGcd_eq_zero_iff`)."
-  - "It is symmetric in the sense that `edgeGcd p q = edgeGcd q p` (the differences negate and `gcd` ignores sign), but the Lean does not state that as a lemma because nothing needs it."
+  - "It is symmetric in the sense that `edgeGcd p q = edgeGcd q p` (the differences negate and `gcd` ignores sign), and the Lean does state it, as `LatticeFan.InteriorFan.edgeGcd_comm` in `OnSpoke.lean`."
 widgets:
   - type: pick
     title: "Every edge's gcd, and the B it adds up to"

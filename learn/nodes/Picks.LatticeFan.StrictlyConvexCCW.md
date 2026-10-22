@@ -51,7 +51,7 @@ quiz:
       - "neither"
     answer: 0
     explain: "`(0,0), (1,0), (2,0)` are collinear, so `latticeDet` of that triple is `0`, and `LocalCCWTurns` demands `> 0`. `ConvexCCW` still holds — no vertex is strictly right of any edge. Remove `(1,0)` from the list and both hold, for the same region. The `collinear-vertex` preset in the widget."
-  - q: "A triangle listed `(0,0), (0,3), (4,0)` — clockwise. Which half fails?"
+  - q: "A triangle listed `(0,0), (0,3), (4,0)` — clockwise. Which half is the one that pins down the handedness globally, and fails here?"
     type: choice
     choices:
       - "`ConvexCCW`: the determinants come out negative, and the condition asks for `0 ≤`"

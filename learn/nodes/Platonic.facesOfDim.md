@@ -89,5 +89,5 @@ development that matters cites it, directly or indirectly.
 - [`results_five_platonic_solids`](#/node/Results.results_five_platonic_solids) states its
   regularity hypotheses with it.
 - `Simplex.ncard_facesOfDim_body_eq_choose`, `Octahedron.octahedron_face_counts`,
-  `Cube.cube_face_counts` and `GeometricPlatonic.tetrahedron_face_counts` are the geometric
+  `Cube.cube_face_counts` and `Simplex.tetrahedron_face_counts` (`GeometricPlatonic.lean`) are the geometric
   face-count theorems, all phrased with it.

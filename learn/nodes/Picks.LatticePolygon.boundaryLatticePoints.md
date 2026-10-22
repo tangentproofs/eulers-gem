@@ -47,7 +47,7 @@ quiz:
       - "the vertex set plus the edge midpoints"
       - "all lattice points in the hull"
     answer: 0
-    explain: "`LatticeFan.boundary_eq_vertexFinset`: `edgeGcd = 1` makes each `edgeLatticePoints` the two endpoints, so the union is the vertex set. That is how [results_picks_of_empty_primitive_fan](#/node/Results.results_picks_of_empty_primitive_fan) converts `(n − 2)/2` into `B/2 − 1`."
+    explain: "`LatticeFan.boundaryLatticePoints_eq_vertexFinset`: `edgeGcd = 1` makes each `edgeLatticePoints` the two endpoints, so the union is the vertex set. That is how [results_picks_of_empty_primitive_fan](#/node/Results.results_picks_of_empty_primitive_fan) converts `(n − 2)/2` into `B/2 − 1`."
 ---
 
 ## Plain English

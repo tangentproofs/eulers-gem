@@ -22,7 +22,7 @@ quiz:
       - "`faceEulerSum p 3 = 2`"
       - "`faceEulerSum p (Module.finrank ℝ E) = 0`"
     answer: 0
-    explain: "`theorem results_euler_characteristic … : EulersGem.faceEulerSum p (Module.finrank ℝ E) = 1`. The `2` is a different theorem; the `0` is the *cone* result (`Euler_polyhedral_cone`) that the proof passes through."
+    explain: "`theorem results_euler_characteristic … : EulersGem.faceEulerSum p (Module.finrank ℝ E) = 1`. The `2` is a different theorem; the `0` is the *cone* result (`faceEulerSum_polyhedral_cone`, Paulson's `Euler_polyhedral_cone`) that the proof passes through."
   - q: "`p` is a square in `EuclideanSpace ℝ (Fin 3)`. Does the theorem apply?"
     type: choice
     choices:
