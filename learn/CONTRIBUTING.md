@@ -169,7 +169,7 @@ check finitely much — one polygon, `n ≤ 6`, a scan over a bounding box — s
 | `schlafli` | the grid of `(s−2)(m−2)` for `s, m` in a window, the five cells that survive, and for one cell the solve `E·(2s+2m−sm) = 2sm` with `V`, `F`, plus whether the Lean builds that solid | `lo` (default 3), `hi` (default 8) |
 | `pick` | a lattice grid you tap to build a polygon: `B` from the edge gcds, `I` relative to the convex hull, the shoelace number, `I + B/2 − 1`, the corner fan with its dets, and which of `Injective`/`ConvexCCW`/`LocalCCWTurns`/`PrimitiveEdges`/`EmptyInterior` hold — naming the hypothesis that fails | `preset`, `editable` (default true), `lo`/`hi` (grid range), `show`: any of `counts`, `hypotheses`, `fan` |
 | `triangulate` | the counts of a primitive triangulation for given `I`, `B` — `V`, `T`, `E`, `F`, `2E = 3T + B`, `V − E + F`, `T/2`, `I + B/2 − 1` — and a stepper through the four Euler-preserving moves of `DiskEuler.lean` | `I`, `B`, `show`: any of `counts`, `moves` |
-| `outline` | a vertical proof outline with links | `steps: [{text, link?, note?, hard?}]` |
+| `outline` | a vertical proof outline with links | `steps: [{text, link?, decl?, note?, hard?, gap?}]` — `decl` is a declaration id; the build resolves it from `data/decls.json` into a "File.lean lines a–b" link to the browsable source, and fails if it does not exist. `gap: true` marks a hypothesis or step that is **not proved** in the repo. |
 | `walkthrough` | a proof outline you step through, with the Lean of each step and links to the nodes it uses | `steps: [{text, lean?, note?, link?, uses?, hard?}]` |
 
 Presets, by widget:

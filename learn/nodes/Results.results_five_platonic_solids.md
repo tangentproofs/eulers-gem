@@ -11,6 +11,38 @@ caveats:
   - "**This statement does not construct any solid.** Parts 2–6 are about five `Platonic.RegularNumbers` records: five natural numbers each, satisfying Euler and two double-counting identities. All five solids *are* now built as genuine convex polytopes and proved regular, including the golden-ratio dodecahedron and icosahedron — but in a separate theorem, [`results_five_platonic_solids_constructed`](#/node/Results.results_five_platonic_solids_constructed), not in this one."
   - "Parts 2–6 are proved by `omega` from the structure fields of the records plus `rfl`. They are arithmetic about five constants."
 widgets:
+  - type: outline
+    title: "Proof outline of part 1 (the classification), as in Results.lean"
+    config:
+      steps:
+        - text: "Hypothesis hedge: every edge lies in exactly two 2-faces"
+          gap: true
+          note: "True of every convex 3-polytope (the diamond property), but not proved in general here, so it is a hypothesis of the theorem. It is proved for the solids the repository builds, so part 1 is not vacuous."
+        - text: "From corners to halfspaces: obtain H with p = ⋂ of finitely many closed halfspaces"
+          link: IsPolytope.isPolyhedron
+          decl: IsPolytope.isPolyhedron
+          note: "regular_polytope_counts wants a halfspace presentation; hP.isPolyhedron supplies it."
+        - text: "Euler: V − E + F = 2, from the Euler–Poincaré root"
+          link: Results.results_euler_relation_dimension_three
+          decl: Results.results_euler_relation_dimension_three
+          note: "No bare V − E + F = 2 hypothesis anywhere in the theorem."
+        - text: "Double counting: s·F = 2E and m·V = 2E"
+          hard: true
+          link: Platonic.regular_polytope_counts
+          decl: Platonic.regular_polytope_counts
+          note: "Counts edge–face and vertex–edge incidences over the face lattice. That each edge has exactly two vertices is proved (ncard_vertices_of_edge); that each edge is in two 2-faces is hedge."
+        - text: "Restate Euler for facesOfDim, then derive 0 < E"
+          decl: Platonic.pos_edges_of_euler
+          note: "With s, m ≥ 3, E = 0 would force V = F = 0, contradicting V − E + F = 2. So RegularNumbers.hE is proved, not assumed."
+        - text: "The bound (s − 2)(m − 2) < 4 leaves only the five Schläfli pairs"
+          hard: true
+          link: Platonic.schlafli_pair_mem
+          decl: Platonic.schlafli_pair_mem
+          note: "The proved counts are packed into a RegularNumbers record; sub_mul_lt_four gives the bound, and a finite case analysis gives the list."
+        - text: "Parts 2–6: each of the five RegularNumbers records has the listed (V, E, F, s, m)"
+          link: Platonic.RegularNumbers
+          decl: Platonic.RegularNumbers
+          note: "Arithmetic on records (the private schlafli_vef, then omega and rfl). No solid is constructed in this theorem; that is results_five_platonic_solids_constructed."
   - type: schlafli
     title: "(s − 2)(m − 2) < 4: the grid, and the solve"
   - type: polyhedron

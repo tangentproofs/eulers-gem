@@ -8,9 +8,16 @@ import { INTERACTIVE } from "./widgets-interactive.js";
 const nodeHref = (link) => (String(link).startsWith("#") ? String(link) : `#/node/${encodeURIComponent(link)}`);
 
 // ---------------------------------------------------------------- outline
+// A static proof outline. Each step may carry:
+//   link: the explainer node it uses; decl: a declaration id, which the build resolves
+//   into `src` (file, line range, browsable-source anchor) from data/decls.json;
+//   hard: the step that carries the real content; gap: a hypothesis or step NOT proved here.
+const srcLink = (src) => src
+  ? `<div class="small src"><a class="srclink" href="../${esc(src.docs)}">${esc(src.file.replace(/^lean\//, ""))} lines ${src.line}–${src.endLine}</a></div>`
+  : "";
 function outlineWidget(el, cfg = {}) {
   el.append(h("div", { class: "flow", html: (cfg.steps || []).map((s, i) =>
-    `${i ? '<div class="arrow">↓</div>' : ""}<div class="step${s.hard ? " hard" : ""}">${s.link ? `<a href="${nodeHref(s.link)}">${esc(s.text)}</a>` : esc(s.text)}${s.note ? `<div class="small muted">${esc(s.note)}</div>` : ""}</div>`).join("") }));
+    `${i ? '<div class="arrow">↓</div>' : ""}<div class="step${s.hard ? " hard" : ""}${s.gap ? " gap" : ""}">${s.gap ? '<span class="gaptag">not proved here</span> ' : ""}${s.link ? `<a href="${nodeHref(s.link)}">${esc(s.text)}</a>` : esc(s.text)}${s.note ? `<div class="small muted">${esc(s.note)}</div>` : ""}${srcLink(s.src)}</div>`).join("") }));
 }
 
 // ---------------------------------------------------------------- walkthrough

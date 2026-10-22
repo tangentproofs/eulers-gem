@@ -87,6 +87,8 @@ table.t th { color: var(--dim); font-weight: 500; } table.t td.hit { background:
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
 .flow { display: flex; flex-direction: column; gap: .4rem; } .flow .step { background: var(--panel2); border-radius: 6px; padding: .4rem .7rem; border-left: 3px solid var(--blue); }
 .flow .step.hard { border-left-color: var(--pink); } .flow .arrow { color: var(--dim); padding-left: 1rem; }
+.flow .step.gap { border-left: 3px dashed var(--orange); } .flow .gaptag { font-size: .75rem; text-transform: uppercase; letter-spacing: .03em; color: var(--orange); border: 1px solid var(--orange); border-radius: 4px; padding: 0 .3rem; }
+.flow .step .src { margin-top: .15rem; } .flow .step .src a { color: var(--dim); }
 textarea.prompt { height: 10rem; font-family: ui-monospace, monospace; font-size: .8rem; }
 .giscus-wrap { margin-top: 1rem; }
 

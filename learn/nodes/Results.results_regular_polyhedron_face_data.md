@@ -10,6 +10,34 @@ caveats:
   - "The full classification `PlatonicGaps.regular_polyhedron_classification` (every regular polyhedron is similar to one of the five) and `regular_polyhedron_classification_unique` (exactly one) live in a separate library, `lean/PlatonicGaps.lean`, outside `Results`. `#print axioms` for them shows `sorryAx`. They are **not theorems of this repository yet**."
   - "`FaceLatticeFacts` is proved for the five constructed solids (`platonic_faceLatticeFacts`), so the hypothesis is not vacuous."
 widgets:
+  - type: outline
+    title: "Proof outline: how Results.lean proves it (CONDITIONAL)"
+    config:
+      steps:
+        - text: "Hypothesis hL: FaceLatticeFacts P"
+          gap: true
+          link: FaceLatticeFacts
+          decl: FaceLatticeFacts
+          note: "Flags exist, every edge lies in exactly two facets, every facet has and every vertex meets at least three edges. True for every convex 3-polytope, but not proved here: this is PlatonicGaps.GAP_faceLatticeFacts. It is proved for the five constructed solids."
+        - text: "Results.lean calls IsRegularPolyhedron.faceData hP hL. The next four steps are its proof"
+          decl: IsRegularPolyhedron.faceData
+          note: "It returns some t in platonicTypes with HasFaceData P for that tuple."
+        - text: "Uniform type: flag-transitivity makes the edges per facet (s) and edges per vertex (m) constant"
+          decl: IsRegularPolyhedron.uniform
+          note: "Symmetries permute faces of each dimension and preserve inclusion. Uses hL."
+        - text: "s, m ≥ 3, from hL (a flag exists; each facet and vertex has at least three edges)"
+          note: "Taken from FaceLatticeFacts, so also conditional."
+        - text: "(s, m) is one of the five Schläfli pairs, via the Euler chain"
+          hard: true
+          decl: Platonic.schlafli_pair_mem_of_regular_polytope
+          note: "The same chain as results_five_platonic_solids: halfspaces, Euler from the Euler–Poincaré root, double counting, (s − 2)(m − 2) < 4. The edge-in-two-facets input comes from hL."
+        - text: "Counts: s·F = 2E, m·V = 2E, V − E + F = 2, so each pair fixes (V, E, F)"
+          link: Platonic.regular_polytope_counts
+          decl: Platonic.regular_polytope_counts
+          note: "For each of the five pairs, omega solves for V, E and F."
+        - text: "Unfold platonicTypes into the five explicit disjuncts"
+          decl: platonicTypes
+          note: "This stops at numbers. Showing P is similar to the matching solid needs GAP_rigidity, which is not proved."
   - type: schlafli
     title: "Why only five (s, m) survive"
 quiz:

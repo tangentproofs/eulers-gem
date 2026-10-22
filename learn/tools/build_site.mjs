@@ -46,6 +46,20 @@ for (const f of fs.readdirSync(path.join(SITE, "nodes")).filter((f) => f.endsWit
       if (!Array.isArray(q.answer)) err(f, `${where}: text question needs a list of accepted answers`);
     }
   });
+  // Outline / walkthrough steps: `decl` resolves to a source range from decls.json (so the
+  // file and line numbers cannot drift), and `link` must name a real declaration.
+  for (const [wi, w] of (fm.widgets || []).entries()) {
+    if (!["outline", "walkthrough"].includes(w.type)) continue;
+    for (const [si, st] of ((w.config || {}).steps || []).entries()) {
+      const where = `widgets[${wi}].steps[${si}]`;
+      if (st.link && !String(st.link).startsWith("#") && !byId.has(st.link)) err(f, `${where}: link '${st.link}' is not a declaration`);
+      if (st.decl) {
+        const d = byId.get(st.decl);
+        if (!d) err(f, `${where}: decl '${st.decl}' is not a declaration in data/decls.json`);
+        else st.src = { file: d.file, line: d.line, endLine: d.endLine, docs: d.docs };
+      }
+    }
+  }
   const md = (s) => marked.parse(s);
   const mdInline = (s) => marked.parseInline(s);
   nodes[fm.id] = {

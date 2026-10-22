@@ -10,6 +10,40 @@ caveats:
   - "**Nothing is claimed for non-convex polygons.** `interiorLatticePoints` is defined relative to `convexHullRegion`, the hull of the *vertex set*. For a non-convex polygon the Lean's `I` counts lattice points the polygon does not enclose, so `I + B/2 − 1` is not even the right number to aim at. Classical Pick for simple non-convex polygons is **not** proved here."
   - "The area is `MeasureTheory.volume P.convexHullRegion`, genuine Lebesgue measure on `ℝ × ℝ`, and the right-hand side is `ENNReal.ofReal` of a rational cast. So this is a measure-theoretic statement, not a shoelace identity — the bridge is `LatticeArea.volume_convexHullRegion_eq_ofReal_shoelace`."
 widgets:
+  - type: outline
+    title: "Proof outline: how Results.lean proves it"
+    config:
+      steps:
+        - text: "Hypothesis hS: a finite list S of the interior lattice points is handed in"
+          gap: true
+          link: Picks.LatticePolygon.interiorLatticePoints
+          decl: Picks.LatticePolygon.interiorLatticePoints
+          note: "That such a Finset exists (a bounded convex region has finitely many lattice points) is true but not proved in this repository. For a polygon with no such S the theorem says nothing."
+        - text: "Triangulate and add up: P.shoelace = (2·|S| + B − 2) / 2"
+          hard: true
+          decl: Picks.LatticeFan.shoelace_eq_two_cardI_add_B_sub_two_div_two
+          note: "exists_primitive_polygon_list cuts P into det-primitive triangles (the corner fan if the interior is empty, otherwise a fan from an interior point plus ears), T = 2I + B − 2 of them. Each has shoelace 1/2, so the polygon's shoelace is T/2. Uses hS, hverts and hsc. This is the geometric heart."
+        - text: "Size bounds: 3 ≤ n (the length_ge field of a LatticePolygon) and n ≤ B (listed vertices are boundary lattice points)"
+          link: Picks.LatticePolygon
+          decl: Picks.LatticeFan.nVertices_le_B
+          note: "n is the number of listed vertices. Both bounds are needed only to feed the next step."
+        - text: "Euler for the triangulated disk: V − E + F = 2 with V = I + B, E = 3I + 2B − 3, F = T + 1"
+          link: Picks.triangulated_disk_euler_from_characteristic
+          decl: Picks.triangulated_disk_euler_from_characteristic
+          note: "Starts from a triangle's Euler–Poincaré characteristic, then the corner n-cycle, B − n boundary insertions, B − 3 diagonals and I stellar subdivisions, each keeping the Euler number at 2. Its inputs are the numbers n, B, I only: it is not about the particular triangulation of the previous step."
+        - text: "Handshake count: 2E = 3T + B, by omega"
+          note: "Pure arithmetic on the definitions of E and T in Results.lean, using B ≥ 3."
+        - text: "Pick's count from Euler: shoelace = T/2 and V − E + F = 2 give shoelace = I + B/2 − 1"
+          link: Results.results_pick_count_of_euler
+          decl: Results.results_pick_count_of_euler
+          note: "The arithmetic step, applied to the shoelace number."
+        - text: "Shoelace to Lebesgue measure: volume P.convexHullRegion = ofReal P.shoelace"
+          hard: true
+          link: Picks.LatticeArea.volume_convexHullRegion_eq_ofReal_shoelace
+          decl: Picks.LatticeArea.volume_convexHullRegion_eq_ofReal_shoelace
+          note: "The hull is the union of the n − 2 corner-fan triangles, almost-everywhere disjoint, and each triangle's measure is its shoelace. Uses hsc and hverts. The second piece of geometry."
+        - text: "Rewrite the area, cast ℚ to ℝ, push_cast; ring"
+          note: "Bookkeeping that closes the goal volume = ofReal(|S| + B/2 − 1)."
   - type: pick
     title: "Break the hypotheses and watch which one fails"
     config:
@@ -131,22 +165,11 @@ chop the shape into the smallest possible triangles, and Euler counts them for y
 
 ### How it is proved
 
-The proof in `Results.lean` is unusually readable, so here it is in outline:
-
-1. `shoelace_eq_two_cardI_add_B_sub_two_div_two` (`PickFromEuler.lean`) cuts `P` into det-primitive
-   triangles and adds up their shoelaces: `P.shoelace = (2·I + B − 2)/2`. That is the geometric
-   heart, and `T = 2I + B − 2` is where the triangle count comes from.
-2. `triangulated_disk_euler_from_characteristic` supplies `V − E + F = 2` for
-   `V = I + B`, `E = 3I + 2B − 3`, `F = T + 1`.
-3. `2E = 3T + B` falls out by `omega`.
-4. [`results_pick_count_of_euler`](#/node/Results.results_pick_count_of_euler) — the pure
-   arithmetic step — turns `A = T/2` and that Euler number into `A = I + B/2 − 1`.
-5. [`volume_convexHullRegion_eq_ofReal_shoelace`](#/node/Picks.LatticeArea.volume_convexHullRegion_eq_ofReal_shoelace)
-   replaces the shoelace number by the Lebesgue measure.
-6. `push_cast; ring` finishes.
-
-Steps 1 and 5 are the geometry. Steps 2 to 4 are the Euler bookkeeping. It is worth knowing which
-is which: on their own, steps 2–4 prove nothing about polygons at all.
+The **proof outline** at the end of this explanation lists the steps of the Lean proof in
+`Results.lean`, each with the node it uses and its source lines. Two of them are geometry: the
+triangulation that makes the shoelace `T/2`, and the identification of the shoelace with Lebesgue
+measure. The Euler, handshake and count steps between them are bookkeeping. It is worth knowing
+which is which: on their own, those middle steps prove nothing about polygons at all.
 
 ### Where it sits
 
