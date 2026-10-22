@@ -338,7 +338,22 @@ def dodecaSym : Data.Sym where
     ((13, 29, 7), [1, 0, 1, 2, 0, 1, 0, 1, 2, 1]),
     ((19, 29, 7), [1, 0, 1, 2, 0, 1, 0, 1, 2, 1, 0])]
 
-theorem dodeca_checkAll : dodecaData.checkAll = true := by decide +kernel
+theorem dodeca_checkVertices : dodecaData.checkVertices = true := by decide +kernel
+
+theorem dodeca_checkTriples : dodecaData.checkTriples = true := by decide +kernel
+
+theorem dodeca_checkPairs : dodecaData.checkPairs = true := by decide +kernel
+
+theorem dodeca_edgesOk : dodecaData.edges.all dodecaData.edgeOk = true := by decide +kernel
+
+theorem dodeca_facetsOk : dodecaData.facets.all dodecaData.facetOk = true := by decide +kernel
+
+theorem dodeca_solid : dodecaData.solid = true := by decide +kernel
+
+/-- Split into pieces to keep the kernel's peak memory low. -/
+theorem dodeca_checkAll : dodecaData.checkAll = true := by
+  simp only [Data.checkAll, dodeca_checkVertices, dodeca_checkTriples, dodeca_checkPairs,
+    dodeca_edgesOk, dodeca_facetsOk, dodeca_solid, Bool.and_self]
 
 theorem dodeca_checkType : dodecaData.checkType 5 3 = true := by decide +kernel
 

@@ -20,9 +20,14 @@ The definitions used by the Platonic classification. See
   of affine dimension `3` whose symmetries act transitively on flags.
 
 Flag-transitivity is the standard modern definition (Coxeter, McMullen–Schulte). For convex
-polyhedra it is equivalent to Euclid's "congruent regular faces, the same number at every
-vertex", but it is the cleaner formal statement: it says nothing about angles or lengths, so
-the metric shape is entirely a *consequence*.
+polyhedra it is classically equivalent to Euclid's "congruent regular faces, the same number at
+every vertex" (that equivalence is not formalized in this repository), but it is the cleaner
+formal statement: it says nothing about angles or lengths, so the metric shape is entirely a
+*consequence*.
+
+Flag-transitivity is a universal statement over flags, so on its own it would hold vacuously
+for a set with no flags; non-vacuity for a given `P` comes from its face counts (for the five
+solids, `HasFaceData`), and in the classification from `FaceLatticeFacts.exists_flag`.
 -/
 
 open Set

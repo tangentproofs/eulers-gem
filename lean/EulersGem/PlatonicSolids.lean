@@ -20,7 +20,8 @@ Each solid is the convex hull of explicit points of `ℤ[φ]³ ⊂ ℝ³`
 * its numbers of geometric vertices, edges and facets (faces of affine dimension `0`, `1`,
   `2`, in the sense of `IsFaceOf`);
 * its face type: every facet has `s` edges, every edge lies in two facets, every vertex lies in
-  `m` edges — exactly the hypotheses of `results_five_platonic_solids`.
+  `m` edges — exactly the three incidence hypotheses of `results_five_platonic_solids`
+  (which also needs `3 ≤ s`, `3 ≤ m`, `finrank = 3`).
 
 The face lattice is *computed*, not assumed: `Explicit.Data.face_cases` shows every face is
 empty, the body, a vertex, a listed edge or a listed facet, from the exposed-face theorem and

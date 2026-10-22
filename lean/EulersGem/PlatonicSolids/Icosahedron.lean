@@ -206,7 +206,22 @@ def icosaSym : Data.Sym where
     ((10, 29, 19), [2, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0]),
     ((11, 29, 19), [2, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2])]
 
-theorem icosa_checkAll : icosaData.checkAll = true := by decide +kernel
+theorem icosa_checkVertices : icosaData.checkVertices = true := by decide +kernel
+
+theorem icosa_checkTriples : icosaData.checkTriples = true := by decide +kernel
+
+theorem icosa_checkPairs : icosaData.checkPairs = true := by decide +kernel
+
+theorem icosa_edgesOk : icosaData.edges.all icosaData.edgeOk = true := by decide +kernel
+
+theorem icosa_facetsOk : icosaData.facets.all icosaData.facetOk = true := by decide +kernel
+
+theorem icosa_solid : icosaData.solid = true := by decide +kernel
+
+/-- Split into pieces to keep the kernel's peak memory low. -/
+theorem icosa_checkAll : icosaData.checkAll = true := by
+  simp only [Data.checkAll, icosa_checkVertices, icosa_checkTriples, icosa_checkPairs,
+    icosa_edgesOk, icosa_facetsOk, icosa_solid, Bool.and_self]
 
 theorem icosa_checkType : icosaData.checkType 3 5 = true := by decide +kernel
 

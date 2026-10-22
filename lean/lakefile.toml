@@ -12,3 +12,8 @@ globs = ["EulersGem.+"]
 
 [[lean_lib]]
 name = "Results"
+
+# Quarantined gaps of the Platonic classification: contains `sorry` on purpose.
+# Not a default target and not imported by `EulersGem` or `Results`.
+[[lean_lib]]
+name = "PlatonicGaps"

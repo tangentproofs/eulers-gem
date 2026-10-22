@@ -42,3 +42,4 @@ import EulersGem.ExplicitPolyhedron
 import EulersGem.RegularPolyhedron
 import EulersGem.ExplicitRegular
 import EulersGem.PlatonicSolids
+import EulersGem.RegularCombinatorics

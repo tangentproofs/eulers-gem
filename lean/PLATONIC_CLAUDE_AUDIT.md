@@ -112,5 +112,7 @@ Safe to name a Results theorem for:
 Not safe to name:
 
 * "the five Platonic solids" as a classification of geometric solids — two of the five
-  have no geometric construction here;
+  have no geometric construction here; *(superseded on branch `platonic-classification`:
+  all five are constructed and proved regular in `EulersGem/PlatonicSolids.lean`; uniqueness
+  is still conditional, see `PlatonicGaps.lean`)*
 * anything suggesting metric regularity or uniqueness up to similarity.

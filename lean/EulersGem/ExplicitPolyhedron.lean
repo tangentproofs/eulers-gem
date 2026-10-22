@@ -14,8 +14,9 @@ import EulersGem.PlatonicOfEuler
 lists) and, for every pair of points that is *not* an edge, a certificate that the segment
 between them meets the hull of the other points. `Data.checkAll` is a `Bool` the kernel
 evaluates (`decide +kernel`); from `checkAll = true` we prove that the faces of
-`convexHull ℝ (points)` are *exactly* the empty set, the body, the points, the listed edges
-and the listed facets.
+`convexHull ℝ (points)` are among the empty set, the body, the points, the listed edges and
+the listed facets (`face_cases`); conversely each of these is a face (`isFaceOf_empty`,
+`isFaceOf_refl`, `Exposed.isFaceOf`).
 
 How the classification works (`face_cases`): a nonempty face is the hull of the vertices
 maximising some functional `⟪a, ·⟫` (`face_eq_convexHull_argmax`, which rests on the
