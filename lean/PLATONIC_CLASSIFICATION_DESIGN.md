@@ -85,6 +85,11 @@ through every vertex and facet, each edge lies in exactly two facets, each facet
 vertex meets at least three edges). It does not mention regularity, symmetry, metric data or
 the five solids, so it does not smuggle in the classification.
 
+Also sorry-free, `EulersGem/RegularCentre.lean` (first metric steps of the rigidity half):
+`IsRegularPolyhedron.exists_centre` (the vertex centroid is fixed by every symmetry and all
+vertices are equidistant from it), `edges_congruent` (all edges have one length),
+`facets_congruent` / `edges_congruent'` (any two facets / edges are exchanged by a symmetry).
+
 Gaps (`sorry`, in the separate `lean_lib PlatonicGaps`, file `lean/PlatonicGaps.lean`, not
 imported by `EulersGem` or `Results`, so `scripts/audit-axioms.sh` stays green):
 1. `GAP_faceLatticeFacts`: every 3-dimensional polytope in ℝ³ satisfies `FaceLatticeFacts`.

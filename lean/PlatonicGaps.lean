@@ -3,7 +3,7 @@ Copyright (c) 2026 Michal Wallace / tangentproofs. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Michal Wallace, Grok Bot
 -/
-import EulersGem.RegularCombinatorics
+import EulersGem.RegularCentre
 
 /-!
 # The classification of regular polyhedra — with its gaps quarantined
@@ -19,7 +19,10 @@ The proved part (no `sorry`):
   classical face data;
 * `IsRegularPolyhedron.faceData`: a regular polyhedron satisfying the general 3-polytope facts
   `FaceLatticeFacts` has one of the five classical `(s, m, V, E, F)`;
-* `platonic_pairwise_not_similar`: the five are pairwise non-similar.
+* `platonic_pairwise_not_similar`: the five are pairwise non-similar;
+* first metric steps towards GAP 2 (`RegularCentre.lean`): a symmetry-fixed centre with all
+  vertices equidistant (`exists_centre`), equal edge lengths (`edges_congruent`), symmetries
+  exchanging any two facets (`facets_congruent`).
 
 The two gaps:
 1. `GAP_faceLatticeFacts`: general face-lattice facts of convex 3-polytopes (no regularity).
@@ -43,7 +46,8 @@ theorem GAP_faceLatticeFacts {P : Set R3} (hP : IsPolytope P) (h3 : affDim P = 3
 
 /-- **GAP 2 (geometric rigidity; not yet formalized).** Two regular polyhedra with the same
 face data `(V, E, F, s, m)` are similar. Classical argument: a regular polyhedron has a centre
-equidistant from all vertices, edges and facets; its facets are regular `s`-gons; the
+fixed by all symmetries and equidistant from all vertices (proved: `exists_centre`), all edges
+have one length (proved: `edges_congruent`); its facets are regular `s`-gons; the
 dihedral angle is determined by `{s, m}`; hence the circumradius-to-edge ratio is determined,
 and a flag of one is carried to a flag of the other by a similarity, which then matches all
 vertices by flag-transitivity. -/
