@@ -469,7 +469,10 @@ function playgroundPage() {
     <a href="#/node/Platonic.sub_mul_lt_four"><code>(s−2)(m−2) &lt; 4</code></a>. With <code>s, m ≥ 3</code> that leaves
     five pairs. Note what this is and is not: a classification of <i>pairs of numbers</i>, not of solids.
     <a href="#/node/Results.results_five_platonic_solids">The Results theorem</a> proves the five pairs, plus the
-    <code>(V,E,F)</code> of five numeric records; the dodecahedron and the icosahedron are never built.</p>
+    <code>(V,E,F)</code> of five numeric records. The solids themselves — all five, golden-ratio ones included — are
+    built and proved regular in <a href="#/node/Results.results_five_platonic_solids_constructed">a separate
+    theorem</a>; that every regular polyhedron has the face counts and type of one of them is only
+    <a href="#/node/Results.results_regular_polyhedron_face_data">conditional</a>.</p>
     <div id="pg3"></div>
 
     <h2>Lattice polygons</h2>
@@ -517,7 +520,8 @@ function aboutPage() {
   <a href="../docs/Results.html"><code>lean/Results.lean</code></a>; everything else lives in
   <code>lean/EulersGem/</code>. The graph here covers the ${decls.length} declarations in the ${fileCount} modules
   that <code>Results.lean</code> imports; a few modules outside that closure — the geometric cube and octahedron,
-  and the metric-regularity file — are mentioned in the explainers but are not in the graph.</p>
+  the metric-regularity file, and the quarantined <code>PlatonicGaps.lean</code> (which contains <code>sorry</code>)
+  — are mentioned in the explainers but are not in the graph.</p>
   <p>The root is <a href="#/node/Results.results_euler_characteristic"><code>results_euler_characteristic</code></a>:
   a convex polytope filling its ambient dimension has <a href="#/node/faceEulerSum"><code>faceEulerSum = 1</code></a>.
   <a href="#/node/Results.results_euler_polyhedron"><code>results_euler_polyhedron</code></a> is the dimension-3
@@ -595,7 +599,9 @@ function trustPage() {
   Three of them are genuine classical theorems. Three are arithmetic identities whose classical story lives in the
   <i>proof</i>, not the statement. Two are geometric statements about lattice polygons under restrictive
   hypotheses — and one of those hypotheses, a finite enumeration of the interior lattice points, is not proved
-  anywhere here. One is a combinatorial classification that is routinely mis-stated as something stronger.</p>
+  anywhere here. One is a combinatorial classification that is routinely mis-stated as something stronger. Three
+  are about regular polyhedra in ℝ³: the five solids built and proved regular, their pairwise non-similarity, and
+  a <b>conditional</b> classification of the face data of any regular polyhedron.</p>
   <p>Where this page and <a href="../index.html">the overview page</a> or the README differ in emphasis, read the Lean.
   Every row below links to the statement.</p>
 
@@ -626,9 +632,26 @@ function trustPage() {
       2-faces</i>, has <code>(s, m) ∈ {(3,3), (3,4), (3,5), (4,3), (5,3)}</code>. Euler is discharged from the root,
       not assumed. Parts 2–6: the <code>(V,E,F,s,m)</code> of five numeric records.</td>
       <td><b>Not “there are exactly five Platonic solids”.</b> No metric regularity (equal edges, equal angles,
-      congruent faces) anywhere. No construction of the dodecahedron or the icosahedron — those two exist only as
-      <code>RegularNumbers</code> records. No uniqueness up to similarity. And the diamond property (two 2-faces per
-      edge) is a <i>hypothesis</i>, proved in this repository only for the three solids that are built.</td></tr>
+      congruent faces) in this statement, and no construction of any solid (parts 2–6 are
+      <code>RegularNumbers</code> records; the solids are built in the next row). No uniqueness up to similarity.
+      And the diamond property (two 2-faces per edge) is a <i>hypothesis</i>.</td></tr>
+  <tr><td><a href="#/node/Results.results_five_platonic_solids_constructed"><code>results_five_platonic_solids_constructed</code></a></td>
+      <td><b>The five Platonic solids exist.</b> Five explicit convex hulls in ℝ³ (coordinates in
+      <code>ℤ[φ]</code>, <code>φ = Real.goldenRatio</code>), each proved a <i>regular polyhedron</i> —
+      3-dimensional, with its isometries transitive on flags — with the classical <code>V, E, F</code> and
+      <code>{s, m}</code>. Face lattices computed by the kernel.</td>
+      <td>Existence only, not uniqueness. "Regular" is flag-transitivity; its equivalence with Euclid's
+      "congruent regular faces" is classical but not formalized.</td></tr>
+  <tr><td><a href="#/node/Results.results_regular_polyhedron_face_data"><code>results_regular_polyhedron_face_data</code></a></td>
+      <td><b>CONDITIONAL.</b> A regular polyhedron satisfying <code>FaceLatticeFacts</code> (general facts about
+      faces of 3-polytopes) has the <code>(V, E, F, s, m)</code> of one of the five.</td>
+      <td><code>FaceLatticeFacts</code> is a <b>hypothesis</b>, not proved in general (gap
+      <code>GAP_faceLatticeFacts</code>). Not uniqueness up to similarity: that also needs the unproved
+      <code>GAP_rigidity</code>. The similarity classification is stated in <code>lean/PlatonicGaps.lean</code>,
+      outside <code>Results</code>, and depends on <code>sorryAx</code>.</td></tr>
+  <tr><td><a href="#/node/Results.results_platonic_solids_not_similar"><code>results_platonic_solids_not_similar</code></a></td>
+      <td>The five constructed solids are pairwise non-similar (4, 8, 6, 20, 12 vertices).</td>
+      <td>Nothing about polyhedra other than these five.</td></tr>
   <tr><td><a href="#/node/Results.results_picks_theorem"><code>results_picks_theorem</code></a></td>
       <td><b>Pick's theorem for strictly convex lattice polygons.</b> For a <code>LatticePolygon P</code> with
       distinct vertices and <code>StrictlyConvexCCW P</code>, and <i>any</i> <code>Finset S</code> whose coercion

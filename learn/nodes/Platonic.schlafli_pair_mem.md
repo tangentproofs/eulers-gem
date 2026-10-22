@@ -68,8 +68,8 @@ them is the theorem. The work was getting the inequality.
 ### What it is and is not
 
 It is a **necessity** statement: nothing outside the list can happen. It says nothing about
-existence; for that you would need to build a polytope for each pair, and this repository builds
-three of the five, in modules outside `Results`.
+existence; for that you need a polytope for each pair, which is the separate theorem
+`results_five_platonic_solids_constructed`.
 
 And it is a statement about [`RegularNumbers`](#/node/Platonic.RegularNumbers), which is a bundle
 of five numbers with certificates — not a polytope. The bridge to geometry is

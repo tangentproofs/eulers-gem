@@ -5,7 +5,7 @@ summary: "For a convex 3-polytope with regular incidence counts, proves `s·F = 
 review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
-  - "**`hedge_faces` is a hypothesis, and it is a polytope fact rather than a regularity assumption.** Every edge of a convex 3-polytope lies in exactly two 2-faces — the *diamond property* — and this theorem assumes it. The module docstring says so: \"One further incidence hypothesis is a *polytope fact* rather than regularity, and is assumed here rather than derived from the polytope structure.\" It is not vacuous: `tetrahedron_incidence`, `octahedron_incidence` and `cube_incidence` prove it for the three solids this repository builds."
+  - "**`hedge_faces` is a hypothesis, and it is a polytope fact rather than a regularity assumption.** Every edge of a convex 3-polytope lies in exactly two 2-faces — the *diamond property* — and this theorem assumes it. The module docstring says so: \"One further incidence hypothesis is a *polytope fact* rather than regularity, and is assumed here rather than derived from the polytope structure.\" It is not vacuous: `tetrahedron_incidence`, `octahedron_incidence` and `cube_incidence` prove it for three of the solids, and `Platonic3.*_faceData` for all five constructed solids."
   - "By contrast the fourth incidence count — every edge has exactly two vertices — **is** derived in general, by `EdgeVertices.ncard_vertices_of_edge`. It used to be assumed too."
   - "It takes a halfspace presentation `hH`/`hp` as well as `hP : IsPolytope p`. The caller gets those from [IsPolytope.isPolyhedron](#/node/IsPolytope.isPolyhedron)."
   - "`hface_edges` and `hvert_edges` are *combinatorial* regularity: how many edges per 2-face and per vertex. Nothing metric — no equal lengths, no equal angles, no congruent faces."
@@ -107,8 +107,9 @@ One thing: **`hedge_faces`**, that every edge lies in exactly two 2-faces. That 
 convex 3-polytope. It is not proved here, because the general proof needs the theory of vertex
 figures / quotient polytopes, and that is not formalized.
 
-It is not vacuous — the three solids this repository builds all satisfy it, proved
-(`tetrahedron_incidence`, `octahedron_incidence`, `cube_incidence`). And the fourth incidence
+It is not vacuous — the solids this repository builds all satisfy it, proved
+(`tetrahedron_incidence`, `octahedron_incidence`, `cube_incidence`, and `Platonic3.*_faceData` for all
+five). And the fourth incidence
 count, two vertices per edge, used to be assumed alongside it and now is not:
 `EdgeVertices.ncard_vertices_of_edge` proves it in general. So one hypothesis down, one to go.
 

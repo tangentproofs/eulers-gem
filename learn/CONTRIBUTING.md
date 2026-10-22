@@ -32,9 +32,15 @@ a caveat**.
 - **`results_five_platonic_solids` is not "there are exactly five Platonic solids".** Part 1 is
   the Schläfli-pair classification of *combinatorially* regular convex 3-polytopes, and it takes
   the diamond property (every edge in exactly two 2-faces) as a hypothesis. Parts 2–6 are the
-  `(V,E,F,s,m)` of five `Platonic.RegularNumbers` records: numbers, not solids. The dodecahedron
-  and icosahedron are **never constructed**. No metric regularity anywhere, no uniqueness up to
-  similarity. (Separately, in modules but not in `Results`, the tetrahedron, octahedron and cube
+  `(V,E,F,s,m)` of five `Platonic.RegularNumbers` records: numbers, not solids. No metric
+  regularity in that statement, no uniqueness up to similarity.
+- **`results_five_platonic_solids_constructed` is existence**: all five solids, as convex hulls
+  with `ℤ[φ]` coordinates, proved flag-transitive (`IsRegularPolyhedron`) with their face data.
+  "Regular" means flag-transitive; its equivalence with Euclid's definition is not formalized.
+- **`results_regular_polyhedron_face_data` is CONDITIONAL** on `FaceLatticeFacts`, a hypothesis
+  not proved in general, and gives face data, not similarity. The similarity classification lives
+  in `lean/PlatonicGaps.lean` with two `sorry` gaps (`GAP_faceLatticeFacts`, `GAP_rigidity`);
+  never describe it as proved. (Separately, in modules but not in `Results`, the tetrahedron, octahedron and cube
   *are* built: `GeometricPlatonic.lean`, `Octahedron.lean`, `Cube.lean`, `MetricRegular.lean`.)
 - **`results_picks_theorem` is Pick's theorem for strictly convex lattice polygons, with one
   remaining hypothesis.** It is stated for any `Finset S` whose coercion equals

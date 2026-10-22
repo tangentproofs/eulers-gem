@@ -60,7 +60,7 @@ export const SOLIDS = {
   "3,3": { name: "tetrahedron", preset: "tetrahedron", geometric: "Simplex.tetrahedron_platonic" },
   "4,3": { name: "cube", preset: "cube", geometric: "Cube.cube_platonic" },
   "3,4": { name: "octahedron", preset: "octahedron", geometric: "Octahedron.octahedron_platonic" },
-  "5,3": { name: "dodecahedron", preset: "dodecahedron", geometric: null },
-  "3,5": { name: "icosahedron", preset: "icosahedron", geometric: null },
+  "5,3": { name: "dodecahedron", preset: "dodecahedron", geometric: "Platonic3.dodecahedron_isRegular" },
+  "3,5": { name: "icosahedron", preset: "icosahedron", geometric: "Platonic3.icosahedron_isRegular" },
 };
 export const solidOf = (s, m) => SOLIDS[`${s},${m}`] || null;

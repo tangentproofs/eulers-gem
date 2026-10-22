@@ -61,6 +61,9 @@ See `lean/Results.lean` (only claims what is actually proved):
 | `results_fan_pick_of_euler` | Arithmetic identity `(n − 2)/2 = n/2 − 1` for `n ≥ 3` (proof routed through the fan's disk Euler number) |
 | `results_disk_pick_of_euler` | Arithmetic: given `A = (2I + B − 2)/2` and `3 ≤ n ≤ B`, `A = I + B/2 − 1` (proof routed through disk-Euler-preserving moves) |
 | `results_five_platonic_solids` | Schläfli pairs: a combinatorially regular convex 3-polytope (every edge in two faces assumed) has `(s, m)` among `{3,3}`, `{4,3}`, `{3,4}`, `{5,3}`, `{3,5}`; plus the `(V, E, F)` of those five pairs. Not a construction of the solids; no metric regularity |
+| `results_five_platonic_solids_constructed` | The five Platonic solids exist: explicit convex hulls in `ℝ³` (coordinates in `ℤ[φ]`, `φ = Real.goldenRatio`), each a regular polyhedron (isometries transitive on flags) with the classical `V, E, F` and face type; face lattices computed by the kernel |
+| `results_regular_polyhedron_face_data` | **Conditional**: a regular polyhedron satisfying `FaceLatticeFacts` (standard face-lattice facts of 3-polytopes, assumed, not yet proved in general) has the `(V, E, F, s, m)` of one of the five. Not uniqueness up to similarity |
+| `results_platonic_solids_not_similar` | The five constructed solids are pairwise non-similar |
 
 The Euler results require a finite convex hull and the appropriate affine
 dimension, with no supplied halfspace presentation. `results_euler_polyhedron`
@@ -77,7 +80,9 @@ over any linearly ordered field. They are in `EulersGem.LinearInequalities`,
 `EulersGem.UnconditionalEuler` applies the hyperplane-arrangement Euler
 argument from `EulersGem.Embed`.
 
-Supporting proofs stay in `EulersGem.*`. The Platonic classification calls Euler's formula in dimension 3. Pick's theorem cuts the polygon into det-primitive triangles of total shoelace `T/2`, with `T = 2I + B − 2`, and reads `I + B/2 − 1` off the disk Euler number of that triangulation.
+Supporting proofs stay in `EulersGem.*`. The Platonic classification calls Euler's formula in dimension 3.
+
+Lean constructs the five Platonic solids and proves them regular (flag-transitive), and proves that any regular polyhedron has one of their five Schläfli types and face counts — given the standard face-lattice facts of 3-polytopes. Full uniqueness up to similarity is stated in `lean/PlatonicGaps.lean`, a separate library outside the default build and outside `Results`, with the two missing ingredients — the face-lattice facts (`GAP_faceLatticeFacts`) and geometric rigidity (`GAP_rigidity`) — as explicit, isolated `sorry` gaps. See `lean/PLATONIC_CLASSIFICATION_DESIGN.md`. Pick's theorem cuts the polygon into det-primitive triangles of total shoelace `T/2`, with `T = 2I + B − 2`, and reads `I + B/2 − 1` off the disk Euler number of that triangulation.
 
 ## Building (Lean)
 

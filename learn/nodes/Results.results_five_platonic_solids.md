@@ -6,15 +6,15 @@ review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "**The name oversells the statement.** Part 1 classifies *pairs of numbers* `(s, m)`. Parts 2–6 state the `(V,E,F,s,m)` of five `Platonic.RegularNumbers` records. No Platonic solid is constructed, and no uniqueness is proved. The repository's own `PLATONIC_CLAUDE_AUDIT.md` says in as many words: \"Not safe to name: 'the five Platonic solids' as a classification of geometric solids\"."
-  - "**A polytope fact is assumed.** `hedge : ∀ e ∈ facesOfDim p 1, {f ∈ facesOfDim p 2 | e ⊆ f}.ncard = 2` — every edge lies in exactly two 2-faces, the *diamond property* — is a hypothesis of part 1, not derived from `IsPolytope`. It is not vacuous: the three solids this repository builds satisfy it. Deriving it in general needs vertex-figure theory, which is not formalized."
-  - "**No metric content.** Regularity here is combinatorial: *how many* edges per face and per vertex. Equal edge lengths, equal angles, congruent faces and a flag-transitive symmetry group appear nowhere in this statement. (`MetricRegular.lean` does add genuine metric facts for the octahedron, the cube and a regular tetrahedron — but those are not in `Results`.)"
-  - "**Two of the five do not exist here as solids.** `Platonic.dodecahedron` and `Platonic.icosahedron` are `RegularNumbers` records: five natural numbers satisfying Euler and two double-counting identities. Golden-ratio coordinates put their face lattices out of `decide`'s reach, and they are not attempted."
+  - "**A polytope fact is assumed.** `hedge : ∀ e ∈ facesOfDim p 1, {f ∈ facesOfDim p 2 | e ⊆ f}.ncard = 2` — every edge lies in exactly two 2-faces, the *diamond property* — is a hypothesis of part 1, not derived from `IsPolytope`. It is not vacuous: the five constructed solids satisfy it (`Platonic3.*_faceData`). Deriving it in general needs vertex-figure theory, which is not formalized."
+  - "**No metric content.** Regularity here is combinatorial: *how many* edges per face and per vertex. Equal edge lengths, equal angles, congruent faces and a flag-transitive symmetry group appear nowhere in this statement. (Flag-transitivity, for five explicit solids, is in the separate theorem `results_five_platonic_solids_constructed`; it is not part of this statement.)"
+  - "**This statement does not construct any solid.** Parts 2–6 are about five `Platonic.RegularNumbers` records: five natural numbers each, satisfying Euler and two double-counting identities. All five solids *are* now built as genuine convex polytopes and proved regular, including the golden-ratio dodecahedron and icosahedron — but in a separate theorem, [`results_five_platonic_solids_constructed`](#/node/Results.results_five_platonic_solids_constructed), not in this one."
   - "Parts 2–6 are proved by `omega` from the structure fields of the records plus `rfl`. They are arithmetic about five constants."
 widgets:
   - type: schlafli
     title: "(s − 2)(m − 2) < 4: the grid, and the solve"
   - type: polyhedron
-    title: "The five, drawn — two of which the Lean never builds"
+    title: "The five, drawn — all five built in the Lean, in a separate theorem"
     config:
       preset: dodecahedron
       show: [counts, incidence]
@@ -52,7 +52,7 @@ quiz:
       - "no: they state the `(V, E, F, s, m)` of five `RegularNumbers` records, proved by `omega` and `rfl`"
       - "yes, three of them"
     answer: 1
-    explain: "Each part is an equation between a 5-tuple of record fields and a 5-tuple of numerals, e.g. `(Platonic.cube.V, …) = (8, 12, 6, 4, 3)`. A `RegularNumbers` carries five naturals and proofs of `s·F = 2E`, `m·V = 2E` and `V − E + F = 2`. It is Euler bookkeeping. (Three solids *are* built geometrically in this repository — just not in `Results`.)"
+    explain: "Each part is an equation between a 5-tuple of record fields and a 5-tuple of numerals, e.g. `(Platonic.cube.V, …) = (8, 12, 6, 4, 3)`. A `RegularNumbers` carries five naturals and proofs of `s·F = 2E`, `m·V = 2E` and `V − E + F = 2`. It is Euler bookkeeping. (All five solids *are* built geometrically in this repository — in `results_five_platonic_solids_constructed`, not here.)"
   - q: "For `(s, m) = (5, 3)`, solve `E·(2s + 2m − sm) = 2sm`. What is `E`?"
     type: number
     answer: 30
@@ -61,9 +61,9 @@ quiz:
     type: choice
     choices:
       - "True"
-      - "False — it proves five admissible `(s, m)` pairs, with the diamond property assumed, no metric regularity, no construction of two of the five, and no uniqueness"
+      - "False — it proves five admissible `(s, m)` pairs, with the diamond property assumed, no metric regularity, no construction of any solid in this statement, and no uniqueness"
     answer: 1
-    explain: "False, and the repository's own audit says so. What is proved is the Schläfli-pair classification of combinatorially regular convex 3-polytopes (Euler discharged from the root, diamond property assumed) plus the numbers of five records. \"Exactly five solids up to similarity\" needs existence and uniqueness of a realization for each pair, neither of which is attempted."
+    explain: "False, and the repository's own audit says so. What is proved is the Schläfli-pair classification of combinatorially regular convex 3-polytopes (Euler discharged from the root, diamond property assumed) plus the numbers of five records. \"Exactly five solids up to similarity\" needs existence and uniqueness of a realization for each pair. Existence is now a separate theorem (`results_five_platonic_solids_constructed`); uniqueness is only conditional (`results_regular_polyhedron_face_data`, plus two unproved gaps)."
 ---
 
 ## Plain English
@@ -124,12 +124,18 @@ The ancient Greeks knew the five; Euler's formula is what tells you the list is 
   cube and a regular tetrahedron — all vertices on a sphere, all edges the same length — but none
   of that is in this statement.)
 - **The diamond property.** `hedge` — every edge in exactly two 2-faces — is a **hypothesis**. It
-  is true of every convex 3-polytope, and the repository proves it for the three solids it builds
-  (`tetrahedron_incidence`, `octahedron_incidence`, `cube_incidence`), so part 1 is not vacuous.
+  is true of every convex 3-polytope, and the repository proves it for the solids it builds
+  (`tetrahedron_incidence`, `octahedron_incidence`, `cube_incidence`, and `Platonic3.tetrahedron_faceData`
+  … `Platonic3.icosahedron_faceData` for all five), so part 1 is not vacuous.
   But deriving it from `IsPolytope` in general needs vertex-figure theory, which is not here.
-- **Existence of the dodecahedron or the icosahedron.** Those two appear only as `RegularNumbers`
-  records. Drawing them in the widget above is this website's doing, not the Lean's.
-- **Uniqueness.** Nothing rules out two non-similar polytopes with the same `(s, m)`.
+- **Existence of any solid.** In *this* statement the five appear only as `RegularNumbers` records.
+  All five are constructed and proved regular in
+  [`results_five_platonic_solids_constructed`](#/node/Results.results_five_platonic_solids_constructed).
+- **Uniqueness.** Nothing here rules out two non-similar polytopes with the same `(s, m)`. The
+  conditional result
+  [`results_regular_polyhedron_face_data`](#/node/Results.results_regular_polyhedron_face_data) pins
+  the face counts and type of a regular polyhedron; uniqueness up to similarity still rests on two
+  unproved gaps.
 
 ### The argument
 
@@ -153,5 +159,5 @@ coefficient is zero — that is the square tiling of the plane) and at `(4,5)` (
   [`Platonic.schlafli_pair_mem`](#/node/Platonic.schlafli_pair_mem),
   [`Platonic.RegularNumbers`](#/node/Platonic.RegularNumbers),
   [`Platonic.facesOfDim`](#/node/Platonic.facesOfDim).
-- Not used by anything: it is a leaf of the development, and one of the nine `Results` theorems.
+- Not used by anything: it is a leaf of the development, and one of the `Results` theorems.
 - [Trust](#/trust) has the one-row summary.

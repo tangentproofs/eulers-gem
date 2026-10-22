@@ -9,6 +9,7 @@ import EulersGem.LatticeArea
 import EulersGem.PickFromEuler
 import EulersGem.PlatonicOfEuler
 import EulersGem.Picks
+import EulersGem.RegularCentre
 
 /-!
 # Paper-facing results
@@ -18,7 +19,10 @@ Public results, proved in `EulersGem.*` and restated here:
 * the Euler characteristic of a full-dimensional convex polytope,
 * `V − E + F = 2` in dimension 3, including the two-hypothesis real-three-space theorem,
 * Pick's theorem for a strictly convex lattice polygon,
-* the five Platonic solids, by Euler's formula in dimension 3.
+* the five Platonic solids, by Euler's formula in dimension 3,
+* the five Platonic solids constructed in `ℝ³` and proved regular (flag-transitive),
+* the face data of a regular polyhedron, **conditional** on general face-lattice facts
+  (`FaceLatticeFacts`), and the pairwise non-similarity of the five solids.
 
 Proofs of the supporting lemmas stay in the `EulersGem` modules.
 -/
@@ -266,5 +270,54 @@ theorem results_five_platonic_solids :
         EulersGem.Platonic.icosahedron.E = 30 ∧
         EulersGem.Platonic.icosahedron.F = 20 := by omega
     simp [this]; exact ⟨rfl, rfl⟩
+
+/-! ## The five Platonic solids, constructed in `ℝ³` -/
+
+/-- **The five Platonic solids exist.** The tetrahedron, cube, octahedron, dodecahedron and
+icosahedron, each the convex hull of explicit points with coordinates in `ℤ[φ]`
+(`φ = Real.goldenRatio`), are regular polyhedra — 3-dimensional convex polytopes whose
+isometries act transitively on flags — with the classical vertex, edge and facet counts and
+face type `{s, m}`. The face lattices are computed by the kernel (`decide +kernel`). -/
+theorem results_five_platonic_solids_constructed :
+    (EulersGem.IsRegularPolyhedron EulersGem.Platonic3.tetrahedron ∧
+      EulersGem.Platonic3.HasFaceData EulersGem.Platonic3.tetrahedron 4 6 4 3 3) ∧
+    (EulersGem.IsRegularPolyhedron EulersGem.Platonic3.cube ∧
+      EulersGem.Platonic3.HasFaceData EulersGem.Platonic3.cube 8 12 6 4 3) ∧
+    (EulersGem.IsRegularPolyhedron EulersGem.Platonic3.octahedron ∧
+      EulersGem.Platonic3.HasFaceData EulersGem.Platonic3.octahedron 6 12 8 3 4) ∧
+    (EulersGem.IsRegularPolyhedron EulersGem.Platonic3.dodecahedron ∧
+      EulersGem.Platonic3.HasFaceData EulersGem.Platonic3.dodecahedron 20 30 12 5 3) ∧
+    (EulersGem.IsRegularPolyhedron EulersGem.Platonic3.icosahedron ∧
+      EulersGem.Platonic3.HasFaceData EulersGem.Platonic3.icosahedron 12 30 20 3 5) :=
+  EulersGem.Platonic3.five_platonic_solids_exist
+
+/-- **The face data of a regular polyhedron — CONDITIONAL on `FaceLatticeFacts`.** A regular
+polyhedron (flag-transitive convex 3-polytope in `ℝ³`) that satisfies the general
+face-lattice facts `FaceLatticeFacts` has the counts `(V, E, F)` and type `{s, m}` of one of
+the five Platonic solids. `FaceLatticeFacts` holds for every convex 3-polytope classically,
+but that is **not proved** in this repository (it is the gap
+`PlatonicGaps.GAP_faceLatticeFacts`); it is proved for the five constructed solids. This is
+not uniqueness up to similarity. -/
+theorem results_regular_polyhedron_face_data {P : Set EulersGem.R3}
+    (hP : EulersGem.IsRegularPolyhedron P) (hL : EulersGem.FaceLatticeFacts P) :
+    EulersGem.Platonic3.HasFaceData P 4 6 4 3 3 ∨
+      EulersGem.Platonic3.HasFaceData P 8 12 6 4 3 ∨
+      EulersGem.Platonic3.HasFaceData P 6 12 8 3 4 ∨
+      EulersGem.Platonic3.HasFaceData P 20 30 12 5 3 ∨
+      EulersGem.Platonic3.HasFaceData P 12 30 20 3 5 := by
+  obtain ⟨t, ht, hd⟩ := hP.faceData hL
+  simp only [EulersGem.platonicTypes, List.mem_cons, List.not_mem_nil, or_false] at ht
+  rcases ht with rfl | rfl | rfl | rfl | rfl
+  · exact Or.inl hd
+  · exact Or.inr (Or.inl hd)
+  · exact Or.inr (Or.inr (Or.inl hd))
+  · exact Or.inr (Or.inr (Or.inr (Or.inl hd)))
+  · exact Or.inr (Or.inr (Or.inr (Or.inr hd)))
+
+/-- **The five constructed solids are pairwise non-similar** (they have 4, 8, 6, 20 and 12
+vertices), so a polyhedron is similar to at most one of them. -/
+theorem results_platonic_solids_not_similar {i j : Fin 5} (hij : i ≠ j) :
+    ¬ EulersGem.Similar (EulersGem.platonicSolid i) (EulersGem.platonicSolid j) :=
+  EulersGem.platonic_not_similar hij
 
 end Results

@@ -29,16 +29,16 @@ quiz:
       - "a theorem"
       - "an `AffineBasis`"
     answer: 0
-    explain: "`def dodecahedron : RegularNumbers where V := 20; E := 30; F := 12; s := 5; m := 3; hs := by decide; …`. Five numerals. No dodecahedron exists in this repository as a geometric object — `PLATONIC_CLAUDE_AUDIT.md` lists that as open, since golden-ratio coordinates put the face lattice beyond `decide`."
-  - q: "Which three of the five solids *are* built geometrically somewhere in the repository?"
+    explain: "`def dodecahedron : RegularNumbers where V := 20; E := 30; F := 12; s := 5; m := 3; hs := by decide; …`. Five numerals, no geometry. The geometric dodecahedron is a different declaration, `Platonic3.dodecahedron` (`PlatonicSolids.lean`)."
+  - q: "Which of the five solids are built geometrically somewhere in the repository?"
     type: choice
     choices:
-      - "tetrahedron, octahedron, cube"
-      - "tetrahedron, cube, dodecahedron"
       - "all five"
+      - "tetrahedron, octahedron, cube only"
+      - "tetrahedron, cube, dodecahedron"
       - "none"
     answer: 0
-    explain: "`Simplex.tetrahedron_platonic` (`GeometricPlatonic.lean`, via `SimplexFaces.lean`), `Octahedron.octahedron_platonic` and `Cube.cube_platonic` — each with its geometric face lattice computed, all four incidence counts proved, and `V − E + F = 2` obtained from Euler–Poincaré. None of them is in `Results.lean`, though."
+    explain: "All five are `Platonic3.*` in `PlatonicSolids.lean`, convex hulls with `ℤ[φ]` coordinates proved flag-transitive (`results_five_platonic_solids_constructed`). Earlier, separate constructions of three: `Simplex.tetrahedron_platonic`, `Octahedron.octahedron_platonic`, `Cube.cube_platonic`. The `RegularNumbers` records themselves are still only numbers."
   - q: "`hEuler` as a field means that constructing a `RegularNumbers` by hand…"
     type: choice
     choices:

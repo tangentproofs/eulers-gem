@@ -28,8 +28,8 @@ t("every convex preset has V − E + F = 2, with the V/E/F the Lean proves where
     tetrahedron: [4, 6, 4],        // GeometricPlatonic.tetrahedron_face_counts
     cube: [8, 12, 6],              // Cube.cube_face_counts
     octahedron: [6, 12, 8],        // Octahedron.octahedron_face_counts
-    dodecahedron: [20, 30, 12],    // Platonic.dodecahedron (a RegularNumbers record only)
-    icosahedron: [12, 30, 20],     // Platonic.icosahedron (a RegularNumbers record only)
+    dodecahedron: [20, 30, 12],    // Platonic3.dodecahedron_faceData
+    icosahedron: [12, 30, 20],     // Platonic3.icosahedron_faceData
     "triangular-prism": [6, 9, 5],
     "square-pyramid": [5, 8, 5],
   };
@@ -160,7 +160,7 @@ t("the solved (V, E, F) of each Schläfli pair are the five RegularNumbers recor
   // and every pair the Lean admits is one the geometric presets realize or the records record
   for (const [s, m] of SC.SCHLAFLI_PAIRS) assert.ok(SC.solidOf(s, m), `{${s},${m}} names a solid`);
   const built = SC.SCHLAFLI_PAIRS.filter(([s, m]) => SC.solidOf(s, m).geometric).length;
-  assert.equal(built, 3, "only the tetrahedron, cube and octahedron are built geometrically in the Lean");
+  assert.equal(built, 5, "all five are built geometrically in the Lean (PlatonicSolids.lean)");
 });
 
 // ================================================= LatticeTriangle.lean

@@ -50,7 +50,7 @@ quiz:
   - q: "Compute `V − E + F` for the icosahedron (`V = 12`, `E = 30`, `F = 20`)."
     type: number
     answer: 2
-    explain: "`12 − 30 + 20 = 2`. Note that the Lean does *not* build an icosahedron: `Platonic.icosahedron` is a `RegularNumbers` record holding these three numbers, and no geometric icosahedron exists in this repository. This theorem would apply to one if someone constructed it."
+    explain: "`12 − 30 + 20 = 2`. `Platonic.icosahedron` is only a `RegularNumbers` record holding these numbers; the geometric icosahedron is `Platonic3.icosahedron` (`PlatonicSolids.lean`), a convex hull with `ℤ[φ]` coordinates, and this theorem applies to it."
 ---
 
 ## Plain English

@@ -1,16 +1,16 @@
 ---
 id: Platonic.dodecahedron
-title: "Platonic.dodecahedron: twenty, thirty, twelve — and no dodecahedron"
-summary: "A `RegularNumbers` record with `V = 20, E = 30, F = 12, s = 5, m = 3`. Unlike the tetrahedron, cube and octahedron, no geometric dodecahedron exists anywhere in this repository."
+title: "Platonic.dodecahedron: twenty, thirty, twelve — the record, not the solid"
+summary: "A `RegularNumbers` record with `V = 20, E = 30, F = 12, s = 5, m = 3`. The geometric dodecahedron is a different declaration, `Platonic3.dodecahedron`, built from golden-ratio coordinates and proved regular."
 review: draft
-authors: ["claude (for @tangentstorm)"]
+authors: ["claude (for @tangentstorm)", "Grok Bot (for @tangentstorm)"]
 caveats:
-  - "**This is the clearest place the Platonic lane's name overstates it.** `Platonic.dodecahedron` is five natural numbers. There is no subset of ℝ³ called a dodecahedron in this repository, no face lattice for one, and no theorem about one. The same goes for `Platonic.icosahedron`."
-  - "`PLATONIC_CLAUDE_AUDIT.md`, under \"Open\": the dodecahedron `{5,3}` and icosahedron `{3,5}` \"still exist only as `Platonic.RegularNumbers` witnesses (Euler bookkeeping, `(V,E,F)` integers) — those are explicitly **not** geometric constructions. They need golden-ratio coordinates, where the face lattice cannot be settled by `decide`, and are not attempted here.\""
+  - "**This declaration is five natural numbers.** It is not a subset of ℝ³ and carries no face lattice. The same goes for `Platonic.icosahedron`."
+  - "A geometric dodecahedron **does** exist in the repository, under another name: `Platonic3.dodecahedron` (`EulersGem/PlatonicSolids.lean`), the convex hull of `(±1, ±1, ±1)` and the cyclic permutations of `(0, ±φ⁻¹, ±φ)`, proved to be a flag-transitive regular polyhedron with `V = 20, E = 30, F = 12` in [`results_five_platonic_solids_constructed`](#/node/Results.results_five_platonic_solids_constructed). That theorem does not mention this record."
   - "The picture the widget draws is this website's doing. It is a correct picture of a dodecahedron, and it is not evidence of anything in the Lean."
 widgets:
   - type: polyhedron
-    title: "A dodecahedron, drawn here and nowhere in the Lean"
+    title: "A dodecahedron — the record's numbers, and the shape `Platonic3.dodecahedron` builds"
     config:
       preset: dodecahedron
       show: [counts, incidence]
@@ -23,16 +23,16 @@ quiz:
       - "a theorem that a dodecahedron exists"
       - "a `Finset` of 20 points"
     answer: 0
-    explain: "Five numerals with five `by decide` certificates. No geometry. The repository's audit file is explicit that this is \"**not** a geometric construction\"."
+    explain: "Five numerals with five `by decide` certificates. No geometry. The geometric solid is the different declaration `Platonic3.dodecahedron : Set R3`."
   - q: "Does this repository construct a geometric dodecahedron?"
     type: choice
     choices:
-      - "no — and `PLATONIC_CLAUDE_AUDIT.md` lists it as open, since golden-ratio coordinates put the face lattice beyond `decide`"
+      - "yes — `Platonic3.dodecahedron` in `PlatonicSolids.lean`, proved regular in `results_five_platonic_solids_constructed`; but not via this record"
+      - "no"
       - "yes, in `Cube.lean`"
-      - "yes, in `GeometricPlatonic.lean`"
       - "yes, but only its Euler relation"
     answer: 0
-    explain: "Three of the five are built: tetrahedron (`GeometricPlatonic.lean`), octahedron (`Octahedron.lean`), cube (`Cube.lean`). The dodecahedron and icosahedron are not attempted."
+    explain: "The face lattice is checked by `decide +kernel` over exact `ℤ[φ]` arithmetic (`ZPhi.lean`, `ExplicitPolyhedron.lean`), and flag-transitivity by three explicit reflections (`ExplicitRegular.lean`)."
   - q: "Verify `hFace : s * F = 2 * E` for these numbers."
     type: choice
     choices: ["`5 · 12 = 60 = 2 · 30` ✓", "`5 · 12 = 60 ≠ 2 · 30`", "`3 · 12 = 2 · 30`"]
@@ -42,15 +42,15 @@ quiz:
     type: number
     answer: 30
     explain: "`2·5 + 2·3 − 15 = 1`, so `E · 1 = 30`. Then `F = 2E/s = 12` and `V = 2E/m = 20` — which is where the record's numbers come from. [mul_euler_int](#/node/Platonic.sub_mul_lt_four) is that identity."
-  - q: "What would it take to construct one in Lean?"
+  - q: "How does the Lean settle the geometric dodecahedron's face lattice, given that `φ` is irrational?"
     type: choice
     choices:
-      - "golden-ratio coordinates and a face-lattice argument that `decide` cannot do, since the coordinates are irrational"
-      - "nothing; `decide` would handle it"
+      - "exact arithmetic in `ℤ[φ]` (pairs `a + bφ` with `φ² = φ + 1`), with a kernel-checked sign test, plus certificates for every triple and pair of vertices"
+      - "floating point"
+      - "it is assumed"
       - "a new axiom"
-      - "a weaker definition of polytope"
     answer: 0
-    explain: "The three built solids have coordinates in `{0, ±1}`, so their face lattices reduce to finite decidable checks (`Cube.lean` decides over `Fin 3 → Option Bool`, 27 functions). A dodecahedron's vertices involve `(1 + √5)/2`, and no `decide` reaches it — the supporting-hyperplane arguments have to be done by hand."
+    explain: "`ZPhi.sgn` decides the sign of `a + bφ` exactly (`2(a + bφ) = (2a + b) + b√5`), with soundness lemmas `sgn_eq_one` etc. `Explicit.Data.face_cases` turns the kernel's `checkAll = true` into the complete face list."
 ---
 
 ## Plain English
@@ -70,47 +70,35 @@ def dodecahedron : RegularNumbers where
 Twenty, thirty, twelve, five, three. Plus five proofs by `decide` that those numbers satisfy the
 double-counting identities and Euler's relation.
 
-**This is not a dodecahedron.** It is the only thing in this repository that goes by that name, and
-it is a record of five natural numbers. There is no set of points, no face lattice, no theorem
-about a twelve-faced solid.
-
-The `polyhedron` widget above draws one, because this website can draw whatever it likes. That
-drawing is not evidence of anything in the Lean, and this node exists mainly to say so.
+**This record is not a dodecahedron.** It is a census of one. The solid itself is a different
+declaration, `Platonic3.dodecahedron`, a convex hull of twenty explicit points in ℝ³.
 
 ### In one breath
 
-Someone wrote down the census of a dodecahedron — twenty corners, thirty edges, twelve pentagonal
-faces — and checked the numbers are consistent with Euler's count. Nobody built the solid. If you
-want to know whether this proof assistant has ever seen a dodecahedron, the answer is no.
+Twenty corners, thirty edges, twelve pentagonal faces, written down as numbers that are consistent
+with Euler's count. The actual solid is built elsewhere in the repository, from the golden ratio.
 
-### Why not?
-
-Compare the three solids that *are* built:
+### The geometric one
 
 | solid | coordinates | how the face lattice is settled |
 |---|---|---|
-| tetrahedron | a simplex's `AffineBasis` | barycentric coordinates + Riesz (`SimplexFaces.lean`) |
-| octahedron | `±eᵢ` | partial sign assignments, with a padding trick for the H-rep |
-| cube | `(±1, ±1, ±1)` | faces are subcubes, `decide` over `Fin 3 → Option Bool` (27 functions) |
-| **dodecahedron** | `(±1,±1,±1)` and cyclic `(0, ±1/φ, ±φ)` | **not attempted** |
-| **icosahedron** | cyclic `(0, ±1, ±φ)` | **not attempted** |
+| `Platonic3.dodecahedron` | `(±1,±1,±1)` and cyclic `(0, ±φ⁻¹, ±φ)` | `decide +kernel` over exact `ℤ[φ]`: every vertex triple's plane separates or is a listed facet; every non-edge pair has a certificate |
+| `Platonic3.icosahedron` | cyclic `(0, ±1, ±φ)` | the same |
 
-The first three have coordinates in `{0, ±1}`, which makes their face lattices finite decidable
-checks. The last two need `φ = (1 + √5)/2`, which is irrational, so `decide` is useless and every
-supporting-hyperplane argument has to be done by hand. `PLATONIC_CLAUDE_AUDIT.md` lists it as the
-first open item on the lane.
+Both are proved flag-transitive: three explicit reflections, with a checked word in them carrying a
+base flag to each of the 120 flags.
 
 ### What this means for the headline claim
 
 [`results_five_platonic_solids`](#/node/Results.results_five_platonic_solids) proves the Schläfli
-pair `(5,3)` is admissible, and separately states these five numbers. It does not prove a solid with
-those numbers exists. Three of the five do exist in this repository, in modules outside `Results`;
-two do not exist at all. Any summary that says otherwise is wrong.
+pair `(5,3)` is admissible, and separately states these five numbers. Existence of the solid is the
+separate [`results_five_platonic_solids_constructed`](#/node/Results.results_five_platonic_solids_constructed).
+Uniqueness up to similarity is only conditional:
+[`results_regular_polyhedron_face_data`](#/node/Results.results_regular_polyhedron_face_data).
 
 ### Where it sits
 
 - An instance of [`RegularNumbers`](#/node/Platonic.RegularNumbers).
 - Part 5 of [`results_five_platonic_solids`](#/node/Results.results_five_platonic_solids).
 - The witness for `(5,3)` in `exists_regularNumbers_of_mem_schlafli`.
-- Compare [`Platonic.tetrahedron`](#/node/Platonic.tetrahedron), which is also just a record but has
-  a geometric counterpart.
+- Compare [`Platonic.tetrahedron`](#/node/Platonic.tetrahedron), which is also just a record.

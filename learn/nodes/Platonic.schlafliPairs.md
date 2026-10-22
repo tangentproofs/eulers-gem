@@ -65,8 +65,8 @@ edges meet at each vertex — the **Schläfli symbol** `{s, m}`.
 
 The last column is **not** in the Lean. `schlafliPairs` is a set of ten natural numbers arranged
 in five pairs. That the pairs correspond to those five solids is classical mathematics, and this
-repository constructs three of the five (the tetrahedron, octahedron and cube, in
-`GeometricPlatonic.lean`, `Octahedron.lean` and `Cube.lean`) and not the other two.
+repository constructs all five (`Platonic3.*` in `PlatonicSolids.lean`, proved regular in
+`results_five_platonic_solids_constructed`) — but that is a separate theorem, not this definition.
 
 ### In one breath
 

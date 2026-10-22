@@ -1,16 +1,16 @@
 ---
 id: Platonic.tetrahedron
 title: "Platonic.tetrahedron: five numbers called a tetrahedron"
-summary: "A `RegularNumbers` record with `V = 4, E = 6, F = 4, s = 3, m = 3`, every proof field `by decide`. It is not a tetrahedron — but unlike two of its siblings, a geometric one does exist elsewhere in the repository."
+summary: "A `RegularNumbers` record with `V = 4, E = 6, F = 4, s = 3, m = 3`, every proof field `by decide`. It is not a tetrahedron — but a geometric one does exist elsewhere in the repository, as do geometric versions of all four siblings."
 review: draft
 authors: ["claude (for @tangentstorm)"]
 caveats:
   - "**This definition is not a geometric object.** It is five natural numbers with certificates. The name is a label."
-  - "A *geometric* tetrahedron does exist in this repository, elsewhere: `SimplexFaces.lean` computes the face lattice of a simplex and `Simplex.tetrahedron_platonic` (`GeometricPlatonic.lean`) proves a geometric tetrahedron is `{3,3}` with Euler from the root. `Cube.regularTetra` (`MetricRegular.lean`) goes further and builds a genuinely *regular* tetrahedron (four pairwise-equidistant alternating cube corners). None of that is in `Results.lean`."
-  - "The same pattern holds for `Platonic.octahedron` and `Platonic.cube` (geometric versions in `Octahedron.lean` and `Cube.lean`). It does **not** hold for `Platonic.dodecahedron` and `Platonic.icosahedron`, which exist only as records."
+  - "A *geometric* tetrahedron does exist in this repository, elsewhere: `SimplexFaces.lean` computes the face lattice of a simplex and `Simplex.tetrahedron_platonic` (`GeometricPlatonic.lean`) proves a geometric tetrahedron is `{3,3}` with Euler from the root. `Cube.regularTetra` (`MetricRegular.lean`) goes further and builds a genuinely *regular* tetrahedron (four pairwise-equidistant alternating cube corners). Since then `Platonic3.tetrahedron` (`PlatonicSolids.lean`) is proved flag-transitive, and *that* is in `Results`, as part of `results_five_platonic_solids_constructed`."
+  - "The same pattern holds for `Platonic.octahedron` and `Platonic.cube` (geometric versions in `Octahedron.lean` and `Cube.lean`). The records `Platonic.dodecahedron` and `Platonic.icosahedron` are numbers too, but geometric, golden-ratio versions are now built in `PlatonicSolids.lean` (`Platonic3.dodecahedron`, `Platonic3.icosahedron`)."
 widgets:
   - type: polyhedron
-    title: "A real tetrahedron, drawn here but not in the Lean's Results"
+    title: "A real tetrahedron — built in the Lean as `Platonic3.tetrahedron`"
     config:
       preset: tetrahedron
       show: [counts, incidence, truncate]
@@ -46,15 +46,15 @@ quiz:
       - "yes, but only in `Results.lean`"
     answer: 0
     explain: "`PLATONIC_CLAUDE_AUDIT.md` tabulates it: geometric face counts `V=4, E=6, F=4` (`tetrahedron_face_counts`), `V − E + F = 2` from Euler–Poincaré (`tetrahedron_euler_relation`), all four incidence counts (`tetrahedron_incidence`), and `{3,3}` membership (`tetrahedron_platonic`). It is simply not exported through `Results.lean`."
-  - q: "Which two of the five solids have **no** geometric construction in this repository?"
+  - q: "Which of the five solids have a geometric construction in this repository?"
     type: choice
     choices:
-      - "the dodecahedron and the icosahedron"
-      - "the cube and the octahedron"
-      - "the tetrahedron and the cube"
-      - "none; all five are built"
+      - "all five — `PlatonicSolids.lean` builds each one from `ℤ[φ]` coordinates and proves it flag-transitive (`results_five_platonic_solids_constructed`)"
+      - "only the tetrahedron, cube and octahedron"
+      - "none; they are all `RegularNumbers` records"
+      - "only the tetrahedron"
     answer: 0
-    explain: "`PLATONIC_CLAUDE_AUDIT.md`, under \"Open\": they \"still exist only as `Platonic.RegularNumbers` witnesses … They need golden-ratio coordinates, where the face lattice cannot be settled by `decide`, and are not attempted here.\""
+    explain: "The records like `Platonic.tetrahedron` are still just numbers, but `Platonic3.tetrahedron` … `Platonic3.icosahedron` are convex hulls in ℝ³. The dodecahedron and icosahedron use golden-ratio coordinates; their face lattices are checked by `decide +kernel` over exact `ℤ[φ]` arithmetic (`ZPhi.lean`)."
 ---
 
 ## Plain English
@@ -93,8 +93,8 @@ its census.
 
 ### But there *is* a real one, elsewhere
 
-This is worth knowing, because it changes how the Platonic lane should be described. Three of the
-five solids are built geometrically in this repository — just not in `Results.lean`:
+This is worth knowing, because it changes how the Platonic lane should be described. The first
+geometric constructions, of three of the five solids, were these:
 
 | solid | module | what is proved |
 |---|---|---|
@@ -107,11 +107,14 @@ sphere with all edges equal, and `Cube.regularTetra` is a **regular** tetrahedro
 equidistant alternating cube corners, affinely independent, hence an `AffineBasis`, hence `{3,3}`
 with Euler from the root.
 
-The dodecahedron and the icosahedron have none of this. They need golden-ratio coordinates, where
-the face lattice cannot be settled by `decide`, and they are not attempted.
+All five — including the dodecahedron and the icosahedron, with golden-ratio coordinates — are now
+built and proved **regular** (flag-transitive) in `PlatonicSolids.lean`, exported as
+[`results_five_platonic_solids_constructed`](#/node/Results.results_five_platonic_solids_constructed).
 
-So: "three of the five Platonic solids are constructed and shown to satisfy Euler's formula" is a
-true and fair summary of this repository. "The five Platonic solids are classified" is not.
+So: "the five Platonic solids are constructed and proved regular" is a true and fair summary of
+this repository. "The five Platonic solids are classified up to similarity" is **not** yet: that is
+conditional on two unproved gaps
+([`results_regular_polyhedron_face_data`](#/node/Results.results_regular_polyhedron_face_data)).
 
 ### Where it sits
 

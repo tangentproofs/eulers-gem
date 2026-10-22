@@ -84,6 +84,12 @@ proved** in general: `EdgeVertices.ncard_vertices_of_edge`.
 
 ## Open
 
+> **Update (branch `platonic-classification`):** items 1 and 2 are superseded. All five solids
+> are constructed in `EulersGem/PlatonicSolids.lean` (coordinates in `ℤ[φ]`, face lattices by
+> `decide +kernel`) and proved flag-transitive (`IsRegularPolyhedron`); see
+> `PLATONIC_CLASSIFICATION_DESIGN.md`. Item 3 (uniqueness up to similarity) is conditional on
+> two gaps quarantined in `lean/PlatonicGaps.lean`.
+
 1. **The other two solids.** Three of five are geometric: the tetrahedron `{3,3}`
    (`SimplexFaces` + `GeometricPlatonic`), the octahedron `{3,4}` (`Octahedron.lean`) and the
    cube `{4,3}` (`Cube.lean`). The dodecahedron `{5,3}` and icosahedron `{3,5}` still exist
